@@ -1,0 +1,253 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "assets/font/Cairo,Lora/Cairo/Cairo-VariableFont_slnt,wght.ttf",
+      "sha1": "d0bfb331bc33d0f79858155fa1fc86f192db895b"
+    },
+    {
+      "path": "assets/font/Cairo,Lora/Cairo/OFL.txt",
+      "sha1": "763bcdafb907427dfe16cfaba6b455c1acfef44d"
+    },
+    {
+      "path": "assets/font/Cairo,Lora/Cairo/README.txt",
+      "sha1": "26bf1c653c68d9c3b28d999032fc85ffff33e4ff"
+    },
+    {
+      "path": "assets/font/Cairo,Lora/Cairo/static/Cairo-Black.ttf",
+      "sha1": "daf7d75a54160134031c1f4c7ed3aa8f80b33f9d"
+    },
+    {
+      "path": "assets/font/Cairo,Lora/Cairo/static/Cairo-Bold.ttf",
+      "sha1": "dd70862b408a084a4e55aa03529eb8e06641165e"
+    },
+    {
+      "path": "assets/font/Cairo,Lora/Cairo/static/Cairo-ExtraBold.ttf",
+      "sha1": "35edba902298f72ed1d47c93201d2517169a0004"
+    },
+    {
+      "path": "assets/font/Cairo,Lora/Cairo/static/Cairo-ExtraLight.ttf",
+      "sha1": "9c3787a7b847c6d1749e69f574829623834e1626"
+    },
+    {
+      "path": "assets/font/Cairo,Lora/Cairo/static/Cairo-Light.ttf",
+      "sha1": "cef35f6061ab86fc969e4be4568914e3bebdfb80"
+    },
+    {
+      "path": "assets/font/Cairo,Lora/Cairo/static/Cairo-Medium.ttf",
+      "sha1": "35fb6c639d86475e0ba6f1883001310d0ab4076d"
+    },
+    {
+      "path": "assets/font/Cairo,Lora/Cairo/static/Cairo-Regular.ttf",
+      "sha1": "ff06dbd8c8a0fef12b0668cb7b849c209a21b435"
+    },
+    {
+      "path": "assets/font/Cairo,Lora/Cairo/static/Cairo-SemiBold.ttf",
+      "sha1": "30dc3ec8aba45f975411bc675494c59b5c227f47"
+    },
+    {
+      "path": "assets/font/Cairo,Lora/Lora/Lora-Italic-VariableFont_wght.ttf",
+      "sha1": "7adb116b44843992ec2a72b6d541891481fa0be8"
+    },
+    {
+      "path": "assets/font/Cairo,Lora/Lora/Lora-VariableFont_wght.ttf",
+      "sha1": "3abe3b6dde4dd5e70c75073de9aad0da658e651d"
+    },
+    {
+      "path": "assets/font/Cairo,Lora/Lora/OFL.txt",
+      "sha1": "de2ca828c5f3d6af1ab0e577b7b2b6a428505a42"
+    },
+    {
+      "path": "assets/font/Cairo,Lora/Lora/README.txt",
+      "sha1": "30fa52a57c9448ba863a83392185571f4351ec63"
+    },
+    {
+      "path": "assets/font/Cairo,Lora/Lora/static/Lora-Bold.ttf",
+      "sha1": "e24126e8c27fdd834acb1ccf27054aeeb90ef492"
+    },
+    {
+      "path": "assets/font/Cairo,Lora/Lora/static/Lora-BoldItalic.ttf",
+      "sha1": "2692dfa69674873703a1b51319654fc41ee894ca"
+    },
+    {
+      "path": "assets/font/Cairo,Lora/Lora/static/Lora-Italic.ttf",
+      "sha1": "af3df0dfa62a44dfb75be69e1cdc38c2cdfe2b89"
+    },
+    {
+      "path": "assets/font/Cairo,Lora/Lora/static/Lora-Medium.ttf",
+      "sha1": "1eb9610f2d31ed20319568b516e8328de69c5b2a"
+    },
+    {
+      "path": "assets/font/Cairo,Lora/Lora/static/Lora-MediumItalic.ttf",
+      "sha1": "783ff5bc6cf1db6aebe10562c3a76316e045ab5f"
+    },
+    {
+      "path": "assets/font/Cairo,Lora/Lora/static/Lora-Regular.ttf",
+      "sha1": "2f0de70df8ae30d4e64fffcb8850fc9b111365c3"
+    },
+    {
+      "path": "assets/font/Cairo,Lora/Lora/static/Lora-SemiBold.ttf",
+      "sha1": "7850da50ade64e68ce01cd318716b0b2927a8b9b"
+    },
+    {
+      "path": "assets/font/Cairo,Lora/Lora/static/Lora-SemiBoldItalic.ttf",
+      "sha1": "7e2b76b06edcac666c056446b01ac59cd9a70d55"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/NotoSansArabic-VariableFont_wdth,wght.ttf",
+      "sha1": "6d2fa48621428dbecdb93124c4c3a18a7abb3dc8"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/OFL.txt",
+      "sha1": "688aef60cef852a46b733b12392c1a8ee6c56909"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/README.txt",
+      "sha1": "f2fb98e71f418ee1da41e01d5c084421f8b06595"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic_Condensed-Black.ttf",
+      "sha1": "e5a1fbd3b35e3b1e0bc9acf96c20e5edd43656fd"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic_Condensed-Bold.ttf",
+      "sha1": "243e0c967b1e23ad8fea0a5f612f3a1c6c38476e"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic_Condensed-ExtraBold.ttf",
+      "sha1": "435facea32495833a5463c0d070d2391246e4a11"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic_Condensed-ExtraLight.ttf",
+      "sha1": "fc5f1751ac876cd6f3a7a70fb6c5347e2242dd3d"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic_Condensed-Light.ttf",
+      "sha1": "69257e1f4cc8a78c3e1b56aac73c7f2a8e987151"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic_Condensed-Medium.ttf",
+      "sha1": "6c46c8e6667b67c906f5c2fabfde1f98512069f6"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic_Condensed-Regular.ttf",
+      "sha1": "94ef1f5e128d59ee8568429c25ce728af167104a"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic_Condensed-SemiBold.ttf",
+      "sha1": "c0b579d68fe595f12bfd531f1275a80327baac22"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic_Condensed-Thin.ttf",
+      "sha1": "a4f0b521655126bc7c5ff1536976770d93255a7c"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic_ExtraCondensed-Black.ttf",
+      "sha1": "ec013c9852b1e02457d073db6c835d85e17d5dea"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic_ExtraCondensed-Bold.ttf",
+      "sha1": "086abed9c9af9034b941c7bc04dd08235d95c35f"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic_ExtraCondensed-ExtraBold.ttf",
+      "sha1": "2030c7db04309098aff196847a624ebc792c4145"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic_ExtraCondensed-ExtraLight.ttf",
+      "sha1": "cb332710166b228bdfb78de326df70dd7b7a961c"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic_ExtraCondensed-Light.ttf",
+      "sha1": "92020ac32158559b2bdb724312f603da79aa82e5"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic_ExtraCondensed-Medium.ttf",
+      "sha1": "a1b6c76fe470c6b0ac27b7b0b52314f826d993c9"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic_ExtraCondensed-Regular.ttf",
+      "sha1": "dd4348630f9d306d3f58f062bac444f25f6aa5bc"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic_ExtraCondensed-SemiBold.ttf",
+      "sha1": "095fdc86e56ded536e0af9b20d8799e4f2380485"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic_ExtraCondensed-Thin.ttf",
+      "sha1": "7af4770d6736074e7b46a07cdfd63deb803dae0a"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic_SemiCondensed-Black.ttf",
+      "sha1": "ead0564ff1a18db10c892263b29b4d69de4e0f0a"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic_SemiCondensed-Bold.ttf",
+      "sha1": "ed9dcc70eef1ead09b434f2bc685913d4d74cd81"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic_SemiCondensed-ExtraBold.ttf",
+      "sha1": "cfa572b79710b4e0a68e033d6c1de9b322a7164f"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic_SemiCondensed-ExtraLight.ttf",
+      "sha1": "0e1acae542b956dc1ef47cd8fafe2a76dd19ba46"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic_SemiCondensed-Light.ttf",
+      "sha1": "5a1d9b4cd4a7eade529e6cac971f64539ddde081"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic_SemiCondensed-Medium.ttf",
+      "sha1": "ee5d79dadd0a547fc91339d7fd35eb544be825e2"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic_SemiCondensed-Regular.ttf",
+      "sha1": "24762320b71cd5190f4d5aaef58bf4e572373608"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic_SemiCondensed-SemiBold.ttf",
+      "sha1": "a1f0cde46ac597e0b787b9071729e9382a6a2e21"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic_SemiCondensed-Thin.ttf",
+      "sha1": "e522a00b84f837fb2bcfd091c0552128fa11c417"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic-Black.ttf",
+      "sha1": "795c518bf499102ec60f235ab0a0333065aa3553"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic-Bold.ttf",
+      "sha1": "d93e430cacb991a36e6605cffd83c8c8e9474cea"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic-ExtraBold.ttf",
+      "sha1": "a965fbb5c70b65f975172c889694af9e8a92214b"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic-ExtraLight.ttf",
+      "sha1": "535dc0802842108cba155273a2cff3b43502dec6"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic-Light.ttf",
+      "sha1": "9a4d4ddbf992822824e71c4817294e830639af4b"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic-Medium.ttf",
+      "sha1": "843fce5c95e07fb7cdf3a295160ec74328d59da9"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic-Regular.ttf",
+      "sha1": "471fde3d95e5f5ac70f37c7774f40b43cdacb89e"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic-SemiBold.ttf",
+      "sha1": "6187a5355a7603d1dcbdb0adb3b5a094d1502e43"
+    },
+    {
+      "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic-Thin.ttf",
+      "sha1": "421e48913e4b5f7398e5ff17c7994f058fca924d"
+    }
+  ]
+}
