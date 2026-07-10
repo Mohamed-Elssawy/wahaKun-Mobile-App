@@ -3,18 +3,28 @@ import { View, Text, TouchableOpacity, Linking, Image } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import {
-
   faAngleLeft,
 } from '@fortawesome/free-solid-svg-icons';
 import { UserPlus, LogIn } from 'lucide-react-native';
-import styles from './App.Style';
-const App = () => {
+import styles from './WelcomeScreen.Style';
+
+
+const WelcomeScreen = ({ navigation }: any) => {
+
+  const handleNewUserPress = () => {
+    // Navigate to the next screen for new users
+    navigation.navigate('EnterYourFullName');
+  }
+  const handleExistingUserPress = () => {
+    // Navigate to the next screen for existing users
+    navigation.navigate('loginScreen');
+  }
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <Image
-            source={require('../assets/images/palmTreeLogo.png')}
+            source={require('../../assets/images/palmTreeLogo.png')}
             style={styles.palmTreeLogo}
           />
           <View style={styles.textContainer}>
@@ -29,8 +39,8 @@ const App = () => {
             <Text style={styles.subText}>هل تستخدم التطبيق للمرة الأولى؟</Text>
           </View>
           <View style={styles.cardsContainer}>
-            <TouchableOpacity style={styles.card} onPress={() => {}}>
-              <UserPlus size={32} color="#1A6B3C" style={{ marginLeft: 12 }} />
+            <TouchableOpacity style={styles.card} onPress={handleNewUserPress}>
+              <UserPlus size={32} color="#1A6B3C"  />
               <View style={styles.cardTextWrap}>
                 <Text style={styles.cardTitle}>مستخدم جديد</Text>
                 <Text style={styles.cardSubtitle}>أنشئ حسابك الآن وابدأ</Text>
@@ -38,8 +48,8 @@ const App = () => {
               <FontAwesomeIcon icon={faAngleLeft} size={24} color="#1F2223" />
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.card} onPress={() => {}}>
-              <LogIn size={32} color="#1A6B3C" style={{ marginLeft: 12 }} />
+            <TouchableOpacity style={styles.card} onPress={handleExistingUserPress}>
+              <LogIn size={32} color="#1A6B3C"/>
               <View style={styles.cardTextWrap}>
                 <Text style={styles.cardTitle}>لدي حساب بالفعل</Text>
                 <Text style={styles.cardSubtitle}>سجل الدخول بسرعة</Text>
@@ -65,4 +75,4 @@ const App = () => {
   );
 };
 
-export default App;
+export default WelcomeScreen;

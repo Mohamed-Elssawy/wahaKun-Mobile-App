@@ -98,7 +98,7 @@ const style = StyleSheet.create({
     padding: 24,
     width: 342,
     height: 100,
-    gap: 10,
+    gap: 24,
     borderColor: '#B1B2B2',
   },
   cardTextWrap: { flex: 1 },
