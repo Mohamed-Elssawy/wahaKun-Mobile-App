@@ -2,7 +2,8 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import WelcomeScreen from '../screens/WelcomeScreen';
-import EnterYourFullName from '../screens/EnterYourFallName/EnterYourFullName';
+import EnterYourFullName from '../screens/EnterYourFallName';
+import LocationSelection from '../screens/LocationSelection'
 import AddProfilePic from '../screens/AddProfilePic'
 
 const Stack = createNativeStackNavigator();
@@ -23,6 +24,7 @@ export default function AppNavigator() {
         <Stack.Screen name="Welcome" component={WelcomeScreen} />
         <Stack.Screen name="EnterYourFullName" component={EnterYourFullName} />
         <Stack.Screen name="AddProfilePic" component={AddProfilePic} />
+        <Stack.Screen name="LocationSelection" component={LocationSelection} />
       </Stack.Navigator>
     </NavigationContainer>
   );

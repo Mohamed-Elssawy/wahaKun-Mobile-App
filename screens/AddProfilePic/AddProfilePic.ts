@@ -173,42 +173,69 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
 
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    justifyContent: 'flex-end',
-  },
-
-  modalContainer: {
+  // Passed to BottomSheetModal's `backgroundStyle` prop — draws the sheet's
+  // rounded card + shadow (replaces the old manual bottomSheetContainer).
+  sheetBackground: {
     backgroundColor: '#F4F1EB',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
-    paddingHorizontal: 24,
-    paddingTop: 12,
-    paddingBottom: 30,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 12,
   },
 
-  modalHandle: {
+  // Passed to BottomSheetModal's `handleStyle` prop — the draggable strip
+  // at the top of the sheet (the library handles the drag gesture itself).
+  sheetHandle: {
+    paddingVertical: 10,
+  },
+
+  // Passed to BottomSheetModal's `handleIndicatorStyle` prop.
+  sheetHandleIndicator: {
     width: 45,
     height: 5,
     borderRadius: 20,
     backgroundColor: '#B1B2B2',
-    alignSelf: 'center',
-    marginBottom: 25,
+  },
+
+  // Wraps the sheet's inner content (BottomSheetView).
+  sheetContent: {
+    paddingHorizontal: 24,
+    paddingBottom: 34, // clears the home indicator on iOS
+  },
+
+  sheetTitle: {
+    fontFamily: 'Cairo-Regular',
+    fontWeight: '600',
+    fontSize: 18,
+    lineHeight: 24,
+    color: '#363939',
+    textAlign: 'center',
+    marginBottom: 16,
   },
 
   modalButton: {
-    height: 60,
-    justifyContent: 'center',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    height: 60,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5E5',
   },
 
+  modalButtonLast: {
+    borderBottomWidth: 0,
+  },
+
   modalButtonText: {
-    fontSize: 18,
-    fontFamily: 'Cairo-Regular',
+    fontSize: 16,
+    fontFamily: 'NotoSansArabic_Condensed-Regular',
+    fontWeight: '600',
     color: '#1A6B3C',
+    textAlign: 'center',
   },
 
   cancelButton: {
@@ -221,9 +248,10 @@ const styles = StyleSheet.create({
   },
 
   cancelButtonText: {
-    fontSize: 18,
-    fontFamily: 'Cairo-Regular',
-    color: '#D32F2F',
+    fontSize: 16,
+    fontFamily: 'NotoSansArabic_Condensed-Regular',
+    fontWeight: '600',
+    color: '#363939',
   },
 });
 
