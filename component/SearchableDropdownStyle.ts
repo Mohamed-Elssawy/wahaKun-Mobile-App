@@ -4,8 +4,6 @@ const styles = StyleSheet.create({
   container: {
     width: 342,
     alignSelf: 'center',
-    marginBottom: 24,
-    zIndex: 100,
   },
 
   label: {
@@ -14,7 +12,7 @@ const styles = StyleSheet.create({
     fontFamily: 'NotoSansArabic_Condensed-Regular',
     textAlign: 'right',
     lineHeight: 21,
-    marginBottom: 8,
+    marginBottom: 2,
   },
 
   // The single box that wraps BOTH the search row and the list. One border +

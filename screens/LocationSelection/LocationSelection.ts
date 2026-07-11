@@ -11,7 +11,6 @@ const styles = StyleSheet.create({
   bodyheader: {
     flexDirection: 'column',
     width: '100%',
-    height: 370,
     gap: 40,
   },
   header: {
@@ -75,7 +74,6 @@ const styles = StyleSheet.create({
   bodyContainer: {
     flexDirection: 'column',
     width: '100%',
-    height: 248,
     gap: 40,
   },
   questionContainer: {
@@ -96,7 +94,6 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'column',
     width: '100%',
-    height: 69,
     paddingLeft: 24,
     paddingRight: 24,
     gap: 10,
@@ -111,22 +108,17 @@ const styles = StyleSheet.create({
   },
   nextButton: {
     flexDirection: 'row-reverse',
-    width: 114,
+    width: 93,
     height: 48,
     borderRadius: 6,
-    paddingLeft: 10,
-    paddingRight: 17,
-    paddingTop: 12,
-    paddingBottom: 10,
+    padding: 12,
     gap: 10,
     backgroundColor: '#1A6B3C',
   },
   textOfNext: {
-    width: 37,
-    height: 24,
     fontFamily: 'NotoSansArabic_Condensed-Regular',
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: 18,
     lineHeight: 24,
     color: '#FFFFFF',
   },

@@ -87,9 +87,6 @@ const LocationSelection = ({ navigation }: any) => {
             <View style={styles.questionContainer}>
               <Text style={styles.question}>اختر واحتك / قريتك / منطقتك</Text>
             </View>
-
-            {/* المحافظة */}
-
             <View style={styles.searchContainer}>
               <SearchableDropdown
                 label="المحافظة"

@@ -5,6 +5,7 @@ import WelcomeScreen from '../screens/WelcomeScreen';
 import EnterYourFullName from '../screens/EnterYourFallName';
 import LocationSelection from '../screens/LocationSelection'
 import AddProfilePic from '../screens/AddProfilePic'
+import RoleSelection from '../screens/RoleSelection'
 
 const Stack = createNativeStackNavigator();
 
@@ -25,6 +26,7 @@ export default function AppNavigator() {
         <Stack.Screen name="EnterYourFullName" component={EnterYourFullName} />
         <Stack.Screen name="AddProfilePic" component={AddProfilePic} />
         <Stack.Screen name="LocationSelection" component={LocationSelection} />
+        <Stack.Screen name="RoleSelection" component={RoleSelection} />
       </Stack.Navigator>
     </NavigationContainer>
   );

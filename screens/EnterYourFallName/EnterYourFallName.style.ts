@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     textAlign: 'right',
     gap: 8,
-    color : '#57595A',
+    color: '#57595A',
   },
   namingTextInput: {
     width: '100%',
@@ -135,31 +135,29 @@ const styles = StyleSheet.create({
   },
   nextButton: {
     flexDirection: 'row-reverse',
-    width: 114,
+    width: 93,
     height: 48,
     borderRadius: 6,
-    paddingLeft:10,
-    paddingRight:17,
-    paddingTop:12, 
-    paddingBottom: 10,
+    padding: 12,
     gap: 10,
     backgroundColor: '#1A6B3C',
   },
-  textOfNext:{
-    width: 37,
-    height : 24,
+  textOfNext: {
     fontFamily: 'NotoSansArabic_Condensed-Regular',
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: 18,
     lineHeight: 24,
-    color : '#FFFFFF'
+    color: '#FFFFFF',
   },
-  errorText:{
+  errorText: {
     color: '#57595A',
     fontFamily: 'NotoSansArabic_Condensed-Regular',
     fontWeight: '600',
     fontSize: 16,
     lineHeight: 24,
+  },
+  disabledButton: {
+    backgroundColor: '#B1B2B2',
   },
 });
 
