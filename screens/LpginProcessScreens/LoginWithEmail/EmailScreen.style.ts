@@ -6,71 +6,20 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     justifyContent: 'space-between',
-    paddingBottom: 56,
+    paddingBottom: 32,
   },
   headerAndInputText: {
     flexDirection: 'column',
     width: '100%',
-    height: 271,
     gap: 40,
   },
   header: {
-    flexDirection: 'column',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
     width: '100%',
-    height: 88,
-  },
-  headerNavigation: {
-    flexDirection: 'row-reverse',
-    justifyContent: 'space-between',
-    width: '100%',
-    height: 84,
-    paddingLeft: 24,
-    paddingRight: 24,
-    paddingTop: 48,
+    paddingHorizontal: 24,
+    paddingTop: 24,
     paddingBottom: 12,
-    textAlign: 'right',
-  },
-  StepOneWithLogoContainer: {
-    width: 114,
-    height: 24,
-    alignItems: 'center',
-    gap: 12,
-    flexDirection: 'row-reverse',
-  },
-  palmTreeLogo: {
-    width: 24,
-    height: 24,
-  },
-  stepOneText: {
-    fontFamily: 'NotoSansArabic_Condensed-Regular',
-    fontSize: 14,
-    lineHeight: 21,
-    fontWeight: '600',
-    textAlign: 'right',
-    color: '#363939',
-  },
-  goBack: {
-    fontFamily: 'NotoSansArabic_Condensed-Regular',
-    fontSize: 14,
-    lineHeight: 21,
-    fontWeight: '400',
-    textAlign: 'right',
-    color: '#B1B2B2',
-    width: 37,
-    height: 21,
-  },
-  progressTrack: {
-    width: '100%',
-    height: 4,
-    backgroundColor: '#EAEAEA',
-    position: 'relative',
-  },
-  progressFill: {
-    position: 'absolute',
-    width: 243.75,
-    height: 4,
-    backgroundColor: '#1F2223',
-    right: 0,
   },
 
   formContainer: {
@@ -110,6 +59,7 @@ const styles = StyleSheet.create({
   fieldGroup: {
     flexDirection: 'column',
     width: '100%',
+    gap: 8,
   },
   fieldLabel: {
     fontFamily: 'NotoSansArabic_Condensed-Regular',
@@ -149,7 +99,21 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#57595A',
   },
+  forgotPasswordText: {
+    fontFamily: 'NotoSansArabic_Condensed-Regular',
+    fontWeight: '600',
+    fontSize: 14,
+    lineHeight: 21,
+    textAlign: 'center',
+    color: '#1A6B3C',
+    width: '100%',
+  },
 
+  bottomContainer: {
+    flexDirection: 'column',
+    width: '100%',
+    gap: 16,
+  },
   buttonContainer: {
     flexDirection: 'row',
     width: '100%',
@@ -160,12 +124,14 @@ const styles = StyleSheet.create({
   },
   nextButton: {
     flexDirection: 'row-reverse',
-    width: 93,
+    width: '100%',
     height: 48,
     borderRadius: 6,
     padding: 12,
     gap: 10,
     backgroundColor: '#1A6B3C',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   textOfNext: {
     fontFamily: 'NotoSansArabic_Condensed-Regular',
@@ -185,6 +151,16 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     backgroundColor: '#B1B2B2',
+  },
+
+  phoneLoginText: {
+    fontFamily: 'NotoSansArabic_Condensed-Regular',
+    fontWeight: '600',
+    fontSize: 14,
+    lineHeight: 21,
+    textAlign: 'center',
+    color: '#1A6B3C',
+    width: '100%',
   },
 });
 

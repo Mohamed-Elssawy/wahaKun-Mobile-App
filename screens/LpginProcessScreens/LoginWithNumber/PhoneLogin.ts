@@ -5,79 +5,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#F4F1EB',
     width: '100%',
     height: '100%',
-    justifyContent: 'space-between',
-    paddingBottom: 56,
-  },
-  headerAndInputText: {
-    flexDirection: 'column',
-    width: '100%',
-    height: 271,
-    gap: 40,
   },
   header: {
-    flexDirection: 'column',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
     width: '100%',
-    height: 88,
-  },
-  headerNavigation: {
-    flexDirection: 'row-reverse',
-    justifyContent: 'space-between',
-    width: '100%',
-    height: 84,
-    paddingLeft: 24,
-    paddingRight: 24,
-    paddingTop: 48,
+    paddingHorizontal: 24,
+    paddingTop: 24,
     paddingBottom: 12,
-    textAlign: 'right',
-  },
-  StepOneWithLogoContainer: {
-    width: 114,
-    height: 24,
-    alignItems: 'center',
-    gap: 12,
-    flexDirection: 'row-reverse',
-  },
-  palmTreeLogo: {
-    width: 24,
-    height: 24,
-  },
-  stepOneText: {
-    fontFamily: 'NotoSansArabic_Condensed-Regular',
-    fontSize: 14,
-    lineHeight: 21,
-    fontWeight: '600',
-    textAlign: 'right',
-    color: '#363939',
-  },
-  goBack: {
-    fontFamily: 'NotoSansArabic_Condensed-Regular',
-    fontSize: 14,
-    lineHeight: 21,
-    fontWeight: '400',
-    textAlign: 'right',
-    color: '#B1B2B2',
-    width: 37,
-    height: 21,
-  },
-  progressTrack: {
-    width: '100%',
-    height: 4,
-    backgroundColor: '#EAEAEA',
-    position: 'relative',
-  },
-  progressFill: {
-    position: 'absolute',
-    width: 292.5, // step 6 of 10 — adjust to your real progress logic
-    height: 4,
-    backgroundColor: '#1F2223',
-    right: 0,
   },
 
-  formContainer: {
+  content: {
     flexDirection: 'column',
     width: '100%',
-    gap: 40,
     paddingHorizontal: 24,
+    gap: 24,
   },
   textContainer: {
     flexDirection: 'column',
@@ -105,7 +47,7 @@ const styles = StyleSheet.create({
   inputfeildContainer: {
     flexDirection: 'column',
     width: '100%',
-    gap: 20,
+    gap: 8,
   },
   fieldGroup: {
     flexDirection: 'column',
@@ -120,20 +62,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     color: '#1F2223',
   },
-  textInput: {
-    width: '100%',
-    height: 48,
-    borderWidth: 1,
-    borderColor: '#EAEAEA',
-    borderRadius: 8,
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 14,
-    fontFamily: 'NotoSansArabic_Condensed-Regular',
-    fontSize: 15,
-    color: '#1F2223',
-  },
 
-  // Phone input row: [country selector | divider | number input]
   phoneInputRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -144,6 +73,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 14,
+    gap:14,
   },
   countrySelector: {
     flexDirection: 'row-reverse',
@@ -163,16 +93,110 @@ const styles = StyleSheet.create({
     width: 1,
     height: 24,
     backgroundColor: '#EAEAEA',
-    marginHorizontal: 12,
   },
   phoneNumberInput: {
     flex: 1,
     fontFamily: 'NotoSansArabic_Condensed-Regular',
     fontSize: 15,
     color: '#1F2223',
+    lineHeight: 15,
+    textAlign: 'center'
   },
 
-  // Country picker modal
+  sendCodeButton: {
+    flexDirection: 'row-reverse',
+    width: '100%',
+    height: 48,
+    borderRadius: 6,
+    padding: 12,
+    gap: 10,
+    backgroundColor: '#1A6B3C',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sendCodeText: {
+    fontFamily: 'NotoSansArabic_Condensed-Regular',
+    fontWeight: '600',
+    fontSize: 18,
+    lineHeight: 24,
+    color: '#FFFFFF',
+  },
+  disabledButton: {
+    backgroundColor: '#B1B2B2',
+  },
+
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    gap: 18,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#8E9090',
+  },
+  dividerText: {
+    fontFamily: 'NotoSansArabic_Condensed-Regular',
+    fontWeight: '400',
+    fontSize: 20,
+    color: '#8E9090',
+  },
+
+  emailLoginButton: {
+    flexDirection: 'row',
+    width: '100%',
+    height: 48,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#57595A',
+    padding: 12,
+    gap: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emailLoginText: {
+    fontFamily: 'NotoSansArabic_Condensed-Regular',
+    fontWeight: '600',
+    fontSize: 16,
+    lineHeight: 24,
+    color: '#57595A',
+  },
+
+  cantAccessText: {
+    fontFamily: 'NotoSansArabic_Condensed-Regular',
+    fontWeight: '400',
+    fontSize: 14,
+    lineHeight: 21,
+    textAlign: 'center',
+    color: '#57595A',
+    width: '100%',
+  },
+  cantAccessLink: {
+    fontWeight: '700',
+    color: '#1A6B3C',
+  },
+
+  footer: {
+    marginTop: 'auto',
+    width: '100%',
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+  },
+  footerText: {
+    fontFamily: 'NotoSansArabic_Condensed-Regular',
+    fontWeight: '400',
+    fontSize: 12,
+    lineHeight: 18,
+    textAlign: 'center',
+    color: '#B1B2B2',
+  },
+  footerLink: {
+    fontWeight: '700',
+    color: '#1A6B3C',
+    textDecorationLine: 'underline',
+  },
+
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.4)',
@@ -220,45 +244,6 @@ const styles = StyleSheet.create({
     fontFamily: 'NotoSansArabic_Condensed-Regular',
     fontSize: 14,
     color: '#57595A',
-  },
-
-  buttonContainer: {
-    flexDirection: 'row',
-    width: '100%',
-    height: 48,
-    justifyContent: 'space-between',
-    paddingLeft: 24,
-    paddingRight: 24,
-  },
-  nextButton: {
-    flexDirection: 'row-reverse',
-    width: '100%',
-    height: 48,
-    borderRadius: 6,
-    padding: 12,
-    gap: 10,
-    backgroundColor: '#1A6B3C',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  textOfNext: {
-    fontFamily: 'NotoSansArabic_Condensed-Regular',
-    fontWeight: '600',
-    fontSize: 18,
-    lineHeight: 24,
-    color: '#FFFFFF',
-  },
-  errorText: {
-    color: '#D14343',
-    fontFamily: 'NotoSansArabic_Condensed-Regular',
-    fontWeight: '600',
-    fontSize: 14,
-    lineHeight: 21,
-    textAlign: 'right',
-    paddingHorizontal: 24,
-  },
-  disabledButton: {
-    backgroundColor: '#B1B2B2',
   },
 });
 

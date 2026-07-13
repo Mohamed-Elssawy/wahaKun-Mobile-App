@@ -108,6 +108,20 @@ const styles = StyleSheet.create({
     gap: 24,
     borderColor: '#B1B2B2',
   },
+  // Applied on top of `card` when this card is the chosen role — light green
+  // fill + green border, matching the Figma state. Icon color intentionally
+  // doesn't change here (it's already green in both states in the design).
+  cardSelected: {
+    backgroundColor: '#EAF6EF',
+    borderColor: '#1A6B3C',
+
+  },
+  cardTitleSelected:{
+    color: '#0A4B25'
+  },
+  cardSubtitleSelected:{
+    color: '#0A4B25'
+  },
   cardTextWrap: { flex: 1 },
   cardTitle: {
     fontSize: 18,

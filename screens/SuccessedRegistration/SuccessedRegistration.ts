@@ -8,6 +8,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingBottom: 56,
   },
+  headerAndInputText: {
+    flexDirection: 'column',
+    width: '100%',
+    gap: 40,
+  },
   header: {
     flexDirection: 'column',
     width: '100%',
@@ -31,10 +36,6 @@ const styles = StyleSheet.create({
     gap: 12,
     flexDirection: 'row-reverse',
   },
-  palmTreeLogo: {
-    width: 24,
-    height: 24,
-  },
   stepOneText: {
     fontFamily: 'NotoSansArabic_Condensed-Regular',
     fontSize: 14,
@@ -43,28 +44,77 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     color: '#363939',
   },
-  goBack: {
-    fontFamily: 'NotoSansArabic_Condensed-Regular',
-    fontSize: 14,
-    lineHeight: 21,
-    fontWeight: '400',
-    textAlign: 'right',
-    color: '#B1B2B2',
-    width: 37,
-    height: 21,
+  palmTreeLogo: {
+    width: 24,
+    height: 24,
   },
   progressTrack: {
     width: '100%',
     height: 4,
-    backgroundColor: '#EAEAEA', // this was your `divider` style — the gray track
+    backgroundColor: '#EAEAEA',
     position: 'relative',
   },
   progressFill: {
     position: 'absolute',
-    width: 9.75,
+    width: '100%', // step 7 of 10 — adjust to your real progress logic
     height: 4,
-    backgroundColor: '#1F2223', // Neutral/N900, from your panel
-    right: 0, // pinned to the right edge
+    backgroundColor: '#1F2223',
+    right: 0,
+  },
+
+  contentContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  textContainer: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 12,
+  },
+  successTitle: {
+    width: '100%',
+    fontFamily: 'Cairo-Regular',
+    fontWeight: '600',
+    fontSize: 28,
+    lineHeight: 40,
+    textAlign: 'center',
+    color: '#1F2223',
+  },
+  successSubtitle: {
+    width: '100%',
+    fontFamily: 'NotoSansArabic_Condensed-Regular',
+    fontWeight: '400',
+    fontSize: 14,
+    lineHeight: 21,
+    textAlign: 'center',
+    color: '#57595A',
+  },
+
+  buttonContainer: {
+    flexDirection: 'row',
+    width: '100%',
+    height: 48,
+    paddingLeft: 24,
+    paddingRight: 24,
+  },
+  startButton: {
+    flexDirection: 'row',
+    width: '100%',
+    height: 48,
+    borderRadius: 6,
+    padding: 12,
+    backgroundColor: '#1A6B3C',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  textOfStart: {
+    fontFamily: 'NotoSansArabic_Condensed-Regular',
+    fontWeight: '600',
+    fontSize: 18,
+    lineHeight: 24,
+    color: '#FFFFFF',
   },
 });
 

@@ -17,7 +17,7 @@ const WelcomeScreen = ({ navigation }: any) => {
   }
   const handleExistingUserPress = () => {
     // Navigate to the next screen for existing users
-    navigation.navigate('loginScreen');
+    navigation.navigate('LoginScreen');
   }
   return (
     <SafeAreaProvider>

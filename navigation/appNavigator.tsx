@@ -4,8 +4,15 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import EnterYourFullName from '../screens/EnterYourFallName';
 import LocationSelection from '../screens/LocationSelection'
-import AddProfilePic from '../screens/AddProfilePic'
-import RoleSelection from '../screens/RoleSelection'
+import AddProfilePic from '../screens/AddProfilePic';
+import RoleSelection from '../screens/RoleSelection';
+import EmailVerification from '../screens/EmailVerification';
+import PhoneNumberVerification from '../screens/PhoneNumberVerification';
+import OTPScreen from '../screens/OTP-Screen';
+import SuccessedRegistration from '../screens/SuccessedRegistration';
+import LoginScreen from '../screens/LpginProcessScreens/LoginWithNumber';
+import OTPScreenLogin from '../screens/LpginProcessScreens/OTPScreenLogin';
+import EmailLogin from '../screens/LpginProcessScreens/LoginWithEmail'
 
 const Stack = createNativeStackNavigator();
 
@@ -27,6 +34,13 @@ export default function AppNavigator() {
         <Stack.Screen name="AddProfilePic" component={AddProfilePic} />
         <Stack.Screen name="LocationSelection" component={LocationSelection} />
         <Stack.Screen name="RoleSelection" component={RoleSelection} />
+        <Stack.Screen name="EmailVerification" component={EmailVerification} />
+        <Stack.Screen name="PhoneNumberVerification" component={PhoneNumberVerification} />
+        <Stack.Screen name="OTPScreen" component={OTPScreen} />
+        <Stack.Screen name="SuccessedRegistration" component={SuccessedRegistration} />
+        <Stack.Screen name="LoginScreen" component={LoginScreen} />
+        <Stack.Screen name="OTPScreenLogin" component={OTPScreenLogin} />
+        <Stack.Screen name="EmailLogin" component={EmailLogin} />
       </Stack.Navigator>
     </NavigationContainer>
   );
