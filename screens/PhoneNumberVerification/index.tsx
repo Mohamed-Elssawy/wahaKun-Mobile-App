@@ -6,11 +6,14 @@ import {
   TextInput,
   Modal,
   FlatList,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, ChevronDown } from 'lucide-react-native';
 import styles from './PhoneNumberVerification';
 import { useState } from 'react';
+import * as authService from '../../services/authService';
+import { ApiError } from '../../services/apiClient';
 
 type Country = {
   name: string;
@@ -27,11 +30,12 @@ const COUNTRIES: Country[] = [
   { name: 'المملكة المتحدة', flag: '🇬🇧', dialCode: '+44', code: 'GB' },
 ];
 
-const PhoneNumberVerification = ({ navigation }: any) => {
+const PhoneNumberVerification = ({ navigation, route }: any) => {
   const [selectedCountry, setSelectedCountry] = useState<Country>(COUNTRIES[0]);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isPickerVisible, setPickerVisible] = useState(false);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const isValid = phoneNumber.trim().length > 0;
 
@@ -41,15 +45,54 @@ const PhoneNumberVerification = ({ navigation }: any) => {
     setError('');
   };
 
-  const handleNextPress = () => {
+  const handleNextPress = async () => {
     if (!isValid) {
       setError('يرجى إدخال رقم الهاتف');
       return;
     }
     setError('');
-    navigation.navigate('OTPScreen', {
-      phoneNumber: `${selectedCountry.dialCode}${phoneNumber}`,
-    });
+
+    const fullPhoneNumber = `${selectedCountry.dialCode}${phoneNumber}`;
+    const params = route?.params ?? {};
+
+    setIsLoading(true);
+    try {
+      const formData = authService.buildRegisterFormData({
+        FullName: params.fullName ?? '',
+        village: params.location?.name ?? '',
+        Region: params.governorate?.name ?? '',
+        email: params.email ?? '',
+        password: params.password ?? '',
+        PhoneNumber: fullPhoneNumber,
+        picture: params.profileImage ?? null,
+      });
+
+      if (params.role === 'expert') {
+        // Expert accounts are created as "Pending" and don't go through OTP —
+        // an admin has to approve them, so we send the user straight to the
+        // success screen instead of the OTP step.
+        await authService.createExpert(formData);
+        setIsLoading(false);
+        navigation.navigate('SuccessedRegistration', {
+          phoneNumber: fullPhoneNumber,
+          pendingApproval: true,
+        });
+        return;
+      }
+
+      // Farmer registration sends an OTP to the phone number.
+      await authService.register(formData);
+      setIsLoading(false);
+      navigation.navigate('OTPScreen', {
+        ...params,
+        phoneNumber: fullPhoneNumber,
+      });
+    } catch (err) {
+      setIsLoading(false);
+      const message =
+        err instanceof ApiError ? err.message : 'حدث خطأ أثناء إنشاء الحساب، حاول مرة أخرى';
+      setError(message);
+    }
   };
 
   return (
@@ -118,12 +161,19 @@ const PhoneNumberVerification = ({ navigation }: any) => {
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity
-            style={[styles.nextButton, !isValid && styles.disabledButton]}
+            style={[styles.nextButton, (!isValid || isLoading) && styles.disabledButton]}
             onPress={handleNextPress}
             activeOpacity={isValid ? 0.7 : 1}
+            disabled={isLoading}
           >
-            <Text style={styles.textOfNext}>ارسال رمز التحقق</Text>
-            <ArrowLeft size={24} color="#FFFFFF" />
+            {isLoading ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <>
+                <Text style={styles.textOfNext}>ارسال رمز التحقق</Text>
+                <ArrowLeft size={24} color="#FFFFFF" />
+              </>
+            )}
           </TouchableOpacity>
         </View>
 

@@ -8,7 +8,7 @@ import { useState } from 'react';
 
 type Role = 'farmer' | 'expert';
 
-const RoleSelection = ({ navigation }: any) => {
+const RoleSelection = ({ navigation, route }: any) => {
   // Which card is currently picked — a single value (not two booleans) so
   // selecting one card is automatically "the other card is not selected",
   // the same pattern used for the open/closed dropdowns on LocationSelection.
@@ -28,7 +28,10 @@ const RoleSelection = ({ navigation }: any) => {
       return;
     }
     setError('');
-    navigation.navigate('EmailVerification', { role: selectedRole });
+    navigation.navigate('EmailVerification', {
+      ...route?.params,
+      role: selectedRole,
+    });
   };
 
   return (

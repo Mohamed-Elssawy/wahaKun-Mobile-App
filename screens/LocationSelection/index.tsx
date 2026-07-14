@@ -12,7 +12,7 @@ import styles from './LocationSelection';
 
 type ActiveField = 'governorate' | 'area' | null;
 
-const LocationSelection = ({ navigation }: any) => {
+const LocationSelection = ({ navigation, route }: any) => {
   const [selectedGovernorate, setSelectedGovernorate] =
     useState<LocationItem | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<LocationItem | null>(
@@ -51,6 +51,8 @@ const LocationSelection = ({ navigation }: any) => {
     }
 
     navigation.navigate('RoleSelection', {
+      // carry every field collected so far (fullName, Image, ...)
+      ...route?.params,
       governorate: selectedGovernorate,
       location: selectedLocation,
     });

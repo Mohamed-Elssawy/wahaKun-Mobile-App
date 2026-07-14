@@ -3,9 +3,9 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, ArrowRight, Eye, EyeOff } from 'lucide-react-native';
 import styles from './EmailScreen.style';
 import { useState } from 'react';
-
-// TODO: replace with your real API base URL
-const API_BASE_URL = 'https://api.yourapp.com';
+import * as authService from '../../../services/authService';
+import { saveTokens } from '../../../services/tokenStorage';
+import { ApiError } from '../../../services/apiClient';
 
 const EmailLogin = ({ navigation }: any) => {
   const [email, setEmail] = useState('');
@@ -25,28 +25,11 @@ const EmailLogin = ({ navigation }: any) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email.trim(),
-          password,
-        }),
-      });
+      const result = await authService.loginWithEmail(email.trim(), password);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        // Adjust this to match your API's error shape
-        setError(data?.message || 'البريد الإلكتروني أو كلمة المرور غير صحيحة');
-        setIsLoading(false);
-        return;
+      if (result.accessToken && result.refreshToken) {
+        await saveTokens(result.accessToken, result.refreshToken);
       }
-
-      // TODO: store the auth token (e.g. SecureStore / AsyncStorage) before navigating
-      // await SecureStore.setItemAsync('authToken', data.token);
 
       setIsLoading(false);
       navigation.reset({
@@ -55,7 +38,9 @@ const EmailLogin = ({ navigation }: any) => {
       });
     } catch (err) {
       setIsLoading(false);
-      setError('حدث خطأ في الاتصال، حاول مرة أخرى');
+      const message =
+        err instanceof ApiError ? err.message : 'حدث خطأ في الاتصال، حاول مرة أخرى';
+      setError(message);
     }
   };
 

@@ -23,6 +23,10 @@ type PendingAction = 'camera' | 'gallery' | null;
 
 const AddProfilePic = ({ navigation, route }: any) => {
   const [image, setImage] = useState<string | null>(null);
+  // The picked asset's type/fileName — combined with `image` (the uri) this
+  // is exactly the {uri, type, name} shape RN's FormData needs to send the
+  // picture as a real file part to the backend's `IFormFile? picture`.
+  const [imageMeta, setImageMeta] = useState<{ type?: string; fileName?: string }>({});
 
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   // Tracks which action (if any) should run once the sheet has fully
@@ -41,8 +45,15 @@ const AddProfilePic = ({ navigation, route }: any) => {
 
   const handleNextPress = () => {
     navigation.navigate('LocationSelection', {
+      // carry every field collected so far forward through the flow
+      ...route?.params,
       fullName,
-      profileImage: image,
+      // kept as a plain {uri, type, fileName} object — this is threaded all
+      // the way to PhoneNumberVerification, which builds the actual
+      // multipart FormData sent to the backend.
+      profileImage: image
+        ? { uri: image, type: imageMeta.type, fileName: imageMeta.fileName }
+        : null,
     });
   };
 
@@ -64,6 +75,7 @@ const AddProfilePic = ({ navigation, route }: any) => {
         mediaType: 'photo',
         cameraType: 'back',
         saveToPhotos: true,
+        quality: 0.7,
       },
       response => {
         if (response.didCancel) return;
@@ -74,7 +86,9 @@ const AddProfilePic = ({ navigation, route }: any) => {
         }
 
         if (response.assets?.length) {
-          setImage(response.assets[0].uri ?? null);
+          const asset = response.assets[0];
+          setImage(asset.uri ?? null);
+          setImageMeta({ type: asset.type, fileName: asset.fileName });
         }
       },
     );
@@ -84,6 +98,7 @@ const AddProfilePic = ({ navigation, route }: any) => {
     launchImageLibrary(
       {
         mediaType: 'photo',
+        quality: 0.7,
       },
       response => {
         if (response.didCancel) return;
@@ -94,7 +109,9 @@ const AddProfilePic = ({ navigation, route }: any) => {
         }
 
         if (response.assets?.length) {
-          setImage(response.assets[0].uri ?? null);
+          const asset = response.assets[0];
+          setImage(asset.uri ?? null);
+          setImageMeta({ type: asset.type, fileName: asset.fileName });
         }
       },
     );

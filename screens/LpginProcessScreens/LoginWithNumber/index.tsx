@@ -5,11 +5,14 @@ import {
   TextInput,
   Modal,
   FlatList,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, ArrowRight, Mail } from 'lucide-react-native';
 import styles from './PhoneLogin';
 import { useState } from 'react';
+import * as authService from '../../../services/authService';
+import { ApiError } from '../../../services/apiClient';
 
 type Country = {
   name: string;
@@ -31,6 +34,7 @@ const PhoneLogin = ({ navigation }: any) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isPickerVisible, setPickerVisible] = useState(false);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const isValid = phoneNumber.trim().length > 0;
 
@@ -40,15 +44,27 @@ const PhoneLogin = ({ navigation }: any) => {
     setError('');
   };
 
-  const handleSendCode = () => {
+  const handleSendCode = async () => {
     if (!isValid) {
       setError('يرجى إدخال رقم الهاتف');
       return;
     }
     setError('');
-    navigation.navigate('OTPScreenLogin', {
-      phoneNumber: `${selectedCountry.dialCode}${phoneNumber}`,
-    });
+
+    const fullPhoneNumber = `${selectedCountry.dialCode}${phoneNumber}`;
+    setIsLoading(true);
+    try {
+      await authService.loginWithPhone(fullPhoneNumber);
+      setIsLoading(false);
+      navigation.navigate('OTPScreenLogin', {
+        phoneNumber: fullPhoneNumber,
+      });
+    } catch (err) {
+      setIsLoading(false);
+      const message =
+        err instanceof ApiError ? err.message : 'تعذر إرسال رمز التحقق، حاول مرة أخرى';
+      setError(message);
+    }
   };
 
   const handleEmailLogin = () => {
@@ -116,12 +132,19 @@ const PhoneLogin = ({ navigation }: any) => {
           </View>
 
           <TouchableOpacity
-            style={[styles.sendCodeButton, !isValid && styles.disabledButton]}
+            style={[styles.sendCodeButton, (!isValid || isLoading) && styles.disabledButton]}
             onPress={handleSendCode}
             activeOpacity={isValid ? 0.7 : 1}
+            disabled={isLoading}
           >
-            <Text style={styles.sendCodeText}>ارسال رمز التحقق</Text>
-            <ArrowLeft size={20} color="#FFFFFF" />
+            {isLoading ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <>
+                <Text style={styles.sendCodeText}>ارسال رمز التحقق</Text>
+                <ArrowLeft size={20} color="#FFFFFF" />
+              </>
+            )}
           </TouchableOpacity>
 
           <View style={styles.dividerRow}>

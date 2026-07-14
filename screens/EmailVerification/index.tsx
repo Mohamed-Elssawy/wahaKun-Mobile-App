@@ -4,7 +4,7 @@ import { ArrowLeft, Eye, EyeOff } from 'lucide-react-native';
 import styles from './EmailVerification';
 import { useState } from 'react';
 
-const EmailVerification = ({ navigation }: any) => {
+const EmailVerification = ({ navigation, route }: any) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -19,7 +19,11 @@ const EmailVerification = ({ navigation }: any) => {
       return;
     }
     setError('');
-    navigation.navigate('PhoneNumberVerification', { email, password });
+    navigation.navigate('PhoneNumberVerification', {
+      ...route?.params,
+      email: email.trim(),
+      password,
+    });
   };
 
   return (

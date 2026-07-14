@@ -1,8 +1,11 @@
-import { View, Text, Image, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, Image, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 import styles from './OTP-Screen';
 import { useEffect, useRef, useState } from 'react';
+import * as authService from '../../services/authService';
+import { saveTokens } from '../../services/tokenStorage';
+import { ApiError } from '../../services/apiClient';
 
 const OTP_LENGTH = 6;
 const RESEND_SECONDS = 30;
@@ -13,6 +16,7 @@ const OTPScreen = ({ navigation, route }: any) => {
   const [digits, setDigits] = useState<string[]>(Array(OTP_LENGTH).fill(''));
   const [error, setError] = useState('');
   const [secondsLeft, setSecondsLeft] = useState(RESEND_SECONDS);
+  const [isVerifying, setIsVerifying] = useState(false);
   const inputRefs = useRef<Array<TextInput | null>>([]);
 
   const code = digits.join('');
@@ -72,16 +76,31 @@ const OTPScreen = ({ navigation, route }: any) => {
     setDigits(Array(OTP_LENGTH).fill(''));
     setError('');
     inputRefs.current[0]?.focus();
-    // TODO: trigger resend API call here
+    // NOTE: the backend has no dedicated "resend OTP" endpoint yet — OTPs are
+    // only (re)issued as a side effect of /Auth/Register or /Auth/Login.
+    // Once one exists, call it here.
   };
 
-  const handleVerifyPress = () => {
+  const handleVerifyPress = async () => {
     if (!isValid) {
       setError('يرجى إدخال رمز التحقق كاملاً');
       return;
     }
     setError('');
-    navigation.navigate('SuccessedRegistration', { phoneNumber, code });
+    setIsVerifying(true);
+    try {
+      const result = await authService.verifyOtp(phoneNumber, code);
+      if (result.accesstoken && result.refershtoken) {
+        await saveTokens(result.accesstoken, result.refershtoken);
+      }
+      setIsVerifying(false);
+      navigation.navigate('SuccessedRegistration', { phoneNumber });
+    } catch (err) {
+      setIsVerifying(false);
+      const message =
+        err instanceof ApiError ? err.message : 'رمز التحقق غير صحيح، حاول مرة أخرى';
+      setError(message);
+    }
   };
 
   return (
@@ -158,12 +177,19 @@ const OTPScreen = ({ navigation, route }: any) => {
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity
-            style={[styles.nextButton, !isValid && styles.disabledButton]}
+            style={[styles.nextButton, (!isValid || isVerifying) && styles.disabledButton]}
             onPress={handleVerifyPress}
             activeOpacity={isValid ? 0.7 : 1}
+            disabled={isVerifying}
           >
-            <Text style={styles.textOfNext}>تحقق</Text>
-            <ArrowLeft size={24} color="#FFFFFF" />
+            {isVerifying ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <>
+                <Text style={styles.textOfNext}>تحقق</Text>
+                <ArrowLeft size={24} color="#FFFFFF" />
+              </>
+            )}
           </TouchableOpacity>
         </View>
       </SafeAreaView>
