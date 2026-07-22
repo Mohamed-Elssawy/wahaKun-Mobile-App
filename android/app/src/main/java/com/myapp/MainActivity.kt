@@ -13,7 +13,7 @@ class MainActivity : ReactActivity() {
    * Returns the name of the main component registered from JavaScript. This is used to schedule
    * rendering of the component.
    */
-  override fun getMainComponentName(): String = "MyApp"
+  override fun getMainComponentName(): String = "WahaKun"
 
   override fun onCreate(savedInstanceState: Bundle?) {
         RNBootSplash.init(this, R.style.BootTheme)

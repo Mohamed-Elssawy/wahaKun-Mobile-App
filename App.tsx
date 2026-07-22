@@ -1,18 +1,5 @@
-import BootSplash from 'react-native-bootsplash';
-import { useEffect } from 'react';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import AppNavigator from './navigation/appNavigator';
-
-const App = () => {
-  useEffect(() => {
-    BootSplash.hide({ fade: true });
-  }, []);
-
-  return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <AppNavigator />
-    </GestureHandlerRootView>
-  );
-};
-
-export default App;
+/**
+ * Entry shim. The real root lives in src/app/App.tsx — this file stays at the
+ * repo root because index.js and the Jest smoke test resolve it from here.
+ */
+export { default } from './src/app/App';

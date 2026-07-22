@@ -1,8 +1,22 @@
 {
   "extends": "@react-native/typescript-config",
   "compilerOptions": {
-    "types": ["jest"]
+    "types": ["jest"],
+
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@assets/*": ["assets/*"]
+    }
   },
-  "include": ["**/*.ts", "**/*.tsx", "App.tsx"],
-  "exclude": ["**/node_modules", "**/Pods"]
+  "include": ["src/**/*", "__tests__/**/*", "App.tsx", "declarations.d.ts"],
+  "exclude": ["**/node_modules", "**/Pods", "**/build"]
 }

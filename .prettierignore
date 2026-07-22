@@ -1,0 +1,16 @@
+# Native projects — these files are generated or managed by Xcode/Gradle and
+# the asset linker. Reformatting them creates noisy diffs and can confuse the
+# tools that rewrite them.
+android/
+ios/
+vendor/
+
+# Generated / vendored
+node_modules/
+coverage/
+package-lock.json
+assets/bootsplash/
+
+# Machine-local
+src/config/env.local.ts
+.figma.local

@@ -1,97 +1,109 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# WAHA KUN — Mobile App
 
-# Getting Started
+React Native client for WAHA KUN (واحة كُن): farmers report water and irrigation
+problems, experts review them, and issues are tracked through their lifecycle.
+This repo is the mobile front end only; the backend is a separate .NET
+microservice solution.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+The UI is Arabic-first and right-to-left.
 
-## Step 1: Start Metro
+## Requirements
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+|                   |              |
+| ----------------- | ------------ |
+| Node              | ≥ 22.11.0    |
+| React Native      | 0.86         |
+| JDK               | 17 (Android) |
+| Xcode + CocoaPods | iOS only     |
 
-To start the Metro dev server, run the following command from the root of your React Native project:
-
-```sh
-# Using npm
-npm start
-
-# OR using Yarn
-yarn start
-```
-
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
+## Getting started
 
 ```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
+npm install          # also creates src/config/env.local.ts via postinstall
+npm start            # Metro
+npm run android      # or: npm run ios
 ```
 
-### iOS
+### Pointing the app at your backend
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+`src/config/env.ts` defaults to the emulator aliases — `10.0.2.2` on Android,
+`localhost` on iOS — so a fresh clone runs with no edits.
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+On a physical device, set your machine's LAN IP in `src/config/env.local.ts`
+(gitignored, created for you on install):
 
-```sh
-bundle install
+```ts
+export const HOST_OVERRIDE: string | null = '192.168.1.9';
 ```
 
-Then, and every time you update your native dependencies, run:
+Find it with `ipconfig` (Windows) or `ipconfig getifaddr en0` (macOS); the phone
+and computer must share a Wi-Fi network. Per-service ports live in `PORTS` in
+`env.ts` and match the `http` profile of each backend service's
+`launchSettings.json`.
 
-```sh
-bundle exec pod install
+## Scripts
+
+| Command                           | Does                                             |
+| --------------------------------- | ------------------------------------------------ |
+| `npm start`                       | Metro dev server                                 |
+| `npm run android` / `ios`         | Build and run                                    |
+| `npm run typecheck`               | `tsc --noEmit`                                   |
+| `npm run lint` / `lint:fix`       | ESLint                                           |
+| `npm run format` / `format:check` | Prettier                                         |
+| `npm test`                        | Jest                                             |
+| **`npm run verify`**              | **typecheck + lint + test — run before pushing** |
+
+## Project layout
+
+```
+src/
+  api/          HTTP client, endpoints, ApiError, token storage
+  app/           root providers + the App entry
+  components/ui/ design-system primitives (Screen, Text, Button, …)
+  config/        backend host, ports, base URLs
+  constants/     countries, governorates, areas
+  features/      auth · onboarding · user (screens, hooks, services)
+  hooks/         app-wide hooks
+  navigation/    the stack, route param types, placeholders
+  theme/         colors, typography, layout — generated from Figma
+  types/         shared domain types
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+Imports flow downward only: `features → components/hooks/constants → theme/api/config`.
+See **[ARCHITECTURE.md](./ARCHITECTURE.md)** for the layering, data flow, and how
+the API layer and theme system work, and **[CONVENTIONS.md](./CONVENTIONS.md)**
+for house style. The one rule to internalize first:
 
-```sh
-# Using npm
-npm run ios
+> Never hard-code a colour, font, size, radius or spacing value. Import it from
+> `@/theme`. ESLint fails the build on raw colours and `fontFamily` strings.
 
-# OR using Yarn
-yarn ios
-```
+## What's implemented
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+Registration (7-step wizard), phone login, email login, and OTP verification,
+wired to `AuthService` and `UserService`.
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+Six routes exist as themed placeholders because screens already navigate to them
+but they aren't built yet (see `src/navigation/PlaceholderScreen.tsx`): `Home`,
+`ForgotPassword`, `AccountRecovery`, `EmailOtpVerification`, `TermsOfUse`,
+`PrivacyPolicy`. The Figma file has roughly 100 designed screens across Farmer,
+Expert and Admin; the feed, map, reporting, issue tracking, notifications and
+admin dashboard are still to build.
 
-## Step 3: Modify your app
+## Known follow-ups
 
-Now that you have successfully run the app, let's make changes!
+Left alone deliberately, with the reason:
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+- **Font bundle.** 56 `.ttf` files are linked natively; 5 are used
+  (`Cairo-SemiBold`, `NotoSansArabic-Regular/Medium/SemiBold`, `Lora-Regular`).
+  Trimming needs a native re-link and rebuild to verify.
+- **Native project naming.** The JS module is `WahaKun`, but the iOS folder is
+  still `ios/MyApp` and the Android package is still `com.myapp`. Renaming
+  changes the bundle ID and signing, so it's its own migration.
+- **Token refresh.** `refreshToken()` exists in `authService` but nothing calls
+  it on a 401. `ApiError.isUnauthorized` is there to hang that off.
+- **Area data.** `src/constants/areas.ts` is placeholder data covering 5 of 10
+  governorates. Only New Valley (الخارجة/الداخلة/الفرافرة/باريس) is real oasis
+  data.
+- **No resend-OTP endpoint.** The backend only issues OTPs as a side effect of
+  `/Auth/Register` and `/Auth/Login`, so the resend button restarts the timer
+  without calling anything.
