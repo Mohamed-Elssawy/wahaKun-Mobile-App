@@ -14,15 +14,8 @@ export type TextProps = Omit<RNTextProps, 'style'> & {
   style?: StyleProp<TextStyle>;
 };
 
-/**
- * The only way text should be rendered in this app. Family, size and line
- * height travel together as one Figma text style rather than being set
- * independently.
- *
- * There is deliberately no `weight` prop: weight is part of the family name
- * (Cairo-SemiBold, NotoSansArabic-Medium), because Android ignores fontWeight
- * when an explicit PostScript family is set.
- */
+/** The only way to render text here: family, size and line height travel together. */
+// No weight prop, because Android ignores fontWeight when the family is explicit.
 export function Text({
   variant = 'body14',
   color = 'textPrimary',

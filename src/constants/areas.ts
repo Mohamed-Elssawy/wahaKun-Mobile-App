@@ -1,13 +1,7 @@
 import type { LocationItem } from '@/types/location';
 
-/**
- * Areas keyed by `governorate.id` from governorates.ts. Keys must match those
- * ids exactly — an unmatched key silently yields an empty area list.
- *
- * TODO: placeholder data. Covers 5 of the 10 governorates, and only the New
- * Valley entries (الخارجة/الداخلة/الفرافرة/باريس) are real oasis locations.
- * Replace with the backend's area list once an endpoint exists.
- */
+// Keys must match governorate.id exactly, or the area list silently comes back empty.
+// TODO: placeholder data. Only the New Valley entries are real. Replace when an endpoint exists.
 export const areasByGovernorateId: Record<string, LocationItem[]> = {
   '1': [
     { id: '101', name: 'مدينة نصر' },
@@ -42,11 +36,7 @@ export const areasByGovernorateId: Record<string, LocationItem[]> = {
   ],
 };
 
-/**
- * Areas for a governorate, or an empty list if none is selected or it has no
- * data. Kept as a function so the lookup can become an API call without
- * touching the screen or the dropdown.
- */
+/** A function, not a map, so this can become an API call without touching callers. */
 export const getAreasForGovernorate = (
   governorate: LocationItem | null,
 ): LocationItem[] => {

@@ -2,34 +2,44 @@ import { useState } from 'react';
 
 import { ApiError, saveTokens } from '@/api';
 
-import { verifyOtp } from '../services/authService';
+import { describeFirebaseError } from '../firebaseErrors';
+import { buildRegisterFormData, firebaseLogin, register } from '../services/authService';
+import {
+  confirmVerificationCode,
+  resetPhoneVerification,
+} from '../services/firebaseAuth';
 
-/**
- * Confirms an OTP and persists the returned tokens.
- *
- * Shared by the registration and login OTP steps, which differ only in where
- * they go next. `verify` therefore reports success and leaves navigation to
- * the caller.
- */
+/** Shared by both OTP steps, so it reports success and leaves navigation to the caller. */
 export function useOtpVerification() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState('');
 
-  const verify = async (phoneNumber: string, code: string): Promise<boolean> => {
+  // Takes no phone number: the server reads it from the verified token, never from us.
+  const verify = async (code: string): Promise<boolean> => {
     setIsVerifying(true);
     setError('');
 
     try {
-      const result = await verifyOtp(phoneNumber, code);
+      const { idToken, profile } = await confirmVerificationCode(code);
 
-      if (result.accesstoken && result.refershtoken) {
-        await saveTokens(result.accesstoken, result.refershtoken);
+      // Two endpoints, not one. /Auth/Register takes the wizard's fields and the
+      // token together; firebase-login takes the token alone and never creates a profile.
+      const result = profile
+        ? await register(buildRegisterFormData(profile, idToken))
+        : await firebaseLogin(idToken);
+
+      if (result.accessToken && result.refreshToken) {
+        await saveTokens(result.accessToken, result.refreshToken);
       }
 
+      // Only after storing, so a failed exchange leaves the token there to retry.
+      resetPhoneVerification();
       return true;
     } catch (err) {
       setError(
-        err instanceof ApiError ? err.message : 'رمز التحقق غير صحيح، حاول مرة أخرى',
+        err instanceof ApiError
+          ? err.message
+          : describeFirebaseError(err, 'رمز التحقق غير صحيح، حاول مرة أخرى'),
       );
       return false;
     } finally {

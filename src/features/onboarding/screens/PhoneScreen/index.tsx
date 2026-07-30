@@ -11,7 +11,7 @@ import { WizardHeader } from '../../components/WizardHeader';
 import { useRegistrationDraft } from '../../context/RegistrationContext';
 import { useRegistration } from '../../hooks/useRegistration';
 
-/** Step 6 of the registration wizard — submits the account. */
+/** Step 6 of the registration wizard, and the one that submits. */
 export default function PhoneScreen({ navigation }: ScreenProps<'Phone'>) {
   const { draft } = useRegistrationDraft();
   const [country, setCountry] = useState<Country>(DEFAULT_COUNTRY);

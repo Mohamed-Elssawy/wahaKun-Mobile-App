@@ -15,8 +15,7 @@ export default function FullNameScreen({ navigation }: ScreenProps<'FullName'>) 
   const [error, setError] = useState('');
 
   const handleExit = () => {
-    // Abandoning the flow discards whatever was collected, so restarting it
-    // does not resume from a half-filled draft.
+    // Abandoning discards the draft, so restarting never resumes half-filled.
     reset();
     navigation.navigate('Welcome');
   };

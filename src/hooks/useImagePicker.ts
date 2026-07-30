@@ -1,19 +1,13 @@
 import { useCallback, useState } from 'react';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 
-import type { PickedImage } from '@/features/auth/types';
+import type { PickedImage } from '@/types/image';
 
 import type { ImagePickerResponse } from 'react-native-image-picker';
 
 const PICKER_OPTIONS = { mediaType: 'photo', quality: 0.7 } as const;
 
-/**
- * Camera / gallery selection for the profile picture step.
- *
- * Keeps the picked asset in the {uri, type, fileName} shape React Native's
- * FormData needs, so it can be handed straight to buildRegisterFormData
- * without reshaping later in the flow.
- */
+/** Keeps the asset in the shape FormData needs, so no feature reshapes it later. */
 export function useImagePicker() {
   const [image, setImage] = useState<PickedImage | null>(null);
   const [error, setError] = useState('');

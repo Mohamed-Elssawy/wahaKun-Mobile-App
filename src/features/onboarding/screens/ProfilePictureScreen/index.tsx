@@ -10,16 +10,16 @@ import { useCallback, useRef } from 'react';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { Button, Screen, Text } from '@/components/ui';
+import { useImagePicker } from '@/hooks/useImagePicker';
 import type { ScreenProps } from '@/navigation/types';
 import { colors, radii, screenPadding, spacing } from '@/theme';
 
 import { WizardHeader } from '../../components/WizardHeader';
 import { useRegistrationDraft } from '../../context/RegistrationContext';
-import { useImagePicker } from '../../hooks/useImagePicker';
 
 type PendingAction = 'camera' | 'gallery' | null;
 
-/** Step 2 of the registration wizard. Optional — the user may skip. */
+/** Step 2 of the registration wizard, and skippable. */
 export default function ProfilePictureScreen({
   navigation,
 }: ScreenProps<'ProfilePicture'>) {
@@ -27,8 +27,7 @@ export default function ProfilePictureScreen({
   const { image, error, pickFromCamera, pickFromGallery } = useImagePicker();
   const sheetRef = useRef<BottomSheetModal>(null);
 
-  // Which picker to open once the sheet has finished closing, so the two
-  // never overlap visually.
+  // Which picker to open after the sheet closes, so the two never overlap.
   const pendingAction = useRef<PendingAction>(null);
 
   const openSheet = () => sheetRef.current?.present();

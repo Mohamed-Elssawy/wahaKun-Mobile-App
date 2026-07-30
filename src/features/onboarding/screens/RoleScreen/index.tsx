@@ -20,16 +20,10 @@ const ROLES: { role: UserRole; title: string; subtitle: string }[] = [
 
 const ICON_SIZE = { width: 29, height: 32 };
 
-/**
- * Step 4 of the registration wizard.
- *
- * Only farmer and expert can self-register. Admin accounts are provisioned
- * and handed out, so there is no admin option here.
- */
+/** Step 4. No admin option: those accounts are provisioned, never self-registered. */
 export default function RoleScreen({ navigation }: ScreenProps<'Role'>) {
   const { update } = useRegistrationDraft();
-  // A single value rather than two booleans, so picking one card inherently
-  // means the other is unpicked.
+  // One value, not two booleans, so picking a card inherently unpicks the other.
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   const [error, setError] = useState('');
 

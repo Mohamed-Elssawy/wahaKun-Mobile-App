@@ -17,10 +17,9 @@ export default function RegistrationSuccessScreen({
   const { reset: clearDraft } = useRegistrationDraft();
 
   const handleStart = () => {
-    // The account exists now, so drop the draft — including the password —
-    // rather than leaving it in memory for the rest of the session.
+    // The account exists, so the draft and its password should not outlive it.
     clearDraft();
-    // reset, not navigate — the whole wizard should be off the back stack.
+    // reset, not navigate, so the whole wizard leaves the back stack.
     navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
   };
 

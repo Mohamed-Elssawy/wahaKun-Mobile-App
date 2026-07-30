@@ -1,10 +1,4 @@
-/**
- * Generic fetch wrapper used by every service.
- *
- * Handles JSON headers, timeouts, bearer-token injection, and turning non-2xx
- * responses into thrown ApiErrors with a readable message. Base URLs and the
- * timeout come from src/config/env.ts.
- */
+/** The one fetch wrapper: JSON headers, timeout, bearer token, non-2xx to ApiError. */
 
 import { API_TIMEOUT_MS } from '@/config/env';
 
@@ -57,9 +51,7 @@ async function request<T>(
   const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
 
   if (!isFormData) {
-    // FormData sets its own "multipart/form-data; boundary=..." header —
-    // setting Content-Type manually destroys the boundary and the server
-    // cannot parse the body at all.
+    // Setting Content-Type on FormData destroys the boundary and the server cannot parse it.
     finalHeaders['Content-Type'] = 'application/json';
   }
 
@@ -82,7 +74,7 @@ async function request<T>(
       signal: controller.signal,
     });
 
-    // Some endpoints return 204/empty bodies (NoContent) — guard JSON parsing.
+    // Several endpoints return 204 with an empty body, which JSON.parse would throw on.
     const text = await response.text();
     const data = text ? safeJsonParse(text) : null;
 

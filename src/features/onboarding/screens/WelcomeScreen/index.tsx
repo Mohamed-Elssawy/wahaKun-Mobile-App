@@ -82,8 +82,7 @@ const styles = StyleSheet.create({
   brandText: {
     alignItems: 'flex-end',
   },
-  // The Latin wordmark is the one piece of type not covered by a Figma text
-  // style, so it is composed from tokens here rather than added to the scale.
+  // The one piece of type with no Figma text style, so it is composed from tokens here.
   wordmark: {
     fontFamily: fonts.latin,
     fontSize: 26,

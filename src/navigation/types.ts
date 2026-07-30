@@ -1,14 +1,16 @@
+import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-/**
- * Every route in the app, and the single source of routing truth. A route must
- * be listed here to exist: a `navigate()` call to anything else is a compile
- * error rather than a runtime crash.
- *
- * The registration wizard's steps take no params. The draft they build lives in
- * RegistrationContext, deliberately outside navigation state; only phoneNumber
- * is passed, because the OTP and success screens display it.
- */
+/** The four tabs behind the Home route. */
+export type HomeTabParamList = {
+  CommunityFeed: undefined;
+  OasisMap: undefined;
+  ReportAnIssue: undefined;
+  MyReports: undefined;
+};
+
+/** A route must be listed here to exist, so a bad navigate() fails to compile. */
+// The wizard's draft lives in RegistrationContext, outside navigation state.
 export type RootStackParamList = {
   Welcome: undefined;
   FullName: undefined;
@@ -30,7 +32,14 @@ export type RootStackParamList = {
   TermsOfUse: undefined;
   PrivacyPolicy: undefined;
 
-  Home: undefined;
+  // Report flow
+  ReportCapture: undefined;
+  ReportAnalyzing: { reportId: string };
+  ReportDiagnosis: { reportId: string };
+  ConnectToExpert: { reportId: string };
+  IssueDetails: { reportId: string };
+
+  Home: NavigatorScreenParams<HomeTabParamList> | undefined;
 };
 
 /** Props for a screen component, e.g. `ScreenProps<'Otp'>`. */
@@ -39,10 +48,7 @@ export type ScreenProps<T extends keyof RootStackParamList> = NativeStackScreenP
   T
 >;
 
-/**
- * Makes the default `useNavigation()` return type aware of these routes, so
- * navigation is typed even in components that do not receive screen props.
- */
+/** Types useNavigation() in components that never receive screen props. */
 declare global {
   namespace ReactNavigation {
     interface RootParamList extends RootStackParamList {}

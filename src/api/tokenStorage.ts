@@ -1,16 +1,4 @@
-/**
- * Persists the access/refresh tokens returned by AuthService across app
- * restarts.
- *
- * Lives under api/ rather than features/auth/ because the HTTP client reads the
- * access token to sign requests. In the auth feature it would make api/ depend
- * on features/, inverting the layering and creating an import cycle.
- *
- * The batch calls must stay on the v3 names (setMany/getMany/removeMany).
- * async-storage v3 removed multiSet/multiGet/multiRemove without aliasing them,
- * so the old names are `undefined` on the exported object and throw at runtime
- * rather than failing to compile.
- */
+/** In api/ rather than features/auth: client.ts reads tokens, and the reverse would cycle. */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ACCESS_TOKEN_KEY = 'wahakun_access_token';
@@ -20,6 +8,7 @@ export async function saveTokens(
   accessToken: string,
   refreshToken: string,
 ): Promise<void> {
+  // async-storage v3 removed multiSet/multiGet/multiRemove without aliasing them.
   await AsyncStorage.setMany({
     [ACCESS_TOKEN_KEY]: accessToken ?? '',
     [REFRESH_TOKEN_KEY]: refreshToken ?? '',

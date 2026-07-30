@@ -14,8 +14,7 @@ describe('tokenStorage', () => {
     jest.clearAllMocks();
   });
 
-  // Guards the v3 batch API. The removed multi* names are unaliased and throw
-  // at runtime with no compile error, so only a test catches a regression.
+  // The removed multi* names throw at runtime with no compile error, so only a test catches it.
   it('uses the v3 batch API, not the removed multi* names', async () => {
     await saveTokens('access-1', 'refresh-1');
     expect(storage.setMany).toHaveBeenCalledTimes(1);

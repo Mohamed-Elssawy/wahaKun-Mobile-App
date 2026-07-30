@@ -1,20 +1,12 @@
-/**
- * Endpoint paths, grouped by service/controller.
- *
- * These map 1:1 to the routes on the .NET controllers. Casing and spelling are
- * verbatim: ASP.NET matches routes exactly, and several differ from what you
- * would guess ("Verify-OTP", "Approved"). What each one does is documented on
- * the service function that calls it.
- */
+/** Paths are verbatim: ASP.NET matches routes exactly, backend typos and casing included. */
 export const API_ENDPOINTS = {
   auth: {
     register: '/Auth/Register',
     createExpert: '/Auth/CreateExpert',
-    login: '/Auth/Login',
     loginWithEmail: '/Auth/LoginWithEmail',
+    firebaseLogin: '/Auth/firebase-login',
     forgetPassword: '/Auth/ForgetPassword',
     resetPassword: '/Auth/ResetPassword',
-    verifyOtp: '/Auth/Verify-OTP',
     logout: '/Auth/Logout',
     refreshToken: '/Auth/Refresh-Token',
   },
@@ -25,5 +17,13 @@ export const API_ENDPOINTS = {
     block: (userId: string) => `/User/Block/${userId}`,
     approve: (userId: string) => `/User/Approved/${userId}`,
     delete: (userId: string) => `/User/Delete/${userId}`,
+  },
+  report: {
+    create: '/Report/create',
+    analyze: (reportId: string) => `/Report/AnalyzeReport?id=${reportId}`,
+    byId: (reportId: string) => `/Report/GetReportById?id=${reportId}`,
+    myReports: '/Report/GetMyReports',
+    all: '/Report/GetAllReports',
+    delete: (reportId: string) => `/Report/DeleteReport?id=${reportId}`,
   },
 } as const;

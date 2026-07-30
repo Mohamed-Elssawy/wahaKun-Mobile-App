@@ -17,10 +17,7 @@ export type ButtonProps = {
   /** Shows a spinner and blocks presses. */
   loading?: boolean;
   disabled?: boolean;
-  /**
-   * Trailing arrow, matching the "next"/"submit" buttons throughout the
-   * registration flow. Points left because the UI is right-to-left.
-   */
+  /** Trailing arrow for next and submit. Points left because the UI is RTL. */
   showArrow?: boolean;
   icon?: ReactNode;
   style?: StyleProp<ViewStyle>;

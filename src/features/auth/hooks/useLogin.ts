@@ -2,29 +2,28 @@ import { useState } from 'react';
 
 import { ApiError, saveTokens } from '@/api';
 
-import { loginWithEmail, loginWithPhone } from '../services/authService';
+import { describeFirebaseError } from '../firebaseErrors';
+import { loginWithEmail } from '../services/authService';
+import { sendVerificationCode } from '../services/firebaseAuth';
 
-/**
- * The two login paths.
- *
- * Phone login sends an OTP and returns nothing to store; email login returns
- * tokens directly and persists them here.
- */
+/** Phone login returns nothing to store; email login returns tokens and is saved here. */
 export function useLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  /** Requests an OTP for the given number. Returns true if it was sent. */
+  /** Firebase texts anyone, so /Auth/Login's rejection of unknown numbers is gone. */
   const requestPhoneOtp = async (phoneNumber: string): Promise<boolean> => {
     setIsLoading(true);
     setError('');
 
     try {
-      await loginWithPhone(phoneNumber);
+      await sendVerificationCode(phoneNumber);
       return true;
     } catch (err) {
       setError(
-        err instanceof ApiError ? err.message : 'تعذر إرسال رمز التحقق، حاول مرة أخرى',
+        err instanceof ApiError
+          ? err.message
+          : describeFirebaseError(err, 'تعذر إرسال رمز التحقق، حاول مرة أخرى'),
       );
       return false;
     } finally {
@@ -32,7 +31,6 @@ export function useLogin() {
     }
   };
 
-  /** Signs in with email + password and stores the tokens. */
   const signInWithEmail = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     setError('');

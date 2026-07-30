@@ -13,7 +13,12 @@ import ProfilePictureScreen from '@/features/onboarding/screens/ProfilePictureSc
 import RegistrationSuccessScreen from '@/features/onboarding/screens/RegistrationSuccessScreen';
 import RoleScreen from '@/features/onboarding/screens/RoleScreen';
 import WelcomeScreen from '@/features/onboarding/screens/WelcomeScreen';
+import IssueDetailsScreen from '@/features/reports/screens/IssueDetailsScreen';
+import ReportAnalyzingScreen from '@/features/reports/screens/ReportAnalyzingScreen';
+import ReportCaptureScreen from '@/features/reports/screens/ReportCaptureScreen';
+import ReportDiagnosisScreen from '@/features/reports/screens/ReportDiagnosisScreen';
 
+import { HomeTabs } from './HomeTabs';
 import { createPlaceholderScreen } from './PlaceholderScreen';
 
 import type { RootStackParamList } from './types';
@@ -21,10 +26,6 @@ import type { RootStackParamList } from './types';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 /** Designed but not built. Registered because existing screens navigate here. */
-const HomeScreen = createPlaceholderScreen(
-  'الرئيسية',
-  'شاشة البداية قيد التطوير — تم تسجيل دخولك بنجاح.',
-);
 const ForgotPasswordScreen = createPlaceholderScreen('استعادة كلمة المرور');
 const AccountRecoveryScreen = createPlaceholderScreen('استرداد الحساب');
 const EmailOtpVerificationScreen = createPlaceholderScreen(
@@ -32,6 +33,7 @@ const EmailOtpVerificationScreen = createPlaceholderScreen(
 );
 const TermsOfUseScreen = createPlaceholderScreen('شروط الاستخدام');
 const PrivacyPolicyScreen = createPlaceholderScreen('سياسة الخصوصية');
+const ConnectToExpertScreen = createPlaceholderScreen('التواصل مع خبير');
 
 export function RootNavigator() {
   return (
@@ -69,7 +71,12 @@ export function RootNavigator() {
         <Stack.Screen name="TermsOfUse" component={TermsOfUseScreen} />
         <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
 
-        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="ReportCapture" component={ReportCaptureScreen} />
+        <Stack.Screen name="ReportAnalyzing" component={ReportAnalyzingScreen} />
+        <Stack.Screen name="ReportDiagnosis" component={ReportDiagnosisScreen} />
+        <Stack.Screen name="ConnectToExpert" component={ConnectToExpertScreen} />
+        <Stack.Screen name="IssueDetails" component={IssueDetailsScreen} />
+        <Stack.Screen name="Home" component={HomeTabs} />
       </Stack.Navigator>
     </NavigationContainer>
   );

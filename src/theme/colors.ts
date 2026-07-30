@@ -1,13 +1,4 @@
-/**
- * Colour tokens, pulled from the Figma file's published Color Styles
- * (file w21eONa2qJIyZ1xQXnnFbo, page "Design System").
- *
- * `palette` is the raw ramp and mirrors the Figma names 1:1 so a value can be
- * traced back to the design. `colors` is the semantic layer, and is what UI
- * code should import. Screens should almost never reach into `palette`.
- */
-
-/** Raw ramps. Names match Figma exactly (Primary/G500, Neutral/N900, ...). */
+// palette mirrors the Figma names 1:1; colors is the semantic layer that UI code imports.
 export const palette = {
   primary: {
     G100: '#E2EEE7',
@@ -15,7 +6,7 @@ export const palette = {
     G500: '#1A6B3C',
     G700: '#0A4B25',
   },
-  /** Sand/gold. Defined in Figma, not yet used by any implemented screen. */
+  /** Sand/gold. In Figma, not used by any implemented screen yet. */
   secondary: {
     S100: '#F8EEDA',
     S300: '#F5E5C5',
@@ -34,18 +25,17 @@ export const palette = {
     white: '#FFFFFF',
     black: '#000000',
   },
-  /** Issue severity / status ramps. */
+  /** Issue severity and status ramps. */
   accent: {
     red: { R100: '#FCE1DF', R300: '#F3B7B3', R500: '#D93025', R700: '#A41B12' },
     amber: { A100: '#FFEFE0', A300: '#F7BD8A', A500: '#E67E22', A700: '#A7550E' },
     blue: { B100: '#DAECF9', B300: '#94C3E6', B500: '#1E7ABF', B700: '#0D4E7E' },
     green: { LG100: '#CEF1DD', LG300: '#8BE3B0', LG500: '#27AE60', LG700: '#05632D' },
   },
-  /** Page background. A standalone style in Figma, not part of a ramp. */
+  /** A standalone style in Figma, not part of a ramp. */
   background: '#F4F1EB',
 } as const;
 
-/** Semantic tokens. Components consume these, not `palette`. */
 export const colors = {
   primary: palette.primary.G500,
   primaryPressed: palette.primary.G700,
@@ -68,12 +58,16 @@ export const colors = {
 
   border: palette.neutral.N200,
   borderStrong: palette.neutral.N300,
+  /** Heaviest hairline in the file: the bottom nav bar's top edge. */
+  borderStronger: palette.neutral.N400,
   divider: palette.neutral.N200,
 
   disabled: palette.neutral.N400,
 
   error: palette.accent.red.R500,
   errorTint: palette.accent.red.R100,
+  /** Only for a mark sitting on errorTint, where R500 has too little contrast. */
+  errorStrong: palette.accent.red.R700,
   warning: palette.accent.amber.A500,
   warningTint: palette.accent.amber.A100,
   info: palette.accent.blue.B500,

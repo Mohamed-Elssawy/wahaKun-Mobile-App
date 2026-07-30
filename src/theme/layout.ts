@@ -1,13 +1,6 @@
-/**
- * Spacing, radii, shadows and control sizing.
- *
- * Measured across the Figma file rather than assumed from a 4pt grid. `10` is
- * the most common gap in this design (955 uses), so the scale keeps it as `ms`
- * instead of rounding it to 8 or 12.
- */
-
 import { colors } from './colors';
 
+// Measured from Figma, not a 4pt grid: 10 is the commonest gap there, so it stays as ms.
 export const spacing = {
   none: 0,
   xxs: 2,
@@ -27,21 +20,15 @@ export const radii = {
   md: 12,
   lg: 16,
   xl: 20,
-  /** Fully rounded — pills, avatars, circular icon buttons. */
+  /** Fully rounded, for pills and avatars. */
   pill: 100,
 } as const;
 
-/** Standard horizontal padding for a screen's content. */
-export const screenPadding = spacing.xl; // 24
+export const screenPadding = spacing.xl;
 
-/** Height of a primary control (button, text input, select). */
 export const controlHeight = 48;
 
-/**
- * Figma layers two drop shadows (a tight 0/2/4 at 8% over a soft 0/8/16 at 4%).
- * React Native supports one shadow per view on iOS and only `elevation` on
- * Android, so each token approximates the pair with its dominant layer.
- */
+// Figma layers two shadows; RN supports one, so each token keeps the dominant layer.
 export const shadows = {
   card: {
     shadowColor: colors.shadow,
@@ -57,7 +44,7 @@ export const shadows = {
     shadowRadius: 16,
     elevation: 6,
   },
-  /** Bottom sheets — Figma inverts the offset so the shadow casts upward. */
+  /** Figma inverts the offset here so the shadow casts upward. */
   sheet: {
     shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: -2 },

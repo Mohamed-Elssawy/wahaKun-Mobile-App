@@ -65,10 +65,7 @@ describe('RegistrationContext', () => {
     expect(probe.value.draft.fullName).toBe('second');
   });
 
-  /**
-   * The point of this context: the password lives here instead of in
-   * navigation params, and is dropped once it is no longer needed.
-   */
+  // The point of the context: the password lives here and is dropped when done.
   it('clears the draft, including the password, on reset', () => {
     const probe = renderDraft();
 
@@ -90,8 +87,7 @@ describe('RegistrationContext', () => {
     // React logs the error boundary trace; silence it for this assertion.
     const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-    // Must be inside act(): React 19 surfaces render errors when the work
-    // loop flushes, not at the create() call itself.
+    // Inside act(): React 19 surfaces render errors on flush, not at create().
     expect(() =>
       act(() => {
         create(<Orphan />);

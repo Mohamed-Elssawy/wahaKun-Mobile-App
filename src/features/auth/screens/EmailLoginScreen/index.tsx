@@ -24,7 +24,7 @@ export default function EmailLoginScreen({ navigation }: ScreenProps<'EmailLogin
     setValidationError('');
 
     if (await signInWithEmail(email.trim(), password)) {
-      // reset, not navigate — login should not stay on the back stack.
+      // reset, not navigate, so login does not stay on the back stack.
       navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
     }
   };

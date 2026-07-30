@@ -33,8 +33,10 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>نحتاج إلى الكاميرا لالتقاط صورة المشكلة التي تريد الإبلاغ عنها.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string/>
+	<string>نحدد موقع المشكلة تلقائيًا ليصل إليها فريق الصيانة. يمكنك إرسال البلاغ بدون الموقع.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>BootSplash</string>
 	<key>UIRequiredDeviceCapabilities</key>

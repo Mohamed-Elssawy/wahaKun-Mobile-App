@@ -7,10 +7,7 @@ export type BackHeaderProps = {
   onBack: () => void;
 };
 
-/**
- * Plain back arrow for the login screens; WizardHeader is the equivalent for
- * the registration flow. The arrow points right because the layout is RTL.
- */
+/** The arrow points right because the layout is RTL. WizardHeader is the wizard's. */
 export function BackHeader({ onBack }: BackHeaderProps) {
   return (
     <View style={styles.header}>

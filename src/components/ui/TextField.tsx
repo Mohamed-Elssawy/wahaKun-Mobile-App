@@ -94,8 +94,7 @@ const styles = StyleSheet.create({
     flex: 1,
     ...textStyles.label16,
     color: colors.textPrimary,
-    // Latin-ish inputs (email, phone, password) read left-to-right even in an
-    // otherwise RTL screen.
+    // Email, phone and password read left to right even on an RTL screen.
     textAlign: 'left',
     padding: 0,
   },

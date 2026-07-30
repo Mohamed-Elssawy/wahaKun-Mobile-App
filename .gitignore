@@ -78,6 +78,11 @@ yarn-error.log
 .figma.local
 src/config/env.local.ts
 
+# Firebase client config. Download your own from the Firebase console
+# (Project settings -> Your apps -> Android) and drop it in android/app/.
+# google-services.example.json is committed to show the expected shape.
+android/app/google-services.json
+
 # Editor and AI-assistant config — per-developer, not part of the project
 .claude/
 .mcp.json

@@ -1,10 +1,7 @@
-/** Status used for failures that never reached the server (timeout, no network). */
+/** Status for failures that never reached the server (timeout, no connection). */
 export const NETWORK_ERROR_STATUS = 0;
 
-/**
- * Every failure surfaced by the API layer is an ApiError, so callers can
- * branch on `status` instead of string-matching messages.
- */
+/** Every API failure is an ApiError so callers branch on status, not message text. */
 export class ApiError extends Error {
   readonly status: number;
   readonly body: unknown;
@@ -14,16 +11,14 @@ export class ApiError extends Error {
     this.name = 'ApiError';
     this.status = status;
     this.body = body;
-    // Required for `instanceof` to work when targeting ES5-era output.
+    // Without this, `instanceof ApiError` is false when targeting ES5-era output.
     Object.setPrototypeOf(this, ApiError.prototype);
   }
 
-  /** True when the request never got a response (timeout / connection failure). */
   get isNetworkError(): boolean {
     return this.status === NETWORK_ERROR_STATUS;
   }
 
-  /** True when the token is missing, expired or rejected. */
   get isUnauthorized(): boolean {
     return this.status === 401 || this.status === 403;
   }

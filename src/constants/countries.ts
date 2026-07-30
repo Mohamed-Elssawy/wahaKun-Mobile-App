@@ -6,10 +6,7 @@ export type Country = {
   code: string;
 };
 
-/**
- * Countries offered in the phone-number picker. Egypt is first because it is
- * the primary market for the oasis communities this app serves.
- */
+/** Egypt is first because it is the primary market for these oasis communities. */
 export const COUNTRIES: Country[] = [
   { name: 'مصر', flag: '🇪🇬', dialCode: '+20', code: 'EG' },
   { name: 'اليابان', flag: '🇯🇵', dialCode: '+81', code: 'JP' },

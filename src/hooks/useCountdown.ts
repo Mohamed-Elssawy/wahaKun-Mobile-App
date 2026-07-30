@@ -1,12 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-/**
- * Counts down from `seconds` to zero, once per second.
- *
- * Holds one interval for the life of the countdown and clears it at zero.
- * Keeping secondsLeft out of the effect's dependencies is what stops the
- * interval being torn down and recreated on every tick.
- */
+/** secondsLeft stays out of the deps, or the interval is recreated on every tick. */
 export function useCountdown(seconds: number) {
   const [secondsLeft, setSecondsLeft] = useState(seconds);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -39,7 +33,7 @@ export function useCountdown(seconds: number) {
   useEffect(() => {
     start(seconds);
     return clear;
-    // Intentionally runs once — restarts are explicit via start().
+    // Runs once on purpose: restarts go through start().
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

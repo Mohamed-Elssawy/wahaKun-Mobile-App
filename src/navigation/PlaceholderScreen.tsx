@@ -5,12 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors, screenPadding, spacing, textStyles } from '@/theme';
 
-/**
- * Stand-in for routes that are designed in Figma but not built yet.
- *
- * Screens already navigate to these, so registering a themed placeholder keeps
- * the flow traversable instead of throwing "Do you have a screen named X?".
- */
+/** Screens already navigate to these, so a placeholder beats "no screen named X". */
 export function createPlaceholderScreen(title: string, note?: string) {
   const PlaceholderScreen = () => {
     const navigation = useNavigation();

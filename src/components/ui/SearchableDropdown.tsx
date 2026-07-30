@@ -13,11 +13,7 @@ export type SearchableDropdownProps = {
   data: LocationItem[];
   onSelect: (item: LocationItem) => void;
 
-  /**
-   * Whether this field's list is open. Lifted to the parent so only one field
-   * can be open at a time: opening one means the parent stops saying the other
-   * is open, with no timing tricks.
-   */
+  /** Lifted to the parent so only one field can be open, with no timing tricks. */
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 
@@ -59,8 +55,7 @@ export function SearchableDropdown({
   };
 
   const handleBlur = () => {
-    // Safety net for dismissing the keyboard or tapping the next button
-    // without an explicit select.
+    // Safety net for dismissing the keyboard without an explicit select.
     setTimeout(() => onOpenChange(false), BLUR_CLOSE_DELAY_MS);
   };
 
@@ -72,10 +67,7 @@ export function SearchableDropdown({
         {label}
       </Text>
 
-      {/* One bordered box wrapping the search row and the list, separated by a
-          single divider — so it reads as one control rather than two. Nothing
-          is absolutely positioned, so content below is pushed down when the
-          list opens instead of being covered by it. */}
+      {/* Nothing is absolutely positioned, so opening the list pushes content down. */}
       <View style={[styles.box, disabled && styles.boxDisabled]}>
         <TouchableOpacity activeOpacity={disabled ? 1 : 0.8} onPress={open}>
           <View style={styles.inputRow}>
@@ -124,8 +116,7 @@ export function SearchableDropdown({
   );
 }
 
-// Defined outside the component so React does not see a new component type on
-// every render and tear down the subtree.
+// Outside the component, or React sees a new type each render and tears down the subtree.
 const ItemSeparator = () => <View style={styles.itemSeparator} />;
 
 const ListEmpty = () => (

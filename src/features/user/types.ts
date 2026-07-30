@@ -8,10 +8,7 @@ export type UserUpdateRequest = {
   PhoneNumber?: string;
 };
 
-/**
- * Shape returned by /User/details. The backend publishes no formal response
- * DTO for this yet, so every field is optional until it does.
- */
+/** All optional: the backend publishes no response DTO for /User/details yet. */
 export type UserDetails = {
   id?: string;
   FullName?: string;

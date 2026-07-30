@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
-import type { PickedImage, UserRole } from '@/features/auth/types';
+import type { UserRole } from '@/features/auth/types';
+import type { PickedImage } from '@/types/image';
 import type { LocationItem } from '@/types/location';
 
 import type { ReactNode } from 'react';
@@ -25,14 +26,7 @@ type RegistrationContextValue = {
 
 const RegistrationContext = createContext<RegistrationContextValue | null>(null);
 
-/**
- * Holds the in-progress registration.
- *
- * The draft must not travel through navigation params. It carries the user's
- * plaintext password, and navigation state is serializable — anything in it is
- * reachable by state persistence, deep-link serialization and crash tooling.
- * Held here it stays in memory and is gone when the provider unmounts.
- */
+/** Never in navigation params: the draft holds a plaintext password, and params persist. */
 export function RegistrationProvider({ children }: { children: ReactNode }) {
   const [draft, setDraft] = useState<RegistrationDraft>({});
 

@@ -23,10 +23,7 @@ export default function LocationScreen({ navigation }: ScreenProps<'Location'>) 
   const areaOptions = useMemo(() => getAreasForGovernorate(governorate), [governorate]);
   const isValid = Boolean(governorate && area);
 
-  /**
-   * Only one dropdown may be open. Opening a field simply means the other one
-   * stops being the active field — no timing tricks needed.
-   */
+  // Opening one field just means the other stops being active, so no timing tricks.
   const openHandlerFor = (field: Exclude<ActiveField, null>) => (open: boolean) => {
     setActiveField(previous => {
       if (open) {

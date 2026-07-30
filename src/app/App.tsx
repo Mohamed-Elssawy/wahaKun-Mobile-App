@@ -7,13 +7,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RegistrationProvider } from '@/features/onboarding/context/RegistrationContext';
 import { RootNavigator } from '@/navigation/RootNavigator';
 
-/**
- * Application root: providers, then the navigator.
- *
- * SafeAreaProvider and GestureHandlerRootView are mounted once, here. Both
- * measure or intercept at the tree root, and nesting a second one mid-tree is a
- * known source of inset and gesture bugs — screens use SafeAreaView instead.
- */
+/** Both providers are mounted once here; a second one mid-tree breaks insets and gestures. */
 const App = () => {
   useEffect(() => {
     BootSplash.hide({ fade: true });

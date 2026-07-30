@@ -1,24 +1,7 @@
-/**
- * Request/response shapes for AuthService.
- *
- * Field names mirror the C# DTOs in AuthService/Auth.Shared/DTOS exactly.
- * ASP.NET model binding is case-sensitive for records, so the backend's typos
- * are reproduced deliberately: `refershtoken`, `FulltName`, `ClinetUrl`,
- * `ConfemedPassword`. Do not correct them here — they can only be fixed in the
- * backend, and this client must match what it currently serves.
- */
+// Backend typos are reproduced on purpose: ASP.NET binds records case-sensitively.
+import type { PickedImage } from '@/types/image';
 
-/** A picked image, e.g. react-native-image-picker's response.assets[0]. */
-export type PickedImage = {
-  uri: string;
-  type?: string;
-  fileName?: string;
-};
-
-/**
- * RegisterRequest is [FromForm] on the backend (picture is an IFormFile), so
- * register() and createExpert() take FormData built by buildRegisterFormData.
- */
+/** Sent as FormData, since RegisterRequest is [FromForm] with an IFormFile picture. */
 export type RegisterFields = {
   FullName: string;
   village: string;
@@ -29,35 +12,25 @@ export type RegisterFields = {
   picture?: PickedImage | null;
 };
 
-export type OtpResponse = {
-  success: boolean;
-  message: string;
-};
-
-export type VerifyOtpRequest = {
-  phonenumber: string;
-  otp: string;
-};
-
-export type UserResponse = {
-  accesstoken?: string;
-  /** Backend spells this "refershtoken". */
-  refershtoken?: string;
-  FullName: string;
-  message: string;
-};
-
 export type LoginWithEmailRequest = {
   Email: string;
   Password: string;
 };
 
 export type LoginWithEmailResponse = {
-  /** Backend spells this "FulltName". */
   FulltName: string;
   refreshToken?: string;
   accessToken?: string;
   email: string;
+};
+
+/** Returned by both /Auth/Register and /Auth/firebase-login since the OTP step was dropped. */
+export type FirebaseLoginResponse = {
+  accessToken?: string;
+  refreshToken?: string;
+  /** Unusable: the server sets it to UtcNow while the token is good for an hour. */
+  accessTokenExpiration?: string;
+  refreshTokenExpiration?: string;
 };
 
 /** The two account types that can self-register from the mobile app. */

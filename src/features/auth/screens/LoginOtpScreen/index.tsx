@@ -28,8 +28,8 @@ export default function LoginOtpScreen({ navigation, route }: ScreenProps<'Login
     }
     setValidationError('');
 
-    if (await verify(phoneNumber, code)) {
-      // reset, not navigate — login should not stay on the back stack.
+    if (await verify(code)) {
+      // reset, not navigate, so login does not stay on the back stack.
       navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
     }
   };
@@ -42,9 +42,7 @@ export default function LoginOtpScreen({ navigation, route }: ScreenProps<'Login
     setValidationError('');
     setError('');
     restart();
-    // TODO: call a resend endpoint once AuthService exposes one. Today a new
-    // OTP is only issued as a side effect of /Auth/Login, so this restarts the
-    // timer without requesting anything.
+    // TODO: call a resend endpoint once AuthService has one. Only /Auth/Login issues OTPs.
   };
 
   return (

@@ -12,10 +12,7 @@ export type OtpInputProps = {
   autoFocus?: boolean;
 };
 
-/**
- * Fixed-length numeric code entry with auto-advance, backspace-to-previous and
- * paste handling. Shared by the registration and login OTP steps.
- */
+/** Auto-advances, steps back on backspace, and accepts a pasted code. */
 export function OtpInput({
   value,
   onChange,
@@ -29,7 +26,7 @@ export function OtpInput({
     const cleaned = raw.replace(/[^0-9]/g, '');
 
     if (cleaned.length > 1) {
-      // Pasted code — fill from the start and focus the end of what landed.
+      // Pasted code: fill from the start and focus the end of what landed.
       const pasted = cleaned.slice(0, length);
       onChange(pasted);
       inputs.current[Math.min(pasted.length, length - 1)]?.focus();
@@ -58,7 +55,7 @@ export function OtpInput({
     <View style={styles.row}>
       {digits.map((digit, index) => (
         <TextInput
-          // Position is the identity here — the boxes never reorder.
+          // Position is the identity here, because the boxes never reorder.
           key={index}
           ref={ref => {
             inputs.current[index] = ref;

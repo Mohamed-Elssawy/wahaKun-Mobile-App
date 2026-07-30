@@ -16,10 +16,6 @@ export type ActionCardProps = {
   showChevron?: boolean;
 };
 
-/**
- * Tappable card with a leading icon and a trailing chevron. Used for the
- * new-user / returning-user choice and for role selection.
- */
 export function ActionCard({
   icon,
   title,

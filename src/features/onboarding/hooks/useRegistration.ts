@@ -1,27 +1,19 @@
 import { useState } from 'react';
 
 import { ApiError } from '@/api';
+import { describeFirebaseError } from '@/features/auth/firebaseErrors';
 import {
   buildRegisterFormData,
   createExpert,
-  register,
 } from '@/features/auth/services/authService';
+import { sendVerificationCode } from '@/features/auth/services/firebaseAuth';
+import type { RegisterFields } from '@/features/auth/types';
 
 import type { RegistrationDraft } from '../context/RegistrationContext';
 
-export type RegistrationOutcome =
-  /** Farmer sign-up: an OTP was sent and must be confirmed. */
-  | { status: 'otp-sent' }
-  /** Expert sign-up: account created as Pending, no OTP step. */
-  | { status: 'pending-approval' };
+export type RegistrationOutcome = { status: 'otp-sent' } | { status: 'pending-approval' };
 
-/**
- * Submits the registration wizard.
- *
- * The farmer/expert branch lives here rather than in the phone screen's JSX:
- * farmers get an OTP to confirm, experts are created as "Pending" for an admin
- * to approve and skip verification entirely.
- */
+/** Farmers confirm an OTP; experts are created Pending for an admin and skip it. */
 export function useRegistration() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -34,7 +26,7 @@ export function useRegistration() {
     setError('');
 
     try {
-      const formData = buildRegisterFormData({
+      const fields: RegisterFields = {
         FullName: draft.fullName ?? '',
         village: draft.location?.name ?? '',
         Region: draft.governorate?.name ?? '',
@@ -42,20 +34,23 @@ export function useRegistration() {
         password: draft.password ?? '',
         PhoneNumber: phoneNumber,
         picture: draft.profileImage ?? null,
-      });
+      };
 
+      // Above the flag: an expert never verifies a phone, so this path never changes.
       if (draft.role === 'expert') {
-        await createExpert(formData);
+        await createExpert(buildRegisterFormData(fields));
         return { status: 'pending-approval' };
       }
 
-      await register(formData);
+      // The fields ride along because /Auth/Register wants them with the token.
+      await sendVerificationCode(phoneNumber, fields);
+
       return { status: 'otp-sent' };
     } catch (err) {
       setError(
         err instanceof ApiError
           ? err.message
-          : 'حدث خطأ أثناء إنشاء الحساب، حاول مرة أخرى',
+          : describeFirebaseError(err, 'حدث خطأ أثناء إنشاء الحساب، حاول مرة أخرى'),
       );
       return null;
     } finally {

@@ -1,7 +1,4 @@
-/**
- * All calls to UserService. Every call requires the user to be logged in —
- * `authenticated: true` attaches the saved bearer access token.
- */
+/** Every UserService call needs a login, hence `authenticated: true` throughout. */
 import { API_ENDPOINTS, apiClient } from '@/api';
 import { API_BASE_URLS } from '@/config/env';
 

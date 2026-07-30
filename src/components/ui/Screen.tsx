@@ -9,10 +9,7 @@ import type { Edge } from 'react-native-safe-area-context';
 
 export type ScreenProps = {
   children: ReactNode;
-  /**
-   * Content and a bottom-pinned footer, the layout every wizard step uses
-   * (`justifyContent: 'space-between'` on the root).
-   */
+  /** Pinned to the bottom, the layout every wizard step uses. */
   footer?: ReactNode;
   /** Apply the standard 24pt horizontal padding to children. */
   padded?: boolean;
@@ -20,12 +17,7 @@ export type ScreenProps = {
   style?: StyleProp<ViewStyle>;
 };
 
-/**
- * Screen shell: safe-area handling plus the app background.
- *
- * Uses SafeAreaView only. SafeAreaProvider is mounted once in app/App.tsx —
- * screens must not mount their own.
- */
+/** SafeAreaProvider is mounted once in app/App.tsx, so screens must not add their own. */
 export function Screen({
   children,
   footer,

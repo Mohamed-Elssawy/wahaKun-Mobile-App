@@ -30,7 +30,7 @@ export default function OtpScreen({ navigation, route }: ScreenProps<'Otp'>) {
     }
     setValidationError('');
 
-    if (await verify(phoneNumber, code)) {
+    if (await verify(code)) {
       navigation.navigate('RegistrationSuccess', { phoneNumber });
     }
   };
@@ -43,9 +43,7 @@ export default function OtpScreen({ navigation, route }: ScreenProps<'Otp'>) {
     setValidationError('');
     setError('');
     restart();
-    // TODO: call a resend endpoint once AuthService exposes one. Today an OTP
-    // is only issued as a side effect of /Auth/Register, so this restarts the
-    // timer without requesting anything.
+    // TODO: call a resend endpoint once AuthService has one. Only /Auth/Register issues OTPs.
   };
 
   return (
