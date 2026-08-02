@@ -13,6 +13,18 @@ export const FIREBASE_ERROR_MESSAGES: Record<string, string> = {
   'auth/user-disabled': 'هذا الحساب موقوف، تواصل مع الدعم',
   // Phone sign-in switched off in the console, but the farmer still needs a sentence.
   'auth/operation-not-allowed': 'تسجيل الدخول بالهاتف غير مفعّل حالياً',
+  // These come from a misconfigured SHA-1/SHA-256 fingerprint, a missing/incorrect
+  // package name in the Firebase console, or Play Integrity not enabled for the project.
+  'auth/app-not-authorized':
+    'التطبيق غير مصرح له باستخدام Firebase على هذا الجهاز، راجع إعدادات المطوّر',
+  'auth/invalid-app-credential':
+    'التطبيق غير مصرح له باستخدام Firebase على هذا الجهاز، راجع إعدادات المطوّر',
+  'auth/missing-android-pkg-name': 'إعدادات التطبيق غير مكتملة، راجع إعدادات المطوّر',
+  // Silent app-verification (Play Integrity) or the reCAPTCHA fallback failed.
+  'auth/captcha-check-failed': 'تعذر التحقق من التطبيق، راجع إعدادات المطوّر',
+  'auth/missing-client-identifier': 'تعذر التحقق من التطبيق، راجع إعدادات المطوّر',
+  'auth/app-not-authenticated': 'تعذر التحقق من التطبيق، راجع إعدادات المطوّر',
+  'auth/internal-error': 'حدث خطأ داخلي غير متوقع، حاول مرة أخرى لاحقاً',
 };
 
 /** Each caller passes its own fallback, since sending and verifying fail differently. */
