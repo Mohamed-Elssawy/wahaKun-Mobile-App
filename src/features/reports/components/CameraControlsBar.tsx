@@ -21,7 +21,7 @@ export function CameraControlsBar({
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.bar, { paddingBottom: insets.bottom + spacing.xl }]}>
+    <View style={[styles.bar, { paddingBottom: insets.bottom + spacing[24] }]}>
       <View style={styles.center}>
         <ShutterButton onPress={onCapture} />
       </View>
@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    paddingTop: spacing.xl,
+    paddingTop: spacing[24],
     // Approximates Figma's #4D4D4D at 70%, the closest scrim token the theme has.
     backgroundColor: colors.overlay,
   },

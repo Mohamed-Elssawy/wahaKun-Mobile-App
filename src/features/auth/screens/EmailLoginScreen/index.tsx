@@ -106,10 +106,10 @@ export default function EmailLoginScreen({ navigation }: ScreenProps<'EmailLogin
 
 const styles = StyleSheet.create({
   content: {
-    gap: spacing.xxxl,
+    gap: spacing[40],
     paddingHorizontal: screenPadding,
-    paddingTop: spacing.xl,
+    paddingTop: spacing[24],
   },
-  intro: { gap: spacing.md },
-  fields: { gap: spacing.xl },
+  intro: { gap: spacing[12] },
+  fields: { gap: spacing[24] },
 });

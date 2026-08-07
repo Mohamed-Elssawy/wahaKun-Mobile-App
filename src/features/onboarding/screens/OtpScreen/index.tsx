@@ -91,7 +91,7 @@ export default function OtpScreen({ navigation, route }: ScreenProps<'Otp'>) {
         </View>
 
         {validationError || verifyError ? (
-          <Text variant="label14Bold" color="error" align="right">
+          <Text variant="label14Bold" color="errorText" align="right">
             {validationError || verifyError}
           </Text>
         ) : null}
@@ -102,10 +102,10 @@ export default function OtpScreen({ navigation, route }: ScreenProps<'Otp'>) {
 
 const styles = StyleSheet.create({
   form: {
-    gap: spacing.xxxl,
+    gap: spacing[40],
     paddingHorizontal: screenPadding,
-    paddingTop: spacing.xxxl,
+    paddingTop: spacing[40],
   },
-  intro: { gap: spacing.md },
-  field: { gap: spacing.md },
+  intro: { gap: spacing[12] },
+  field: { gap: spacing[12] },
 });

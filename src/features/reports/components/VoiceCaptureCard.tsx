@@ -20,10 +20,10 @@ export function VoiceCaptureCard() {
 const styles = StyleSheet.create({
   card: {
     width: '100%',
-    gap: spacing.lg,
-    paddingVertical: spacing.xl,
+    gap: spacing[16],
+    paddingVertical: spacing[24],
     paddingHorizontal: screenPadding,
-    borderRadius: radii.xl,
+    borderRadius: radii[20],
     backgroundColor: colors.surface,
   },
 });

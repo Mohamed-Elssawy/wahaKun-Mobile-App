@@ -43,7 +43,7 @@ const MyReportsIcon = ({ color }: TabIconProps) => (
 export function HomeTabs() {
   const insets = useSafeAreaInsets();
   // Keep breathing room under the labels on devices reporting no bottom inset.
-  const bottomInset = Math.max(insets.bottom, spacing.sm);
+  const bottomInset = Math.max(insets.bottom, spacing[8]);
   const navigation = useNavigation();
 
   return (
@@ -51,7 +51,7 @@ export function HomeTabs() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textSubtle,
+        tabBarInactiveTintColor: colors.textMuted,
         tabBarLabelStyle: styles.label,
         tabBarItemStyle: styles.item,
         tabBarStyle: [
@@ -96,8 +96,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row-reverse',
     backgroundColor: colors.background,
     borderTopWidth: 1,
-    borderTopColor: colors.borderStronger,
-    paddingTop: spacing.sm,
+    // Decorative: the tab items are identified by icon + label, not this edge.
+    borderTopColor: colors.borderStrong,
+    paddingTop: spacing[8],
     ...shadows.sheet,
   },
   item: {

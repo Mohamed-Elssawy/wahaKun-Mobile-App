@@ -103,7 +103,7 @@ export default function LoginOtpScreen({ navigation, route }: ScreenProps<'Login
         </View>
 
         {validationError || verifyError ? (
-          <Text variant="label14Bold" color="error" align="right">
+          <Text variant="label14Bold" color="errorText" align="right">
             {validationError || verifyError}
           </Text>
         ) : null}
@@ -114,10 +114,10 @@ export default function LoginOtpScreen({ navigation, route }: ScreenProps<'Login
 
 const styles = StyleSheet.create({
   content: {
-    gap: spacing.xxxl,
+    gap: spacing[40],
     paddingHorizontal: screenPadding,
-    paddingTop: spacing.xl,
+    paddingTop: spacing[24],
   },
-  intro: { gap: spacing.md },
-  field: { gap: spacing.md },
+  intro: { gap: spacing[12] },
+  field: { gap: spacing[12] },
 });

@@ -25,7 +25,7 @@ export function UploadOptions({ onAttachPhoto, error }: UploadOptionsProps) {
       </View>
 
       {error ? (
-        <Text variant="label14Bold" color="error" align="center">
+        <Text variant="label14Bold" color="errorText" align="center">
           {error}
         </Text>
       ) : null}
@@ -35,12 +35,12 @@ export function UploadOptions({ onAttachPhoto, error }: UploadOptionsProps) {
 
 const styles = StyleSheet.create({
   options: {
-    gap: spacing.xxl,
+    gap: spacing[32],
     paddingHorizontal: screenPadding,
-    paddingTop: spacing.xxl,
+    paddingTop: spacing[32],
   },
   voice: {
-    gap: spacing.xxl,
+    gap: spacing[32],
     alignItems: 'center',
   },
 });

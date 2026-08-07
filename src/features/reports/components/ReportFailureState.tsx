@@ -27,14 +27,14 @@ export function ReportFailureState({
     <View style={styles.container}>
       <View style={styles.group}>
         <View style={styles.circle}>
-          <Icon size={ICON_SIZE} color={colors.errorStrong} />
+          <Icon size={ICON_SIZE} color={colors.errorText} />
         </View>
 
         <View style={styles.text}>
           <Text variant="h4" align="center">
             {title}
           </Text>
-          <Text variant="label14" color="textSubtle" align="center">
+          <Text variant="label14" color="textMuted" align="center">
             {message}
           </Text>
         </View>
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: screenPadding,
-    paddingBottom: spacing.xxl,
+    paddingBottom: spacing[32],
   },
   // Absorbs the leftover height, which is what holds the button at the bottom.
   group: {
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     // Figma's 21dp is glyph edge to glyph edge; h4's line box already adds a few.
-    gap: spacing.lg,
+    gap: spacing[16],
   },
   circle: {
     width: CIRCLE_SIZE,
@@ -69,6 +69,6 @@ const styles = StyleSheet.create({
   },
   text: {
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: spacing[4],
   },
 });

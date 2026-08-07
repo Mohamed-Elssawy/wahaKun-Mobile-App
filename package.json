@@ -14,7 +14,8 @@
     "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "typecheck": "tsc --noEmit",
     "test": "jest",
-    "verify": "npm run typecheck && npm run lint && npm test"
+    "verify": "npm run typecheck && npm run lint && npm test",
+    "tokens:figma": "node scripts/gen-figma-tokens.js"
   },
   "dependencies": {
     "@gorhom/bottom-sheet": "^5.2.14",

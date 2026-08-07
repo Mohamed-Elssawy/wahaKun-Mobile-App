@@ -60,7 +60,7 @@ export function TextField({
       </View>
 
       {hasError ? (
-        <Text variant="label14Bold" color="error" align="right">
+        <Text variant="label14Bold" color="errorText" align="right">
           {error}
         </Text>
       ) : null}
@@ -73,19 +73,19 @@ const hitSlop = { top: 10, bottom: 10, left: 10, right: 10 };
 const styles = StyleSheet.create({
   group: {
     width: '100%',
-    gap: spacing.sm,
+    gap: spacing[8],
   },
   box: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.ms,
+    gap: spacing[10],
     width: '100%',
-    height: controlHeight,
+    minHeight: controlHeight,
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.sm,
+    borderColor: colors.borderControl,
+    borderRadius: radii[6],
     backgroundColor: colors.surface,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing[16],
   },
   boxError: {
     borderColor: colors.error,

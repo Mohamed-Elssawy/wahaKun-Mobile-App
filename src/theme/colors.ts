@@ -18,7 +18,11 @@ export const palette = {
     N300: '#D2D3D3',
     N400: '#B1B2B2',
     N500: '#8E9090',
+    /** Lightest neutral clearing 3:1 on both white and `background`. Control outlines only. */
+    N550: '#8A8B8C',
     N600: '#797A7B',
+    /** Lightest neutral clearing 4.5:1 on both white and `background`. De-emphasised text. */
+    N650: '#6D6E6F',
     N700: '#57595A',
     N800: '#363939',
     N900: '#1F2223',
@@ -36,6 +40,9 @@ export const palette = {
   background: '#F4F1EB',
 } as const;
 
+// Every text token below clears WCAG 2.1 AA (4.5:1) against BOTH `surface` and
+// `background`. The 500 stops are tuned as fills and fail as text — N600 lands at
+// 3.82:1 on `background`, LG500 at 2.87:1 on white — so text uses its own stops.
 export const colors = {
   primary: palette.primary.G500,
   primaryPressed: palette.primary.G700,
@@ -50,30 +57,50 @@ export const colors = {
   textPrimary: palette.neutral.N900,
   textStrong: palette.neutral.N800,
   textSecondary: palette.neutral.N700,
-  textMuted: palette.neutral.N600,
-  textSubtle: palette.neutral.N500,
+  /**
+   * The de-emphasised text colour. Absorbed the old `textSubtle`: once both had
+   * to clear 4.5:1 on the same two surfaces they resolved to the same value, and
+   * two tokens that must look identical is how the contrast bug got in.
+   */
+  textMuted: palette.neutral.N650,
+  /** Placeholders are NOT exempt from 1.4.3 — they carry instructions here. */
+  textPlaceholder: palette.neutral.N650,
+  /**
+   * Genuinely inactive controls only, which 1.4.3 exempts. Never use this for
+   * text a user can still tap — that is what it was doing on the wizard's back
+   * control, at 2.13:1.
+   */
   textDisabled: palette.neutral.N400,
   textInverse: palette.neutral.white,
-  textPlaceholder: palette.neutral.N400,
 
+  /** Decorative edges — dividers, card hairlines. Not covered by 1.4.11. */
   border: palette.neutral.N200,
   borderStrong: palette.neutral.N300,
-  /** Heaviest hairline in the file: the bottom nav bar's top edge. */
-  borderStronger: palette.neutral.N400,
+  /**
+   * The visible boundary of an interactive control. 1.4.11 requires 3:1 here
+   * because the border is the only thing identifying the control as one.
+   */
+  borderControl: palette.neutral.N550,
   divider: palette.neutral.N200,
 
   disabled: palette.neutral.N400,
 
+  /** Fills, icons and severity dots. */
   error: palette.accent.red.R500,
-  errorTint: palette.accent.red.R100,
-  /** Only for a mark sitting on errorTint, where R500 has too little contrast. */
-  errorStrong: palette.accent.red.R700,
   warning: palette.accent.amber.A500,
-  warningTint: palette.accent.amber.A100,
   info: palette.accent.blue.B500,
-  infoTint: palette.accent.blue.B100,
   success: palette.accent.green.LG500,
+
+  errorTint: palette.accent.red.R100,
+  warningTint: palette.accent.amber.A100,
+  infoTint: palette.accent.blue.B100,
   successTint: palette.accent.green.LG100,
+
+  /** Status as text. The 700 stops clear 4.5:1 on white and on their own tint. */
+  errorText: palette.accent.red.R700,
+  warningText: palette.accent.amber.A700,
+  infoText: palette.accent.blue.B700,
+  successText: palette.accent.green.LG700,
 
   shadow: palette.neutral.black,
 } as const;

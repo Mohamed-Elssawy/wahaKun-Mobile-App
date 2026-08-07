@@ -132,25 +132,25 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: screenPadding,
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.xxl,
-    gap: spacing.xl,
+    paddingTop: spacing[24],
+    paddingBottom: spacing[32],
+    gap: spacing[24],
   },
   // The gauge and its two lines are one group, tighter than the gap between cards.
   summary: {
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: spacing[8],
   },
   severity: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: spacing[8],
   },
   centred: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.xl,
+    gap: spacing[24],
     paddingHorizontal: screenPadding,
   },
 });

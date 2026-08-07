@@ -71,7 +71,7 @@ export default function RoleScreen({ navigation }: ScreenProps<'Role'>) {
         </View>
 
         {error ? (
-          <Text variant="label14Bold" color="error" align="right">
+          <Text variant="label14Bold" color="errorText" align="right">
             {error}
           </Text>
         ) : null}
@@ -82,11 +82,11 @@ export default function RoleScreen({ navigation }: ScreenProps<'Role'>) {
 
 const styles = StyleSheet.create({
   form: {
-    gap: spacing.xxxl,
+    gap: spacing[40],
     paddingHorizontal: screenPadding,
-    paddingTop: spacing.xxxl,
+    paddingTop: spacing[40],
   },
   cards: {
-    gap: spacing.lg,
+    gap: spacing[16],
   },
 });

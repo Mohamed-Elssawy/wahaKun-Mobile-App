@@ -46,14 +46,14 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     backgroundColor: colors.primaryPressed,
     borderRadius: radii.pill,
-    padding: spacing.xxs,
+    padding: spacing[2],
   },
   option: {
     minWidth: 120,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing[8],
+    paddingHorizontal: spacing[16],
     borderRadius: radii.pill,
   },
   // The scale and shadow are what read as raised, not just a different fill.

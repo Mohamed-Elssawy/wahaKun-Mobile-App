@@ -50,13 +50,13 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
-    gap: spacing.xl,
+    gap: spacing[24],
     width: '100%',
     minHeight: 100,
-    padding: spacing.xl,
+    padding: spacing[24],
     borderWidth: 1,
-    borderColor: colors.textDisabled,
-    borderRadius: radii.lg,
+    borderColor: colors.borderStrong,
+    borderRadius: radii[16],
     backgroundColor: colors.surface,
   },
   cardSelected: {
@@ -65,6 +65,6 @@ const styles = StyleSheet.create({
   },
   text: {
     flex: 1,
-    gap: spacing.xs,
+    gap: spacing[4],
   },
 });

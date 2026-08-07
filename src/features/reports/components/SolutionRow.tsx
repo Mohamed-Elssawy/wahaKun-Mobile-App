@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row-reverse',
     // Top, not centre: a wrapped value should leave the disc level with its label.
     alignItems: 'flex-start',
-    gap: spacing.md,
+    gap: spacing[12],
   },
   disc: {
     width: DISC_SIZE,
@@ -51,6 +51,6 @@ const styles = StyleSheet.create({
   },
   text: {
     flex: 1,
-    gap: spacing.xxs,
+    gap: spacing[2],
   },
 });

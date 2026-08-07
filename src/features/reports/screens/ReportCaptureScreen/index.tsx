@@ -235,20 +235,20 @@ const styles = StyleSheet.create({
   },
   sheetContent: {
     paddingHorizontal: screenPadding,
-    paddingBottom: spacing.xxl,
-    gap: spacing.lg,
+    paddingBottom: spacing[32],
+    gap: spacing[16],
   },
   sheetOption: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    gap: spacing.md,
-    paddingVertical: spacing.md,
+    gap: spacing[12],
+    paddingVertical: spacing[12],
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
   sheetCancel: {
     alignItems: 'center',
-    paddingVertical: spacing.md,
+    paddingVertical: spacing[12],
   },
 });

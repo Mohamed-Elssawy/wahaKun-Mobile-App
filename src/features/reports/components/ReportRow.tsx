@@ -71,7 +71,7 @@ export function ReportRow({ report, onPress }: ReportRowProps) {
           </View>
         </View>
 
-        <ChevronLeft size={20} color={colors.textDisabled} />
+        <ChevronLeft size={20} color={colors.textMuted} />
       </View>
     </TouchableOpacity>
   );
@@ -80,7 +80,7 @@ export function ReportRow({ report, onPress }: ReportRowProps) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: radii.md,
+    borderRadius: radii[12],
     // The stripe reaches the rounded corners, so the body's padding cannot inset it.
     overflow: 'hidden',
     ...shadows.card,
@@ -91,13 +91,13 @@ const styles = StyleSheet.create({
   body: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
-    gap: spacing.md,
-    padding: spacing.md,
+    gap: spacing[12],
+    padding: spacing[12],
   },
   thumbnail: {
     width: THUMBNAIL_SIZE,
     height: THUMBNAIL_SIZE,
-    borderRadius: radii.sm,
+    borderRadius: radii[6],
     backgroundColor: colors.surfaceMuted,
   },
   thumbnailEmpty: {
@@ -106,17 +106,17 @@ const styles = StyleSheet.create({
   },
   text: {
     flex: 1,
-    gap: spacing.sm,
+    gap: spacing[8],
   },
   meta: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: spacing[8],
   },
   chip: {
     backgroundColor: colors.surfaceMuted,
-    borderRadius: radii.xs,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xxs,
+    borderRadius: radii[4],
+    paddingHorizontal: spacing[8],
+    paddingVertical: spacing[2],
   },
 });

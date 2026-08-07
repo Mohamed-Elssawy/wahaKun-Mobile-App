@@ -38,10 +38,10 @@ export function UploadPhotoCard({ onPress }: UploadPhotoCardProps) {
 const styles = StyleSheet.create({
   card: {
     alignItems: 'center',
-    gap: spacing.lg,
-    paddingVertical: spacing.xl,
+    gap: spacing[16],
+    paddingVertical: spacing[24],
     paddingHorizontal: screenPadding,
-    borderRadius: radii.xl,
+    borderRadius: radii[20],
     backgroundColor: colors.surface,
   },
   avatar: {
@@ -53,6 +53,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   text: {
-    gap: spacing.xs,
+    gap: spacing[4],
   },
 });

@@ -57,16 +57,16 @@ const styles = StyleSheet.create({
   brand: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
-    gap: spacing.md,
+    gap: spacing[12],
     paddingHorizontal: screenPadding,
-    paddingTop: spacing.xxl,
-    paddingBottom: spacing.md,
+    paddingTop: spacing[32],
+    paddingBottom: spacing[12],
   },
   logo: { width: 24, height: 24 },
   body: {
     flex: 1,
     justifyContent: 'center',
-    gap: spacing.md,
+    gap: spacing[12],
     paddingHorizontal: screenPadding,
   },
 });

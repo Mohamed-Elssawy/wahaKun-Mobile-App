@@ -57,15 +57,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row-reverse',
     alignItems: 'flex-end',
     backgroundColor: colors.background,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing[16],
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
   tab: {
     flex: 1,
     alignItems: 'center',
-    gap: spacing.sm,
-    paddingTop: spacing.md,
+    gap: spacing[8],
+    paddingTop: spacing[12],
   },
   underline: {
     height: UNDERLINE_HEIGHT,

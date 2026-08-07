@@ -25,9 +25,9 @@ export function DiagnosisCard({ title, children }: DiagnosisCardProps) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: radii.lg,
-    padding: spacing.xl,
-    gap: spacing.lg,
+    borderRadius: radii[16],
+    padding: spacing[24],
+    gap: spacing[16],
     ...shadows.card,
   },
 });

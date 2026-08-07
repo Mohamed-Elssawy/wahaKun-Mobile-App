@@ -46,8 +46,8 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingHorizontal: screenPadding,
-    paddingBottom: spacing.xxl,
-    paddingTop: spacing.lg,
-    gap: spacing.lg,
+    paddingBottom: spacing[32],
+    paddingTop: spacing[16],
+    gap: spacing[16],
   },
 });

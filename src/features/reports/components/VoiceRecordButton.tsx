@@ -32,7 +32,7 @@ export function VoiceRecordButton() {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: spacing[8],
   },
   button: {
     width: BUTTON_SIZE,

@@ -8,7 +8,7 @@ export function CaptureDivider() {
   return (
     <View style={styles.row}>
       <View style={styles.line} />
-      <Text variant="label20" color="textSubtle">
+      <Text variant="label20" color="textMuted">
         أو
       </Text>
       <View style={styles.line} />
@@ -20,11 +20,13 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.lg,
+    gap: spacing[16],
   },
   line: {
     flex: 1,
     height: 1,
-    backgroundColor: colors.textSubtle,
+    // borderStrong, not divider: this rule separates two equal-weight choices
+    // and has to hold its own next to them. It used to borrow a text colour.
+    backgroundColor: colors.borderStrong,
   },
 });

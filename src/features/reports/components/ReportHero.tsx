@@ -26,7 +26,7 @@ export function ReportHero({ photoUrl, title, severity, onBack }: ReportHeroProp
   return (
     <ImageBackground
       source={photoUrl ? { uri: photoUrl } : undefined}
-      style={[styles.hero, { paddingTop: insets.top + spacing.sm }]}
+      style={[styles.hero, { paddingTop: insets.top + spacing[8] }]}
       // Must be the prop: inside imageStyle it is ignored, leaving a band under a photo.
       resizeMode="cover"
     >
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
   hero: {
     height: HEIGHT,
     paddingHorizontal: screenPadding,
-    paddingBottom: spacing.lg,
+    paddingBottom: spacing[16],
     backgroundColor: colors.surfaceMuted,
     justifyContent: 'space-between',
   },
@@ -85,6 +85,6 @@ const styles = StyleSheet.create({
   },
   bottom: {
     alignItems: 'flex-end',
-    gap: spacing.sm,
+    gap: spacing[8],
   },
 });

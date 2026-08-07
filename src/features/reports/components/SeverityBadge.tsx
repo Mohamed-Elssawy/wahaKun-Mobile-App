@@ -25,8 +25,8 @@ export function SeverityBadge({ severity }: SeverityBadgeProps) {
 const styles = StyleSheet.create({
   badge: {
     // Figma says 45dp wide, but "حرج جداً" is twice "حرج", so the label decides.
-    height: 24,
-    paddingHorizontal: spacing.md,
+    minHeight: 24,
+    paddingHorizontal: spacing[12],
     borderRadius: radii.pill,
     alignItems: 'center',
     justifyContent: 'center',

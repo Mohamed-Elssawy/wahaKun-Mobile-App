@@ -34,7 +34,7 @@ export function ReportsEmptyState({
           <Text variant="h4" align="center">
             {title}
           </Text>
-          <Text variant="label14" color="textSubtle" align="center">
+          <Text variant="label14" color="textMuted" align="center">
             {message}
           </Text>
         </View>
@@ -49,14 +49,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: screenPadding,
-    paddingBottom: spacing.xxl,
+    paddingBottom: spacing[32],
   },
   // Absorbs the leftover height, which is what holds the button at the bottom.
   group: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.lg,
+    gap: spacing[16],
   },
   circle: {
     width: CIRCLE_SIZE,
@@ -68,6 +68,6 @@ const styles = StyleSheet.create({
   },
   text: {
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: spacing[4],
   },
 });

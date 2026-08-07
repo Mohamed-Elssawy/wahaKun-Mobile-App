@@ -33,12 +33,12 @@ export function RepairStepsList({ steps }: RepairStepsListProps) {
 
 const styles = StyleSheet.create({
   list: {
-    gap: spacing.md,
+    gap: spacing[12],
   },
   step: {
     flexDirection: 'row-reverse',
     alignItems: 'flex-start',
-    gap: spacing.md,
+    gap: spacing[12],
   },
   number: {
     width: NUMBER_SIZE,

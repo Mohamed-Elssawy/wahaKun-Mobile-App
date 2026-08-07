@@ -104,7 +104,7 @@ export default function ProfilePictureScreen({
           </TouchableOpacity>
 
           {error ? (
-            <Text variant="label14Bold" color="error" align="center">
+            <Text variant="label14Bold" color="errorText" align="center">
               {error}
             </Text>
           ) : null}
@@ -162,18 +162,18 @@ const AVATAR_SIZE = 120;
 const styles = StyleSheet.create({
   body: {
     alignItems: 'center',
-    gap: spacing.xxxl,
+    gap: spacing[40],
     paddingHorizontal: screenPadding,
-    paddingTop: spacing.xxxl,
+    paddingTop: spacing[40],
   },
   intro: {
-    gap: spacing.md,
+    gap: spacing[12],
   },
   avatar: {
     width: AVATAR_SIZE,
     height: AVATAR_SIZE,
     borderRadius: radii.pill,
-    backgroundColor: colors.textDisabled,
+    backgroundColor: colors.borderStrong,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -190,20 +190,20 @@ const styles = StyleSheet.create({
   },
   sheetContent: {
     paddingHorizontal: screenPadding,
-    paddingBottom: spacing.xxl,
-    gap: spacing.lg,
+    paddingBottom: spacing[32],
+    gap: spacing[16],
   },
   sheetOption: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    gap: spacing.md,
-    paddingVertical: spacing.md,
+    gap: spacing[12],
+    paddingVertical: spacing[12],
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
   sheetCancel: {
     alignItems: 'center',
-    paddingVertical: spacing.md,
+    paddingVertical: spacing[12],
   },
 });

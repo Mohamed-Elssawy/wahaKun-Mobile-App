@@ -112,15 +112,15 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingHorizontal: screenPadding,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.xxl,
-    gap: spacing.lg,
+    paddingTop: spacing[16],
+    paddingBottom: spacing[32],
+    gap: spacing[16],
   },
   centred: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.xl,
+    gap: spacing[24],
     paddingHorizontal: screenPadding,
   },
 });

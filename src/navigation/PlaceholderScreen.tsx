@@ -43,14 +43,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     paddingHorizontal: screenPadding,
-    paddingTop: spacing.md,
-    minHeight: spacing.xxxl,
+    paddingTop: spacing[12],
+    minHeight: spacing[40],
   },
   body: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.md,
+    gap: spacing[12],
     paddingHorizontal: screenPadding,
   },
   title: {

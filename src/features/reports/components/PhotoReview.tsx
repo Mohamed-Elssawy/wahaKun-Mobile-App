@@ -59,8 +59,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    padding: spacing.xl,
-    gap: spacing.md,
+    padding: spacing[24],
+    gap: spacing[12],
     // Scrim: the buttons sit on an unknown photo, so they need their own ground.
     backgroundColor: colors.overlay,
   },

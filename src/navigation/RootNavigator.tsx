@@ -47,6 +47,7 @@ export function RootNavigator() {
           gestureEnabled: true,
           presentation: 'card',
         }}
+        initialRouteName="Home"
       >
         <Stack.Screen name="Welcome" component={WelcomeScreen} />
         <Stack.Screen name="FullName" component={FullNameScreen} />
