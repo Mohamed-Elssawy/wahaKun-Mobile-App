@@ -34,7 +34,7 @@ export function ReportsEmptyState({
           <Text variant="h4" align="center">
             {title}
           </Text>
-          <Text variant="label14" color="textMuted" align="center">
+          <Text variant="label14" color="textSecondary" align="center">
             {message}
           </Text>
         </View>

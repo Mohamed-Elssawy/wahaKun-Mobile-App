@@ -25,7 +25,7 @@ export function AnalyzingStatus() {
         <Text variant="h4" align="center">
           {TITLE}
         </Text>
-        <Text variant="label12" color="textMuted" align="center">
+        <Text variant="label14" color="textSecondary" align="center">
           {SUBTITLE}
         </Text>
       </View>

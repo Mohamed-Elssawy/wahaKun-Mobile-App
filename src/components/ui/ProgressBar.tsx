@@ -5,7 +5,6 @@ import { colors } from '@/theme';
 export type ProgressBarProps = {
   /** 1-based index of the current step. */
   step: number;
-  /** Total number of steps. */
   totalSteps: number;
 };
 

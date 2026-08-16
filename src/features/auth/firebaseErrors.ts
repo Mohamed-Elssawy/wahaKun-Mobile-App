@@ -13,8 +13,7 @@ export const FIREBASE_ERROR_MESSAGES: Record<string, string> = {
   'auth/user-disabled': 'هذا الحساب موقوف، تواصل مع الدعم',
   // Phone sign-in switched off in the console, but the farmer still needs a sentence.
   'auth/operation-not-allowed': 'تسجيل الدخول بالهاتف غير مفعّل حالياً',
-  // These come from a misconfigured SHA-1/SHA-256 fingerprint, a missing/incorrect
-  // package name in the Firebase console, or Play Integrity not enabled for the project.
+  // A wrong SHA-1/SHA-256 fingerprint, a wrong package name, or Play Integrity left off.
   'auth/app-not-authorized':
     'التطبيق غير مصرح له باستخدام Firebase على هذا الجهاز، راجع إعدادات المطوّر',
   'auth/invalid-app-credential':
@@ -25,6 +24,8 @@ export const FIREBASE_ERROR_MESSAGES: Record<string, string> = {
   'auth/missing-client-identifier': 'تعذر التحقق من التطبيق، راجع إعدادات المطوّر',
   'auth/app-not-authenticated': 'تعذر التحقق من التطبيق، راجع إعدادات المطوّر',
   'auth/internal-error': 'حدث خطأ داخلي غير متوقع، حاول مرة أخرى لاحقاً',
+  // Phone auth needs Blaze; on Spark, BILLING_NOT_ENABLED is truncated to this code.
+  'auth/billing-not': 'إرسال الرسائل غير مفعّل في المشروع، راجع إعدادات المطوّر',
 };
 
 /** Each caller passes its own fallback, since sending and verifying fail differently. */

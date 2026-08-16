@@ -1,25 +1,15 @@
-// Waha KUN — P0 hygiene plugin.
-//
-// Non-destructive only: repoints, renames, locks. It never deletes a style,
-// component, variant, layer or page. Deletion is deliberately deferred to the
-// end of the project, because "unused today" is not "unneeded" while screens
-// are still being reworked.
+// P0 hygiene plugin: repoints, renames and locks. It never deletes anything.
 
-// ---------------------------------------------------------------------------
-// Config — the only lines you should need to edit.
-// ---------------------------------------------------------------------------
+// Config. The only lines you should need to edit.
 const CONFIG = {
-  // `Frame 52` is a component set with 8 variants (Photo × Effect). Pick a real
-  // name. Set to null to leave it alone.
+  // `Frame 52` is a component set with 8 variants. Null leaves it alone.
   FRAME_52_NEW_NAME: 'Report Photo Card',
 
-  // Non-canonical screen pages. Their top-level frames get locked so rework
-  // can only happen on the Hi-Fi pages. Nothing is deleted.
+  // Non-canonical pages. Their top-level frames lock so rework stays on Hi-Fi.
   FREEZE_PAGES: ['⚡ Prototype', 'UI Screens - draft'],
   FREEZE_PREFIX: '🔒 ',
 
-  // Repointing raw (styleless) Latin text is the one step with judgement in it,
-  // so it is off unless you tick the box in the UI.
+  // Repointing raw Latin text needs judgement, so it is off unless ticked in the UI.
   REPOINT_RAW_LATIN: false,
 };
 
@@ -28,19 +18,14 @@ const LATIN_FAMILY = /^(Inter|Futura PT)$/;
 // Families that are legitimately ours.
 const NATIVE_FAMILY = /^(Noto Sans Arabic|Cairo|Lora)$/;
 
-// Typos safe to fix mechanically: unambiguous, and no name collision results.
-//
-// Deliberately NOT here — both need a human:
-//   `listt` (35 uses) vs `list` (18 uses)   — two different icons, renaming collides
-//   `bar chart` vs the existing `bar-chart` — same collision
+// Mechanical typo fixes only. `listt` and `bar chart` need a human: renaming collides.
 const SAFE_RENAMES = [
   { find: 'Crirtical', replace: 'Critical' },
   { find: 'Expert-Overriden', replace: 'Expert-Overridden' },
   { find: 'CIrcle', replace: 'Circle' },
 ];
 
-// Arabic combining diacritics U+064B-U+0652 and U+0670. One of them (U+0650
-// KASRA) is sitting invisibly at the front of `Admin Report Card`.
+// Arabic combining diacritics. A U+0650 KASRA hides in `Admin Report Card`.
 const STRAY_DIACRITIC = /[ً-ْٰ]/g;
 
 // loadFontAsync is cheap on repeat but not free; only ask once per family+style.
@@ -61,15 +46,11 @@ async function ensureFont(fontName) {
 }
 
 let out = [];
-const log = (s) => out.push(s);
+const log = s => out.push(s);
 
-// ---------------------------------------------------------------------------
 // Text styles
-// ---------------------------------------------------------------------------
 
-// Two styles share a name; one resolves to Noto/Cairo, the other to Inter.
-// Nothing in Figma's UI distinguishes them, so picking from the panel is a coin
-// flip. Map every Latin one onto its native twin.
+// Two styles share a name, one Noto/Cairo and one Inter. Map each Latin one to its twin.
 async function buildStyleRepointMap() {
   const styles = await figma.getLocalTextStylesAsync();
   const byName = new Map();
@@ -81,7 +62,7 @@ async function buildStyleRepointMap() {
   const repoint = new Map(); // bad style id -> canonical style
   for (const [name, list] of byName) {
     if (list.length < 2) continue;
-    const canonical = list.find((s) => NATIVE_FAMILY.test(s.fontName.family));
+    const canonical = list.find(s => NATIVE_FAMILY.test(s.fontName.family));
     if (!canonical) {
       log(`  ! "${name}" is duplicated but no native twin found — skipped`);
       continue;
@@ -95,8 +76,8 @@ async function buildStyleRepointMap() {
   }
 
   // Wireframe leftover with no same-name twin; body 16 is its nearest match.
-  const wf = styles.find((s) => s.name === 'WF Body/Body Medium');
-  const body16 = (byName.get('Body/16px/Regular') || []).find((s) =>
+  const wf = styles.find(s => s.name === 'WF Body/Body Medium');
+  const body16 = (byName.get('Body/16px/Regular') || []).find(s =>
     NATIVE_FAMILY.test(s.fontName.family),
   );
   if (wf && body16) {
@@ -107,27 +88,41 @@ async function buildStyleRepointMap() {
   return { styles, byName, repoint };
 }
 
-// Size -> style name, for raw text carrying no style at all. Only sizes with an
-// exact equivalent in the scale are mapped; the rest are reported, not guessed.
+// Size -> style name for unstyled text. Only exact scale matches; the rest are reported.
 function pickStyleForRawText(node, byName) {
   const size = node.fontSize;
   const isBold = /Bold|SemiBold|Demi|Medium/i.test(node.fontName.style || '');
   const name =
-    size === 12 ? (isBold ? 'Label/12px/Bold' : 'Label/12px/Regular')
-    : size === 14 ? (isBold ? 'Label/14px/Bold' : 'Label/14px/Regular')
-    : size === 16 ? (isBold ? 'Label/16px/Bold' : 'Label/16px/Regular')
-    : size === 20 ? (isBold ? 'Label/20px/Bold' : 'Label/20px/Regular')
-    : size === 24 ? 'Headings/h3'
-    : size === 32 ? 'Headings/h2'
-    : size === 40 ? 'Headings/h1'
-    : null;
+    size === 12
+      ? isBold
+        ? 'Label/12px/Bold'
+        : 'Label/12px/Regular'
+      : size === 14
+        ? isBold
+          ? 'Label/14px/Bold'
+          : 'Label/14px/Regular'
+        : size === 16
+          ? isBold
+            ? 'Label/16px/Bold'
+            : 'Label/16px/Regular'
+          : size === 20
+            ? isBold
+              ? 'Label/20px/Bold'
+              : 'Label/20px/Regular'
+            : size === 24
+              ? 'Headings/h3'
+              : size === 32
+                ? 'Headings/h2'
+                : size === 40
+                  ? 'Headings/h1'
+                  : null;
   if (!name) return null;
-  return (byName.get(name) || []).find((s) => NATIVE_FAMILY.test(s.fontName.family)) || null;
+  return (
+    (byName.get(name) || []).find(s => NATIVE_FAMILY.test(s.fontName.family)) || null
+  );
 }
 
-// ---------------------------------------------------------------------------
 // Main
-// ---------------------------------------------------------------------------
 async function run(apply, repointRaw) {
   out = [];
   const t0 = Date.now();
@@ -138,7 +133,7 @@ async function run(apply, repointRaw) {
 
   await figma.loadAllPagesAsync();
 
-  // --- 1. style collisions -------------------------------------------------
+  // 1. style collisions
   log('1. Text style collisions');
   const { byName, repoint } = await buildStyleRepointMap();
   if (!repoint.size) log('  none found');
@@ -149,12 +144,13 @@ async function run(apply, repointRaw) {
     const fonts = new Set();
     for (const s of repoint.values()) fonts.add(JSON.stringify(s.fontName));
     for (const list of byName.values()) {
-      for (const s of list) if (NATIVE_FAMILY.test(s.fontName.family)) fonts.add(JSON.stringify(s.fontName));
+      for (const s of list)
+        if (NATIVE_FAMILY.test(s.fontName.family)) fonts.add(JSON.stringify(s.fontName));
     }
     for (const f of fonts) await ensureFont(JSON.parse(f));
   }
 
-  // --- 2. repoint text -----------------------------------------------------
+  // 2. repoint text
   log('2. Repointing text layers');
   const texts = figma.root.findAllWithCriteria({ types: ['TEXT'] });
   const rawSizes = new Map();
@@ -164,16 +160,19 @@ async function run(apply, repointRaw) {
 
     if (typeof sid === 'string' && sid && repoint.has(sid)) {
       counts.styled++;
-      // Figma refuses to touch a text node whose *current* font isn't loaded,
-      // even when the edit only swaps the style.
+      // Figma refuses to touch a text node whose current font is not loaded.
       if (apply && (await ensureFont(node.fontName))) {
         await node.setTextStyleIdAsync(repoint.get(sid).id);
       }
       continue;
     }
 
-    // Styleless Latin text — the 368 Inter + 75 Futura PT layers.
-    if (sid === '' && node.fontName !== figma.mixed && LATIN_FAMILY.test(node.fontName.family)) {
+    // Styleless Latin text: the 368 Inter and 75 Futura PT layers.
+    if (
+      sid === '' &&
+      node.fontName !== figma.mixed &&
+      LATIN_FAMILY.test(node.fontName.family)
+    ) {
       const target = pickStyleForRawText(node, byName);
       if (!target) {
         counts.rawSkipped++;
@@ -194,12 +193,15 @@ async function run(apply, repointRaw) {
       (repointRaw ? '' : '   (skipped — tick "repoint raw Latin text" to include)'),
   );
   if (counts.rawSkipped) {
-    log(`  ${counts.rawSkipped} styleless Latin layers have no equivalent — handle by hand:`);
-    for (const [k, n] of [...rawSizes].sort((a, b) => b[1] - a[1])) log(`      ${k}px  ×${n}`);
+    log(
+      `  ${counts.rawSkipped} styleless Latin layers have no equivalent — handle by hand:`,
+    );
+    for (const [k, n] of [...rawSizes].sort((a, b) => b[1] - a[1]))
+      log(`      ${k}px  ×${n}`);
   }
   log('');
 
-  // --- 3. renames ----------------------------------------------------------
+  // 3. renames
   log('3. Renames');
   const named = figma.root.findAllWithCriteria({ types: ['COMPONENT', 'COMPONENT_SET'] });
 
@@ -207,11 +209,14 @@ async function run(apply, repointRaw) {
     let next = node.name;
 
     for (const r of SAFE_RENAMES) next = next.split(r.find).join(r.replace);
-    // Unconditional: `.test()` on a /g regex advances lastIndex and would
-    // return false on every other call.
+    // Unconditional: `.test()` on a /g regex advances lastIndex.
     next = next.replace(STRAY_DIACRITIC, '').trim();
     if (next === 'Progress Bar Base') next = '_Progress Bar Base';
-    if (node.type === 'COMPONENT_SET' && node.name === 'Frame 52' && CONFIG.FRAME_52_NEW_NAME) {
+    if (
+      node.type === 'COMPONENT_SET' &&
+      node.name === 'Frame 52' &&
+      CONFIG.FRAME_52_NEW_NAME
+    ) {
       next = CONFIG.FRAME_52_NEW_NAME;
     }
 
@@ -224,7 +229,7 @@ async function run(apply, repointRaw) {
   if (!counts.renamed) log('  nothing to rename');
   log('');
 
-  // --- 4. freeze non-canonical pages ---------------------------------------
+  // 4. freeze non-canonical pages
   log('4. Freezing non-canonical pages');
   for (const page of figma.root.children) {
     const bare = page.name.replace(CONFIG.FREEZE_PREFIX, '');
@@ -237,15 +242,17 @@ async function run(apply, repointRaw) {
       counts.locked++;
       if (apply) frame.locked = true;
     }
-    log(`  ${bare}: ${n} of ${page.children.length} top-level frames locked` +
-      (n < page.children.length ? ' (rest already locked)' : ''));
+    log(
+      `  ${bare}: ${n} of ${page.children.length} top-level frames locked` +
+        (n < page.children.length ? ' (rest already locked)' : ''),
+    );
     if (apply && !page.name.startsWith(CONFIG.FREEZE_PREFIX)) {
       page.name = CONFIG.FREEZE_PREFIX + bare;
     }
   }
   log('');
 
-  // --- summary -------------------------------------------------------------
+  // summary
   log('---');
   log(`text repointed (styled): ${counts.styled}`);
   log(`text repointed (raw):    ${counts.raw}${repointRaw ? '' : ' (not applied)'}`);
@@ -260,12 +267,15 @@ async function run(apply, repointRaw) {
 
 figma.showUI(__html__, { width: 520, height: 620 });
 
-figma.ui.onmessage = async (msg) => {
+figma.ui.onmessage = async msg => {
   if (msg.type === 'run') {
     try {
       await run(msg.apply, msg.repointRaw);
     } catch (e) {
-      figma.ui.postMessage({ type: 'report', text: `ERROR\n\n${e.stack || e.message || e}` });
+      figma.ui.postMessage({
+        type: 'report',
+        text: `ERROR\n\n${e.stack || e.message || e}`,
+      });
     }
   }
   if (msg.type === 'close') figma.closePlugin();

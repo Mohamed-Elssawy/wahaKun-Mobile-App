@@ -4,11 +4,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, screenPadding, spacing } from '@/theme';
 
 import { FlipCameraButton } from './FlipCameraButton';
+import { GalleryButton } from './GalleryButton';
 import { ShutterButton } from './ShutterButton';
 
 export type CameraControlsBarProps = {
   onCapture: () => void;
   onFlip: () => void;
+  onOpenGallery: () => void;
   canFlip: boolean;
 };
 
@@ -16,26 +18,26 @@ export type CameraControlsBarProps = {
 export function CameraControlsBar({
   onCapture,
   onFlip,
+  onOpenGallery,
   canFlip,
 }: CameraControlsBarProps) {
   const insets = useSafeAreaInsets();
 
   return (
     <View style={[styles.bar, { paddingBottom: insets.bottom + spacing[24] }]}>
-      <View style={styles.center}>
-        <ShutterButton onPress={onCapture} />
+      {/* Three columns, so the shutter stays centred with or without a flip control. */}
+      <View style={styles.side}>
+        {canFlip ? <FlipCameraButton onPress={onFlip} /> : null}
       </View>
 
-      {canFlip ? (
-        <View style={styles.flip}>
-          <FlipCameraButton onPress={onFlip} />
-        </View>
-      ) : null}
+      <ShutterButton onPress={onCapture} />
+
+      <View style={styles.side}>
+        <GalleryButton onPress={onOpenGallery} />
+      </View>
     </View>
   );
 }
-
-const FLIP_BUTTON_SIZE = 26;
 
 const styles = StyleSheet.create({
   bar: {
@@ -43,18 +45,17 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingTop: spacing[24],
+    paddingHorizontal: screenPadding,
     // Approximates Figma's #4D4D4D at 70%, the closest scrim token the theme has.
     backgroundColor: colors.overlay,
   },
-  center: {
+  // Equal flex on both sides is what centres the shutter, not a fixed margin.
+  side: {
+    flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-  },
-  flip: {
-    position: 'absolute',
-    left: screenPadding,
-    top: '50%',
-    marginTop: -FLIP_BUTTON_SIZE / 2,
   },
 });

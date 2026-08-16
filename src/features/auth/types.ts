@@ -17,8 +17,9 @@ export type LoginWithEmailRequest = {
   Password: string;
 };
 
+/** The C# record declares `FulltName`; the Web defaults camelCase it to `fulltName`. */
 export type LoginWithEmailResponse = {
-  FulltName: string;
+  fulltName: string;
   refreshToken?: string;
   accessToken?: string;
   email: string;

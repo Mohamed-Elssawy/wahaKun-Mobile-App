@@ -40,9 +40,7 @@ export const palette = {
   background: '#F4F1EB',
 } as const;
 
-// Every text token below clears WCAG 2.1 AA (4.5:1) against BOTH `surface` and
-// `background`. The 500 stops are tuned as fills and fail as text — N600 lands at
-// 3.82:1 on `background`, LG500 at 2.87:1 on white — so text uses its own stops.
+// Text tokens clear 4.5:1 on both surfaces; the 500 stops are fills and fail as text.
 export const colors = {
   primary: palette.primary.G500,
   primaryPressed: palette.primary.G700,
@@ -57,29 +55,17 @@ export const colors = {
   textPrimary: palette.neutral.N900,
   textStrong: palette.neutral.N800,
   textSecondary: palette.neutral.N700,
-  /**
-   * The de-emphasised text colour. Absorbed the old `textSubtle`: once both had
-   * to clear 4.5:1 on the same two surfaces they resolved to the same value, and
-   * two tokens that must look identical is how the contrast bug got in.
-   */
   textMuted: palette.neutral.N650,
-  /** Placeholders are NOT exempt from 1.4.3 — they carry instructions here. */
+  /** Placeholders are not exempt from 1.4.3; they carry instructions here. */
   textPlaceholder: palette.neutral.N650,
-  /**
-   * Genuinely inactive controls only, which 1.4.3 exempts. Never use this for
-   * text a user can still tap — that is what it was doing on the wizard's back
-   * control, at 2.13:1.
-   */
+  /** Genuinely inactive controls only, which 1.4.3 exempts. Never for tappable text. */
   textDisabled: palette.neutral.N400,
   textInverse: palette.neutral.white,
 
-  /** Decorative edges — dividers, card hairlines. Not covered by 1.4.11. */
+  /** Decorative edges: dividers, card hairlines. Not covered by 1.4.11. */
   border: palette.neutral.N200,
   borderStrong: palette.neutral.N300,
-  /**
-   * The visible boundary of an interactive control. 1.4.11 requires 3:1 here
-   * because the border is the only thing identifying the control as one.
-   */
+  /** 1.4.11 needs 3:1 here, since the border is the only thing marking it as a control. */
   borderControl: palette.neutral.N550,
   divider: palette.neutral.N200,
 

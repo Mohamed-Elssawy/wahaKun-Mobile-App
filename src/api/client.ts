@@ -13,6 +13,8 @@ export type RequestOptions = {
   /** Attach the saved bearer token, if there is one. */
   authenticated?: boolean;
   headers?: Record<string, string>;
+  /** Overrides API_TIMEOUT_MS. Multipart uploads need far longer than JSON. */
+  timeoutMs?: number;
 };
 
 function safeJsonParse(text: string): unknown {
@@ -42,10 +44,16 @@ async function request<T>(
   path: string,
   options: RequestOptions = {},
 ): Promise<T> {
-  const { method = 'GET', body, authenticated = false, headers = {} } = options;
+  const {
+    method = 'GET',
+    body,
+    authenticated = false,
+    headers = {},
+    timeoutMs = API_TIMEOUT_MS,
+  } = options;
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   const finalHeaders: Record<string, string> = { ...headers };
   const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;

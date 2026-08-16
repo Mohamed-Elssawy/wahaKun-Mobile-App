@@ -7,7 +7,7 @@ import type { ColorToken } from '@/theme';
 
 import { formatReportReference } from '../format';
 import { formatRelativeTime } from '../relativeTime';
-import { SEVERITY_COLORS } from '../severity';
+import { describeSeverity } from '../severity';
 
 import type { Report } from '../types';
 
@@ -27,7 +27,9 @@ function stripeColor(report: Report): ColorToken {
   if (report.status === 'Dismissed') {
     return 'success';
   }
-  return report.analysis ? SEVERITY_COLORS[report.analysis.severity] : 'borderStrong';
+  return report.analysis
+    ? describeSeverity(report.analysis.severity).color
+    : 'borderStrong';
 }
 
 /** One report in the My Issues list. */
@@ -59,19 +61,19 @@ export function ReportRow({ report, onPress }: ReportRowProps) {
 
           <View style={styles.meta}>
             <View style={styles.chip}>
-              <Text variant="label12" color="textMuted">
+              <Text variant="label12" color="textSecondary">
                 {formatReportReference(report.id)}
               </Text>
             </View>
 
-            <Clock size={META_ICON_SIZE} color={colors.textMuted} />
-            <Text variant="label12" color="textMuted">
+            <Clock size={META_ICON_SIZE} color={colors.textSecondary} />
+            <Text variant="label12" color="textSecondary">
               {formatRelativeTime(report.createdAt)}
             </Text>
           </View>
         </View>
 
-        <ChevronLeft size={20} color={colors.textMuted} />
+        <ChevronLeft size={20} color={colors.textSecondary} />
       </View>
     </TouchableOpacity>
   );

@@ -7,9 +7,9 @@ import MyReportsScreen from '@/features/reports/screens/MyReportsScreen';
 import { colors, shadows, spacing, textStyles } from '@/theme';
 
 import FilePlusIcon from '@assets/icons/file-plus.svg';
-import HomeIcon from '@assets/icons/home.svg';
 import MapFilledIcon from '@assets/icons/map-filled.svg';
 import ReportsIcon from '@assets/icons/reports.svg';
+import UsersRoundIcon from '@assets/icons/users-round.svg';
 
 import { createPlaceholderScreen } from './PlaceholderScreen';
 
@@ -17,7 +17,7 @@ import type { HomeTabParamList } from './types';
 
 const Tab = createBottomTabNavigator<HomeTabParamList>();
 
-const CommunityFeedScreen = createPlaceholderScreen('الرئيسية');
+const CommunityFeedScreen = createPlaceholderScreen('المجتمع');
 const OasisMapScreen = createPlaceholderScreen('خريطة الواحة');
 const ReportAnIssueScreen = createPlaceholderScreen('الإبلاغ عن مشكلة');
 
@@ -28,7 +28,7 @@ const BAR_CONTENT_HEIGHT = 52;
 type TabIconProps = { color: string };
 
 const CommunityFeedIcon = ({ color }: TabIconProps) => (
-  <HomeIcon width={ICON_SIZE} height={ICON_SIZE} color={color} />
+  <UsersRoundIcon width={ICON_SIZE} height={ICON_SIZE} color={color} />
 );
 const ReportAnIssueIcon = ({ color }: TabIconProps) => (
   <FilePlusIcon width={ICON_SIZE} height={ICON_SIZE} color={color} />
@@ -48,6 +48,8 @@ export function HomeTabs() {
 
   return (
     <Tab.Navigator
+      // MyReports is declared last, so the landing tab has to be named explicitly.
+      initialRouteName="MyReports"
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
@@ -63,7 +65,12 @@ export function HomeTabs() {
       <Tab.Screen
         name="CommunityFeed"
         component={CommunityFeedScreen}
-        options={{ tabBarLabel: 'الرئيسية', tabBarIcon: CommunityFeedIcon }}
+        options={{ tabBarLabel: 'المجتمع', tabBarIcon: CommunityFeedIcon }}
+      />
+      <Tab.Screen
+        name="OasisMap"
+        component={OasisMapScreen}
+        options={{ tabBarLabel: 'خريطة الواحة', tabBarIcon: OasisMapIcon }}
       />
       <Tab.Screen
         name="ReportAnIssue"
@@ -78,11 +85,6 @@ export function HomeTabs() {
         }}
       />
       <Tab.Screen
-        name="OasisMap"
-        component={OasisMapScreen}
-        options={{ tabBarLabel: 'خريطة الواحة', tabBarIcon: OasisMapIcon }}
-      />
-      <Tab.Screen
         name="MyReports"
         component={MyReportsScreen}
         options={{ tabBarLabel: 'بلاغاتي', tabBarIcon: MyReportsIcon }}
@@ -93,7 +95,7 @@ export function HomeTabs() {
 
 const styles = StyleSheet.create({
   bar: {
-    flexDirection: 'row-reverse',
+    // No flexDirection: this lands on the outer container, and items row inside it.
     backgroundColor: colors.background,
     borderTopWidth: 1,
     // Decorative: the tab items are identified by icon + label, not this edge.

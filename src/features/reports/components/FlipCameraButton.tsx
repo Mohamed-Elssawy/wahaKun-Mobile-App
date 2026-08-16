@@ -7,7 +7,6 @@ export type FlipCameraButtonProps = {
   onPress: () => void;
 };
 
-/** Switches the live preview between the back and front camera. */
 export function FlipCameraButton({ onPress }: FlipCameraButtonProps) {
   return (
     <TouchableOpacity

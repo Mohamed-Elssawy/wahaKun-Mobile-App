@@ -2,13 +2,13 @@ import {
   CONFIDENCE_THRESHOLD,
   analyzeReport,
   createReport,
+  getReportById,
   resetMockReports,
 } from '../reportService.mock';
 
 import type { CreateReportFields } from '../../types';
 
-// Pins the gate being off: easy to undo by accident, and nothing else would notice.
-// Turning it back on is meant to break the second test, and that is not a flake.
+// Pins the gate being off; turning it back on is meant to break the second test.
 const PHOTO: CreateReportFields = { photo: { uri: 'file:///test-report.jpg' } };
 
 /** The mock simulates latency: 900ms to create, 2200ms to analyse. */
@@ -70,8 +70,21 @@ describe('reportService mock:createReport', () => {
       // The whole flow rests on this field: it is what AnalyzeReport is called with.
       expect(created.id).toBeTruthy();
       expect(created.status).toBe('Pending');
-      expect(created.analysis).toBeUndefined();
-      expect(created.attachments).toHaveLength(1);
+      // Pinned so the mock cannot drift wider than CreateReportResponse.
+      expect(created).not.toHaveProperty('analysis');
+      expect(created).not.toHaveProperty('attachments');
+    },
+    TIMEOUT,
+  );
+
+  it(
+    'still stores the photo, even though create does not return it',
+    async () => {
+      const created = await createReport(PHOTO);
+      const fetched = await getReportById(created.id);
+
+      expect(fetched.attachments).toHaveLength(1);
+      expect(fetched.attachments[0].url).toBe(PHOTO.photo.uri);
     },
     TIMEOUT,
   );

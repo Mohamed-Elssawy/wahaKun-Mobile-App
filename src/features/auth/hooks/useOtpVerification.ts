@@ -22,8 +22,7 @@ export function useOtpVerification() {
     try {
       const { idToken, profile } = await confirmVerificationCode(code);
 
-      // Two endpoints, not one. /Auth/Register takes the wizard's fields and the
-      // token together; firebase-login takes the token alone and never creates a profile.
+      // Two endpoints: /Auth/Register creates the profile, firebase-login never does.
       const result = profile
         ? await register(buildRegisterFormData(profile, idToken))
         : await firebaseLogin(idToken);

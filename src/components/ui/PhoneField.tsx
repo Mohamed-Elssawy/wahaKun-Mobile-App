@@ -24,7 +24,6 @@ export type PhoneFieldProps = {
   error?: string;
 };
 
-/** Country selector + national number, with the picker modal. */
 export function PhoneField({
   label,
   country,

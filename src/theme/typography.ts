@@ -29,8 +29,8 @@ export const fontSizes = {
 export const textStyles = {
   h1: { fontFamily: fonts.heading, fontSize: 40, lineHeight: 50 },
   h2: { fontFamily: fonts.heading, fontSize: 32, lineHeight: 40 },
-  h3: { fontFamily: fonts.heading, fontSize: 24, lineHeight: 35 },
-  h4: { fontFamily: fonts.heading, fontSize: 18, lineHeight: 22.5 },
+  h3: { fontFamily: fonts.heading, fontSize: 24, lineHeight: 40 },
+  h4: { fontFamily: fonts.heading, fontSize: 18, lineHeight: 30 },
   h5: { fontFamily: fonts.heading, fontSize: 16, lineHeight: 20 },
   h6: { fontFamily: fonts.heading, fontSize: 14, lineHeight: 17.5 },
 

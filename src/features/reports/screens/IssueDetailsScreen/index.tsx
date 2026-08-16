@@ -1,5 +1,5 @@
-import { ClipboardList, Clock } from 'lucide-react-native';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { CheckCircle2, ChevronLeft, Clock } from 'lucide-react-native';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { Text } from '@/components/ui';
 import type { ScreenProps } from '@/navigation/types';
@@ -8,23 +8,24 @@ import { colors, radii, screenPadding, spacing } from '@/theme';
 import { CaptureNotice } from '../../components/CaptureNotice';
 import { ConfidenceGauge } from '../../components/ConfidenceGauge';
 import { DiagnosisCard } from '../../components/DiagnosisCard';
+import { DiagnosisNote } from '../../components/DiagnosisNote';
 import { ProgressRing } from '../../components/ProgressRing';
-import { RepairStepsList } from '../../components/RepairStepsList';
 import { ReportErrorView } from '../../components/ReportErrorView';
 import { ReportHero } from '../../components/ReportHero';
-import { SolutionRow } from '../../components/SolutionRow';
+import { ReportStatusTrack } from '../../components/ReportStatusTrack';
 import { formatReportReference } from '../../format';
 import { useReportDiagnosis } from '../../hooks/useReportDiagnosis';
 import { formatRelativeTime } from '../../relativeTime';
 
 const DIAGNOSIS_TITLE = 'تشخيص الذكاء الاصطناعي';
-const SOLUTION_TITLE = 'الحل المقترح';
-const RECOMMENDATION_LABEL = 'الإجراء الموصى به';
+const STATUS_TITLE = 'حالة البلاغ';
+const FULL_DIAGNOSIS = 'تتبع كامل';
 const UNTITLED = 'بلاغ بدون وصف';
 const META_ICON_SIZE = 14;
+const LINK_ICON_SIZE = 18;
 
-/** F-04. Reuses M7's leaves, not its screen: F-03 and F-04 arrange them differently. */
-// Voice, stepper and comments stay unbuilt because no endpoint feeds any of them.
+/** F-04. Reuses F-03a's leaves, not its screen: the two arrange them differently. */
+// The frame's voice player, reporter, distance and comments have no endpoint.
 export default function IssueDetailsScreen({
   route,
   navigation,
@@ -71,58 +72,60 @@ export default function IssueDetailsScreen({
 
         <View style={styles.meta}>
           <View style={styles.chip}>
-            <Text variant="label12" color="textMuted">
+            <Text variant="label12" color="textSecondary">
               {formatReportReference(report.id)}
             </Text>
           </View>
 
-          <Clock size={META_ICON_SIZE} color={colors.textMuted} />
-          <Text variant="label12" color="textMuted">
+          <Clock size={META_ICON_SIZE} color={colors.textSecondary} />
+          <Text variant="label12" color="textSecondary">
             {formatRelativeTime(report.createdAt)}
           </Text>
         </View>
 
         <View style={styles.body}>
           {analysis ? (
-            <>
-              <DiagnosisCard title={DIAGNOSIS_TITLE}>
-                <View style={styles.summary}>
-                  <ConfidenceGauge confidence={analysis.confidence} compact />
+            <DiagnosisCard title={DIAGNOSIS_TITLE}>
+              <View style={styles.summary}>
+                <Text variant="h4" align="right" style={styles.summaryTitle}>
+                  {title}
+                </Text>
+                <ConfidenceGauge confidence={analysis.confidence} compact />
+              </View>
 
-                  <Text variant="h4" align="right" style={styles.summaryTitle}>
-                    {title}
-                  </Text>
-                </View>
-
-                {analysis.explanation ? (
-                  <Text variant="body14" align="right">
-                    {analysis.explanation}
-                  </Text>
-                ) : null}
-              </DiagnosisCard>
-
-              {analysis.recommendation || analysis.repairSteps.length > 0 ? (
-                <DiagnosisCard title={SOLUTION_TITLE}>
-                  {analysis.recommendation ? (
-                    <SolutionRow
-                      icon={ClipboardList}
-                      label={RECOMMENDATION_LABEL}
-                      value={analysis.recommendation}
-                    />
-                  ) : null}
-
-                  {analysis.repairSteps.length > 0 ? (
-                    <RepairStepsList steps={analysis.repairSteps} />
-                  ) : null}
-                </DiagnosisCard>
+              {/* A summary: all seven repair steps here buried the status track. */}
+              {analysis.explanation ? (
+                <DiagnosisNote icon={CheckCircle2}>{analysis.explanation}</DiagnosisNote>
               ) : null}
-            </>
+
+              {analysis.recommendation ? (
+                <DiagnosisNote icon={CheckCircle2}>
+                  {analysis.recommendation}
+                </DiagnosisNote>
+              ) : null}
+
+              <TouchableOpacity
+                style={styles.link}
+                onPress={() => navigation.navigate('ReportDiagnosis', { reportId })}
+                accessibilityRole="link"
+                accessibilityLabel={FULL_DIAGNOSIS}
+              >
+                <Text variant="label14Bold" color="primary">
+                  {FULL_DIAGNOSIS}
+                </Text>
+                <ChevronLeft size={LINK_ICON_SIZE} color={colors.primary} />
+              </TouchableOpacity>
+            </DiagnosisCard>
           ) : (
             <CaptureNotice
               title="لا يوجد تشخيص لهذا البلاغ"
               message="لم يكتمل تحليل الذكاء الاصطناعي بعد."
             />
           )}
+
+          <DiagnosisCard title={STATUS_TITLE}>
+            <ReportStatusTrack status={report.status} />
+          </DiagnosisCard>
         </View>
       </ScrollView>
     </View>
@@ -155,6 +158,15 @@ const styles = StyleSheet.create({
   },
   summaryTitle: {
     flex: 1,
+  },
+  // Trailing edge in an RTL layout, matching where the frame puts it.
+  link: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: spacing[4],
+    // Its own 48dp target: it sits inside a card with no other padding to borrow.
+    minHeight: 48,
   },
   chip: {
     backgroundColor: colors.surfaceMuted,

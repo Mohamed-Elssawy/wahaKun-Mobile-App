@@ -1,21 +1,6 @@
 import { colors } from './colors';
 
-/**
- * The spacing ramp. 2pt base — every value the Figma file actually uses is even,
- * so this was always a system, it had just never been written down.
- *
- * 2, 4      intra-component nudges
- * 8, 10, 12 gaps between elements
- * 16        grouped content
- * 24        the screen gutter (`screenPadding`)
- * 32, 40    section breaks
- *
- * A value not on this ramp is a bug. Keys are the values themselves so the
- * Figma variables (`space/10`) and the code cannot drift apart — the same
- * discipline `textStyles` already follows with `body12` / `label16`, and the
- * absence of which is how a Figma style named `Body/Bold` ended up resolving to
- * Medium.
- */
+// 2pt ramp; a value off it is a bug. Keys are the values so Figma's `space/10` matches.
 export const spacing = {
   0: 0,
   2: 2,
@@ -41,19 +26,10 @@ export const radii = {
 
 export const screenPadding = spacing[24];
 
-/**
- * Minimum height for tappable controls — clears the Android 48dp target.
- * A *minimum*, not a fixed height: at large OS font sizes a fixed 48 clips the
- * label, and the users most likely to have raised their font size are the ones
- * this app is for.
- */
+/** Android's 48dp target. A minimum, not a fixed height: a fixed 48 clips large OS fonts. */
 export const controlHeight = 48;
 
-/**
- * Ceiling on OS font scaling. RN scales text unbounded by default, which breaks
- * any layout with a bounded row. 1.3 keeps the largest common Android setting
- * legible without letting a 2x setting destroy the screen.
- */
+/** RN scales text unbounded by default, which breaks any layout with a bounded row. */
 export const maxFontScale = 1.3;
 
 // Figma layers two shadows; RN supports one, so each token keeps the dominant layer.

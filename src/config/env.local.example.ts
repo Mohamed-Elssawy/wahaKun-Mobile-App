@@ -1,3 +1,2 @@
-// npm install copies this to env.local.ts, which is gitignored. Edit that copy, not this.
-// Null uses the emulator defaults; set your LAN IP to run on a physical device.
+// Copied to the gitignored env.local.ts on install; edit that one. Null uses emulator defaults.
 export const HOST_OVERRIDE: string | null = null;

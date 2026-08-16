@@ -6,10 +6,24 @@ export type { ColorToken } from './colors';
 export { fonts, fontSizes, textStyles } from './typography';
 export type { TextVariant } from './typography';
 
-export { spacing, radii, shadows, screenPadding, controlHeight, maxFontScale } from './layout';
+export {
+  spacing,
+  radii,
+  shadows,
+  screenPadding,
+  controlHeight,
+  maxFontScale,
+} from './layout';
 
 import { colors, palette } from './colors';
-import { controlHeight, maxFontScale, radii, screenPadding, shadows, spacing } from './layout';
+import {
+  controlHeight,
+  maxFontScale,
+  radii,
+  screenPadding,
+  shadows,
+  spacing,
+} from './layout';
 import { fonts, fontSizes, textStyles } from './typography';
 
 /** Aggregate, for passing the whole theme as one object. */

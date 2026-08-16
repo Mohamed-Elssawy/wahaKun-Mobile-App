@@ -38,7 +38,8 @@ export function ReportFilterTabs({ filter, counts, onChange }: ReportFilterTabsP
           >
             <Text
               variant={isActive ? 'label14Bold' : 'label14'}
-              color={isActive ? 'primary' : 'textMuted'}
+              // N700, not textMuted: an unselected tab is still a control to read.
+              color={isActive ? 'primary' : 'textSecondary'}
             >
               {tab.showCount ? `${tab.label} (${counts[tab.key]})` : tab.label}
             </Text>

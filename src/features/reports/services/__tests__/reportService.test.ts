@@ -1,4 +1,19 @@
-import { normalizeConfidence } from '../reportService';
+import { API_BASE_URLS } from '@/config/env';
+
+import {
+  getMyReports,
+  getReportById,
+  normalizeConfidence,
+  resolveAttachmentUrl,
+  toUtcTimestamp,
+} from '../reportService';
+
+const mockGet = jest.fn();
+
+jest.mock('@/api', () => ({
+  apiClient: { get: (...args: unknown[]) => mockGet(...args) },
+  API_ENDPOINTS: jest.requireActual('@/api/endpoints').API_ENDPOINTS,
+}));
 
 // Pins what makes the fold safe: a value already in range must come back untouched.
 describe('normalizeConfidence', () => {
@@ -23,5 +38,156 @@ describe('normalizeConfidence', () => {
     expect(normalizeConfidence(-5)).toBe(0);
     expect(normalizeConfidence(NaN)).toBe(0);
     expect(normalizeConfidence(Infinity)).toBe(0);
+  });
+});
+
+// Both inputs are real values this backend has served, a day apart.
+describe('resolveAttachmentUrl', () => {
+  const EXPECTED = `${API_BASE_URLS.media}/storage?objectName=reportimage%2Fabc-123.jpg`;
+
+  it('points a bare object key at the storage endpoint', () => {
+    expect(resolveAttachmentUrl('reportimage/abc-123.jpg')).toBe(EXPECTED);
+  });
+
+  it('recovers the key from the doubled MinIO URL the server builds', () => {
+    // 127.0.0.1 is the phone, the bucket segment is doubled, and the bucket is private.
+    expect(
+      resolveAttachmentUrl('http://127.0.0.1:9000/reportimage/reportimage/abc-123.jpg'),
+    ).toBe(EXPECTED);
+  });
+
+  it('also handles the URL the server would build if it stopped doubling', () => {
+    expect(resolveAttachmentUrl('http://192.168.1.29:9000/reportimage/abc-123.jpg')).toBe(
+      EXPECTED,
+    );
+  });
+
+  it('leaves anything that is not a stored photo alone', () => {
+    // The mock's seeds and a local capture, neither of which is in MinIO.
+    const picsum = 'https://picsum.photos/seed/wahakun-canal/900/675';
+    expect(resolveAttachmentUrl(picsum)).toBe(picsum);
+    expect(resolveAttachmentUrl('file:///cache/report.jpg')).toBe(
+      'file:///cache/report.jpg',
+    );
+  });
+});
+
+// `datetime2` holds no offset, so a UTC instant arrives looking like a local one.
+describe('toUtcTimestamp', () => {
+  it('marks a bare server timestamp as UTC', () => {
+    expect(toUtcTimestamp('2026-08-09T13:01:13.4206342')).toBe(
+      '2026-08-09T13:01:13.4206342Z',
+    );
+    expect(toUtcTimestamp('2026-08-09T13:01:13')).toBe('2026-08-09T13:01:13Z');
+    expect(toUtcTimestamp('2026-08-09T13:01')).toBe('2026-08-09T13:01Z');
+  });
+
+  it('leaves a timestamp that already says what it is', () => {
+    expect(toUtcTimestamp('2026-08-09T13:01:13.42Z')).toBe('2026-08-09T13:01:13.42Z');
+    expect(toUtcTimestamp('2026-08-09T16:01:13+03:00')).toBe('2026-08-09T16:01:13+03:00');
+  });
+
+  it('leaves anything that is not a date-time alone', () => {
+    // What the server sends for an attachment's createdAt.
+    expect(toUtcTimestamp('')).toBe('');
+    expect(toUtcTimestamp('2026-08-09')).toBe('2026-08-09');
+  });
+});
+
+// A real GetReportById body, trimmed. Every field that differs from the mock has bitten us.
+describe('a report off the wire', () => {
+  beforeEach(mockGet.mockReset);
+
+  it('reads its timestamps as the UTC the server meant', async () => {
+    mockGet.mockResolvedValue({
+      id: '05533e56',
+      status: 'Analyzed',
+      createdAt: '2026-08-09T13:01:13.4206342',
+      updatedAt: '2026-08-09T13:10:25.8708138',
+      reporterId: 'f86295b1',
+      attachments: [],
+      analysis: null,
+    });
+
+    const report = await getReportById('05533e56');
+
+    // The instant, not the string: what went wrong was the parse, not the format.
+    expect(Date.parse(report.createdAt)).toBe(Date.UTC(2026, 7, 9, 13, 1, 13, 420));
+    expect(Date.parse(report.updatedAt as string)).toBe(
+      Date.UTC(2026, 7, 9, 13, 10, 25, 870),
+    );
+  });
+
+  it('drops the null analysis the server sends for an unanalysed report', async () => {
+    mockGet.mockResolvedValue({
+      id: '05533e56',
+      status: 'Pending',
+      createdAt: '2026-08-09T13:01:13.4206342',
+      updatedAt: null,
+      reporterId: 'f86295b1',
+      attachments: [],
+      analysis: null,
+    });
+
+    const report = await getReportById('05533e56');
+
+    // Not `toBeUndefined()`: null passes an `!== undefined` guard, and My Issues crashed.
+    expect(report).not.toHaveProperty('analysis');
+  });
+
+  it('resolves attachment keys and folds the percentage confidence', async () => {
+    mockGet.mockResolvedValue({
+      id: '05533e56',
+      status: 'Analyzed',
+      createdAt: '2026-08-09T13:01:13.42Z',
+      reporterId: 'f86295b1',
+      attachments: [
+        {
+          id: 'dbe60e73',
+          type: 'Photo',
+          url: 'http://127.0.0.1:9000/reportimage/reportimage/f8086949.jpg',
+          createdAt: '',
+        },
+      ],
+      // The vision service formats confidence as "95.98%", so ParseConfidence stores 95.98.
+      analysis: {
+        problemName: 'Pipe_Damage',
+        confidence: 95.98,
+        severity: 'VeryCritical',
+      },
+    });
+
+    const report = await getReportById('05533e56');
+
+    expect(report.attachments[0].url).toBe(
+      `${API_BASE_URLS.media}/storage?objectName=reportimage%2Ff8086949.jpg`,
+    );
+    expect(report.analysis?.confidence).toBeCloseTo(0.9598);
+  });
+});
+
+// GetMyReports answers in insertion order, so the newest report arrives last.
+describe('getMyReports', () => {
+  beforeEach(mockGet.mockReset);
+
+  it('puts the newest report first', async () => {
+    const wire = (id: string, createdAt: string) => ({
+      id,
+      status: 'Pending',
+      createdAt,
+      reporterId: 'f86295b1',
+      attachments: [],
+      analysis: null,
+    });
+
+    mockGet.mockResolvedValue([
+      wire('oldest', '2026-08-09T13:01:13.4206342'),
+      wire('middle', '2026-08-09T13:37:59.6010209'),
+      wire('newest', '2026-08-10T12:45:58.0923551'),
+    ]);
+
+    const reports = await getMyReports();
+
+    expect(reports.map(report => report.id)).toEqual(['newest', 'middle', 'oldest']);
   });
 });

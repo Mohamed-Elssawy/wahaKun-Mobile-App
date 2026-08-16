@@ -1,4 +1,4 @@
-import { ClipboardList } from 'lucide-react-native';
+import { CheckCircle2, Sparkles } from 'lucide-react-native';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/ui';
@@ -6,24 +6,25 @@ import type { ScreenProps } from '@/navigation/types';
 import { colors, screenPadding, spacing } from '@/theme';
 
 import { CaptureNotice } from '../../components/CaptureNotice';
-import { ConfidenceGauge } from '../../components/ConfidenceGauge';
+import { CollapsibleCard } from '../../components/CollapsibleCard';
+import { ConfidencePill } from '../../components/ConfidencePill';
 import { DiagnosisCard } from '../../components/DiagnosisCard';
+import { DiagnosisNote } from '../../components/DiagnosisNote';
 import { ProgressRing } from '../../components/ProgressRing';
 import { RepairStepsList } from '../../components/RepairStepsList';
 import { ReportErrorView } from '../../components/ReportErrorView';
 import { ReportHeader } from '../../components/ReportHeader';
 import { SeverityBadge } from '../../components/SeverityBadge';
-import { SolutionRow } from '../../components/SolutionRow';
 import { useReportDiagnosis } from '../../hooks/useReportDiagnosis';
 
-const EVIDENCE_TITLE = 'الأعراض المطابقة';
-const SOLUTION_TITLE = 'الحل المقترح';
-const RECOMMENDATION_LABEL = 'الإجراء الموصى به';
+const RECOMMENDATION_TITLE = 'الإجراء الموصى به';
+const STEPS_TITLE = 'ما يمكنك فعله الآن';
+const EXPLANATION_TITLE = 'لماذا هذا التشخيص؟';
 const SEVERITY_LABEL = 'مستوى الخطورة:';
 const UNTITLED_PROBLEM = 'مشكلة غير محددة';
 
-/** F-03. No footer in the frame, so back is the only way out and nothing is confirmed. */
-// The design's symptom and cost fields do not exist, so each card shows the nearest real one.
+/** F-03a. No footer in the frame, so back is the only way out and nothing is confirmed. */
+// The frame's symptom and cost lines have no endpoint, so they are left out.
 export default function ReportDiagnosisScreen({
   route,
   navigation,
@@ -67,43 +68,38 @@ export default function ReportDiagnosisScreen({
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <ConfidenceGauge confidence={analysis.confidence} />
-
+        {/* The problem is the headline; confidence is a footnote in the row below. */}
         <View style={styles.summary}>
-          <Text variant="h4" align="center">
+          <Text variant="h3" align="center">
             {analysis.problemArabic || analysis.problemName || UNTITLED_PROBLEM}
           </Text>
 
           <View style={styles.severity}>
-            <Text variant="label12" color="textMuted">
+            <Text variant="body14" color="textSecondary">
               {SEVERITY_LABEL}
             </Text>
             <SeverityBadge severity={analysis.severity} />
+            <ConfidencePill confidence={analysis.confidence} />
           </View>
         </View>
 
-        {analysis.explanation ? (
-          <DiagnosisCard title={EVIDENCE_TITLE}>
-            <Text variant="body14" align="right">
-              {analysis.explanation}
-            </Text>
+        {analysis.recommendation ? (
+          <DiagnosisCard title={RECOMMENDATION_TITLE}>
+            <DiagnosisNote icon={CheckCircle2}>{analysis.recommendation}</DiagnosisNote>
           </DiagnosisCard>
         ) : null}
 
-        {analysis.recommendation || analysis.repairSteps.length > 0 ? (
-          <DiagnosisCard title={SOLUTION_TITLE}>
-            {analysis.recommendation ? (
-              <SolutionRow
-                icon={ClipboardList}
-                label={RECOMMENDATION_LABEL}
-                value={analysis.recommendation}
-              />
-            ) : null}
-
-            {analysis.repairSteps.length > 0 ? (
-              <RepairStepsList steps={analysis.repairSteps} />
-            ) : null}
+        {analysis.repairSteps.length > 0 ? (
+          <DiagnosisCard title={STEPS_TITLE}>
+            <RepairStepsList steps={analysis.repairSteps} />
           </DiagnosisCard>
+        ) : null}
+
+        {/* Last and foldable: worth offering, not worth pushing the repair steps down. */}
+        {analysis.explanation ? (
+          <CollapsibleCard title={EXPLANATION_TITLE}>
+            <DiagnosisNote icon={Sparkles}>{analysis.explanation}</DiagnosisNote>
+          </CollapsibleCard>
         ) : null}
       </ScrollView>
     );
@@ -136,14 +132,17 @@ const styles = StyleSheet.create({
     paddingBottom: spacing[32],
     gap: spacing[24],
   },
-  // The gauge and its two lines are one group, tighter than the gap between cards.
+  // The title and the row under it are one group, tighter than the gap between cards.
   summary: {
     alignItems: 'center',
-    gap: spacing[8],
+    gap: spacing[12],
   },
   severity: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
+    justifyContent: 'center',
+    // Wraps: at a large font scale the label, badge and pill do not fit one line.
+    flexWrap: 'wrap',
     gap: spacing[8],
   },
   centred: {

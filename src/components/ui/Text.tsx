@@ -25,8 +25,7 @@ export function Text({
 }: TextProps) {
   return (
     <RNText
-      // Bounded here rather than per-screen: unbounded OS scaling overflows every
-      // control that has a height, and capping in one place cannot be forgotten.
+      // Capped in one place: unbounded OS scaling overflows every control with a height.
       maxFontSizeMultiplier={maxFontScale}
       style={[
         textStyles[variant],

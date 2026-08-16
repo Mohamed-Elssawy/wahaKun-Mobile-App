@@ -143,19 +143,32 @@ strings in the component that renders them, not scattered into helpers.
 
 Explain **why**, not what. Assume the reader can read code.
 
+**One line, always.** If a comment needs a second line, either shrink it or move
+it into ARCHITECTURE.md. Long block comments go stale and nobody reads them.
+
 ```ts
 // ✗
 // set loading to true
 setIsLoading(true);
 
+// ✗ needs a paragraph, so it belongs in a doc
+/**
+ * FormData sets its own multipart boundary. Setting Content-Type manually
+ * destroys it, and the server then cannot parse the body, which shows up as
+ * a 400 with no useful detail...
+ */
+
 // ✓
-// FormData sets its own multipart boundary — setting Content-Type manually
-// destroys it and the server cannot parse the body.
+// Setting Content-Type on FormData destroys the boundary and the body will not parse.
 ```
 
 Non-obvious constraints, backend quirks and deliberate deviations deserve a
 comment. `useCountdown` explains why it doesn't list `secondsLeft` as a
 dependency; `tokenStorage` explains why the v3 batch names matter. Keep that up.
+
+No section banners, no decorative separators, no emoji. Doc comments belong on
+shared utilities, the API layer and the theme system, not on every component.
+A `TODO` is fine when it is specific and names what would resolve it.
 
 ## Commits
 

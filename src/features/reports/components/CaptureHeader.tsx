@@ -11,13 +11,13 @@ export type CaptureHeaderProps = {
 
 /** Title and subtitle are fully determined by the mode, so they live here. */
 const MODE_COPY: Record<CaptureMode, { title: string; subtitle: string }> = {
-  camera: {
-    title: 'الابلاغ بالكاميرا',
-    subtitle: 'وجه الكاميرا نحو مشكلتك',
+  photo: {
+    title: 'الابلاغ بالصورة',
+    subtitle: 'وجه الكاميرا نحو مشكلتك أو ارفق صورة لها',
   },
-  upload: {
+  voice: {
     title: 'الابلاغ بالصوت',
-    subtitle: 'اوصف المشكلة بصوتك أو ارفق صورة لها',
+    subtitle: 'اوصف المشكلة بصوتك أو بالكتابة',
   },
 };
 

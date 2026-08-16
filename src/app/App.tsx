@@ -5,12 +5,15 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { RegistrationProvider } from '@/features/onboarding/context/RegistrationContext';
+import { startReportQueue } from '@/features/reports/services/reportQueue';
 import { RootNavigator } from '@/navigation/RootNavigator';
 
 /** Both providers are mounted once here; a second one mid-tree breaks insets and gestures. */
 const App = () => {
   useEffect(() => {
     BootSplash.hide({ fade: true });
+    // Queued reports must upload whether or not the farmer opens the tab showing them.
+    startReportQueue();
   }, []);
 
   return (

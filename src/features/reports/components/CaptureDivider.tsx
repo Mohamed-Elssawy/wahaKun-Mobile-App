@@ -25,8 +25,7 @@ const styles = StyleSheet.create({
   line: {
     flex: 1,
     height: 1,
-    // borderStrong, not divider: this rule separates two equal-weight choices
-    // and has to hold its own next to them. It used to borrow a text colour.
+    // borderStrong, not divider: this rule separates two equal-weight choices.
     backgroundColor: colors.borderStrong,
   },
 });

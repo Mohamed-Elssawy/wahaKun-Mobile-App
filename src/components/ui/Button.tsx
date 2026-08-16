@@ -102,9 +102,7 @@ const styles = StyleSheet.create({
     gap: spacing[10],
   },
   inactivePrimary: {
-    // Pale fill + muted label rather than grey fill + white label. White on N400
-    // is 2.13:1 — 1.4.3 exempts disabled controls, but this app is read in direct
-    // sun, so the exemption is not a reason to ship something illegible.
+    // Pale fill over grey: white on N400 is 2.13:1, and this app is read in direct sun.
     backgroundColor: colors.surfaceMuted,
   },
   inactiveOther: {

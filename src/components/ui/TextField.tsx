@@ -6,7 +6,7 @@ import { colors, controlHeight, radii, spacing, textStyles } from '@/theme';
 
 import { Text } from './Text';
 
-import type { StyleProp, TextInputProps, ViewStyle } from 'react-native';
+import type { StyleProp, TextInputProps, TextStyle, ViewStyle } from 'react-native';
 
 export type TextFieldProps = Omit<TextInputProps, 'style'> & {
   label?: string;
@@ -15,6 +15,8 @@ export type TextFieldProps = Omit<TextInputProps, 'style'> & {
   /** Adds a show/hide toggle and masks input by default. */
   secure?: boolean;
   containerStyle?: StyleProp<ViewStyle>;
+  /** Mainly `textAlign: 'right'`: the default is left, which suits email and phone. */
+  inputStyle?: StyleProp<TextStyle>;
 };
 
 export function TextField({
@@ -22,6 +24,7 @@ export function TextField({
   error,
   secure = false,
   containerStyle,
+  inputStyle,
   ...inputProps
 }: TextFieldProps) {
   const [isRevealed, setIsRevealed] = useState(false);
@@ -35,9 +38,16 @@ export function TextField({
         </Text>
       ) : null}
 
-      <View style={[styles.box, hasError && styles.boxError]}>
+      <View
+        style={[
+          styles.box,
+          // A multiline box grows, so the caret and reveal control belong at the top.
+          inputProps.multiline && styles.boxMultiline,
+          hasError && styles.boxError,
+        ]}
+      >
         <TextInput
-          style={styles.input}
+          style={[styles.input, inputStyle]}
           placeholderTextColor={colors.textPlaceholder}
           secureTextEntry={secure && !isRevealed}
           {...inputProps}
@@ -86,6 +96,10 @@ const styles = StyleSheet.create({
     borderRadius: radii[6],
     backgroundColor: colors.surface,
     paddingHorizontal: spacing[16],
+  },
+  boxMultiline: {
+    alignItems: 'flex-start',
+    paddingVertical: spacing[12],
   },
   boxError: {
     borderColor: colors.error,

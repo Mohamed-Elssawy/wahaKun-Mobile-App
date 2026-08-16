@@ -41,7 +41,7 @@ English/LTR mode can be added later without restructuring.
 ## What it will not do
 
 **Auto-layout coverage is not automatable.** The Design System page sits at 59%,
-and applying auto-layout to a frame *reflows its children* — a plugin doing that
+and applying auto-layout to a frame _reflows its children_ — a plugin doing that
 across ~1,000 frames would wreck layouts even though it deletes nothing. It needs
 a human deciding direction, alignment and spacing per component. That stays
 manual; it's the remaining P1 item after this runs.

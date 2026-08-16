@@ -1,8 +1,9 @@
 import type { LocationItem } from '@/types/location';
 
 // Keys must match governorate.id exactly, or the area list silently comes back empty.
+
 // TODO: placeholder data. Only the New Valley entries are real. Replace when an endpoint exists.
-export const areasByGovernorateId: Record<string, LocationItem[]> = {
+const areasByGovernorateId: Record<string, LocationItem[]> = {
   '1': [
     { id: '101', name: 'مدينة نصر' },
     { id: '102', name: 'المعادي' },

@@ -3,23 +3,27 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { describeError } from '../errors';
 import { reportApi } from '../services';
-import { CRITICAL_SEVERITIES } from '../severity';
+import { isCriticalSeverity } from '../severity';
+import { useReportQueue } from './useReportQueue';
 
 import type { ReportError } from '../errors';
-import type { Report } from '../types';
+import type { Report, ReportListItem } from '../types';
 
 const LOAD_ERROR = 'تعذر تحميل البلاغات، حاول مرة أخرى';
 
 export type ReportFilter = 'all' | 'active' | 'resolved' | 'critical';
+
+/** One SectionList section. The title is copy, so it is decided here, not in the UI. */
+export type ReportSection = { title: string; data: ReportListItem[] };
 
 // resolved is never true: no backend status means "fixed", and Dismissed is not it.
 const MATCHES: Record<ReportFilter, (report: Report) => boolean> = {
   all: () => true,
   active: report => report.status !== 'Dismissed',
   resolved: () => false,
+  // `!= null`, not `!== undefined`: the server sends null for an unanalysed report.
   critical: report =>
-    report.analysis !== undefined &&
-    CRITICAL_SEVERITIES.includes(report.analysis.severity),
+    report.analysis != null && isCriticalSeverity(report.analysis.severity),
 };
 
 /** Refetches on focus: a report filed seconds ago is the reason to open this tab. */
@@ -29,6 +33,7 @@ export function useMyReports() {
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<ReportFilter>('all');
   const isFocused = useRef(true);
+  const { queued, retry, discard } = useReportQueue();
 
   const load = useCallback(async (): Promise<void> => {
     setError(null);
@@ -61,30 +66,55 @@ export function useMyReports() {
     }, [load]),
   );
 
-  // Client-side because GetMyReports takes no parameters, and it keeps the counts honest.
+  // Queued reports count as active, never critical or resolved: neither is known yet.
   const counts = useMemo(
     () =>
       ({
-        all: reports.length,
-        active: reports.filter(MATCHES.active).length,
+        all: reports.length + queued.length,
+        active: reports.filter(MATCHES.active).length + queued.length,
         resolved: reports.filter(MATCHES.resolved).length,
         critical: reports.filter(MATCHES.critical).length,
       }) satisfies Record<ReportFilter, number>,
-    [reports],
+    [reports, queued],
   );
 
-  const visible = useMemo(() => reports.filter(MATCHES[filter]), [reports, filter]);
+  /** Queued reports lead and ignore the filter, since 'critical' needs an analysis they lack. */
+  const sections = useMemo<ReportSection[]>(() => {
+    const result: ReportSection[] = [];
+
+    // Its own section per X-09: "waiting on your phone" and "filed" are different answers.
+    if (queued.length > 0) {
+      result.push({
+        title: 'محفوظ على جهازك',
+        data: queued.map(item => ({ kind: 'queued' as const, queued: item })),
+      });
+    }
+
+    const visible = reports.filter(MATCHES[filter]);
+    if (visible.length > 0) {
+      result.push({
+        title: 'البلاغات النشطة',
+        data: visible.map(item => ({ kind: 'server' as const, report: item })),
+      });
+    }
+
+    return result;
+  }, [queued, reports, filter]);
 
   return {
-    /** Already filtered, so the screen renders this without deciding anything. */
-    reports: visible,
+    /** Already filtered, grouped and ordered, so the screen renders without deciding. */
+    sections,
+    /** Nothing to show under the current filter, which picks between X-06 and X-07. */
+    isEmpty: sections.length === 0,
     /** Whether the farmer has ever filed a report, which picks the empty state. */
-    hasAnyReports: reports.length > 0,
+    hasAnyReports: reports.length > 0 || queued.length > 0,
     counts,
     filter,
     setFilter,
     isLoading,
     error,
     refresh: load,
+    retryQueued: retry,
+    discardQueued: discard,
   };
 }
