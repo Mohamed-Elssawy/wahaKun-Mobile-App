@@ -1,7 +1,8 @@
-// camelCase on the wire: a bare AddControllers() gives System.Text.Json the Web defaults.
-// Enum values keep their casing, because the server maps those with .ToString().
+// camelCase on the wire from the Web defaults; enum values keep their casing.
 
 import type { PickedImage } from '@/types/image';
+
+import type { ReportErrorKind } from './errors';
 
 export type ReportStatus = 'Pending' | 'Analyzed' | 'Escalated' | 'Dismissed';
 
@@ -57,21 +58,65 @@ export type Report = {
   analysis?: AiAnalysis;
 };
 
+/** `CreateReportResponse`, not a `Report`: create files the row and analysis is a separate call. */
+export type CreatedReport = {
+  id: string;
+  description?: string;
+  status: ReportStatus;
+  createdAt: string;
+  updatedAt?: string;
+  reporterId: string;
+};
+
 export type CreateReportFields = {
   photo: PickedImage;
   description?: string;
   latitude?: number;
   longitude?: number;
+  /** Sent as `IdempotencyKey`; without it a retry after a lost response files twice. */
+  idempotencyKey?: string;
 };
+
+/** Re-encoded rather than referenced: the camera's cache directory may be evicted. */
+export type PersistedPhoto = {
+  /** JPEG bytes, base64. Stored under its own key, never inline in the queue index. */
+  base64: string;
+  width: number;
+  height: number;
+};
+
+export type QueuedReportState = 'queued' | 'uploading' | 'failed';
+
+/** Not a `Report`: that mirrors the C# response, so a client-only 'Queued' status would drift. */
+export type QueuedReport = {
+  /** Identity before the server assigns one, and the idempotency key on upload. */
+  localId: string;
+  description?: string;
+  latitude?: number;
+  longitude?: number;
+  state: QueuedReportState;
+  attempts: number;
+  /** Epoch ms. The drain passes over anything scheduled later than now. */
+  nextAttemptAt: number;
+  createdAt: string;
+  /** Set once create succeeds. Analysis may still be outstanding. */
+  serverId?: string;
+  /** Why it stopped. Never 'offline' (that retries) and never 'unauthorized'. */
+  failureKind?: ReportErrorKind;
+};
+
+/** A union because queued items have no server id, status or attachments. */
+export type ReportListItem =
+  { kind: 'queued'; queued: QueuedReport } | { kind: 'server'; report: Report };
 
 /** Typing services/index.ts as this is what stops the mock promising data the server won't. */
 export type ReportApi = {
-  createReport: (fields: CreateReportFields) => Promise<Report>;
+  createReport: (fields: CreateReportFields) => Promise<CreatedReport>;
   analyzeReport: (reportId: string) => Promise<Report>;
   getMyReports: () => Promise<Report[]>;
   getReportById: (reportId: string) => Promise<Report>;
   deleteReport: (reportId: string) => Promise<void>;
 };
 
-/** Not a backend concept: the server only ever receives the resulting file. */
-export type CaptureMode = 'camera' | 'upload';
+/** The two tabs on F-02, client-only. `photo` covers capture and gallery pick alike. */
+export type CaptureMode = 'photo' | 'voice';

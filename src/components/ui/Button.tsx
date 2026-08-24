@@ -53,7 +53,7 @@ export function Button({
 }: ButtonProps) {
   const isInactive = disabled || loading;
   const labelColor =
-    isInactive && variant === 'primary' ? 'textInverse' : VARIANT_LABEL_COLOR[variant];
+    isInactive && variant === 'primary' ? 'textMuted' : VARIANT_LABEL_COLOR[variant];
 
   return (
     <TouchableOpacity
@@ -72,21 +72,15 @@ export function Button({
       testID={testID}
     >
       {loading ? (
-        <ActivityIndicator
-          color={variant === 'primary' ? colors.textInverse : colors.primary}
-        />
+        // The inactive primary fill is pale now, so a white spinner would vanish.
+        <ActivityIndicator color={colors[labelColor]} />
       ) : (
         <>
           <Text variant="label16Bold" color={labelColor}>
             {label}
           </Text>
           {icon}
-          {showArrow && (
-            <ArrowLeft
-              size={24}
-              color={variant === 'primary' ? colors.textInverse : colors.primary}
-            />
-          )}
+          {showArrow && <ArrowLeft size={24} color={colors[labelColor]} />}
         </>
       )}
     </TouchableOpacity>
@@ -100,13 +94,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
-    height: controlHeight,
-    borderRadius: radii.sm,
-    paddingHorizontal: spacing.md,
-    gap: spacing.ms,
+    // minHeight, not height: a fixed 48 clips the label at large OS font sizes.
+    minHeight: controlHeight,
+    borderRadius: radii[6],
+    paddingHorizontal: spacing[12],
+    paddingVertical: spacing[8],
+    gap: spacing[10],
   },
   inactivePrimary: {
-    backgroundColor: colors.disabled,
+    // Pale fill over grey: white on N400 is 2.13:1, and this app is read in direct sun.
+    backgroundColor: colors.surfaceMuted,
   },
   inactiveOther: {
     opacity: 0.5,

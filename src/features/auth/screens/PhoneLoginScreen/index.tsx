@@ -120,15 +120,15 @@ export default function PhoneLoginScreen({ navigation }: ScreenProps<'PhoneLogin
 
 const styles = StyleSheet.create({
   content: {
-    gap: spacing.xl,
+    gap: spacing[24],
     paddingHorizontal: screenPadding,
-    paddingTop: spacing.xl,
+    paddingTop: spacing[24],
   },
-  intro: { gap: spacing.md },
+  intro: { gap: spacing[12] },
   dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
+    gap: spacing[12],
   },
   dividerLine: {
     flex: 1,

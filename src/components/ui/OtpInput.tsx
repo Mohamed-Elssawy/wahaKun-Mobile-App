@@ -79,15 +79,15 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row-reverse',
     justifyContent: 'space-between',
-    gap: spacing.sm,
+    gap: spacing[8],
     width: '100%',
   },
   box: {
     flex: 1,
-    height: 56,
+    minHeight: 56,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: radii.sm,
+    borderRadius: radii[6],
     backgroundColor: colors.surface,
     ...textStyles.label20Bold,
     color: colors.textPrimary,

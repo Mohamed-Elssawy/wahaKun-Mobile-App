@@ -24,7 +24,6 @@ export type PhoneFieldProps = {
   error?: string;
 };
 
-/** Country selector + national number, with the picker modal. */
 export function PhoneField({
   label,
   country,
@@ -76,7 +75,7 @@ export function PhoneField({
       </View>
 
       {hasError ? (
-        <Text variant="label14Bold" color="error" align="right">
+        <Text variant="label14Bold" color="errorText" align="right">
           {error}
         </Text>
       ) : null}
@@ -122,30 +121,30 @@ export function PhoneField({
 }
 
 const styles = StyleSheet.create({
-  group: { width: '100%', gap: spacing.sm },
+  group: { width: '100%', gap: spacing[8] },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
-    height: controlHeight,
+    minHeight: controlHeight,
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.sm,
+    borderColor: colors.borderControl,
+    borderRadius: radii[6],
     backgroundColor: colors.surface,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing[16],
   },
   rowError: { borderColor: colors.error },
   selector: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: spacing[4],
   },
   flag: { fontSize: 18 },
   divider: {
     width: 1,
     height: 24,
     backgroundColor: colors.border,
-    marginHorizontal: spacing.md,
+    marginHorizontal: spacing[12],
   },
   input: {
     flex: 1,
@@ -160,19 +159,19 @@ const styles = StyleSheet.create({
   },
   sheet: {
     backgroundColor: colors.surface,
-    borderTopLeftRadius: radii.md,
-    borderTopRightRadius: radii.md,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.xxl,
+    borderTopLeftRadius: radii[12],
+    borderTopRightRadius: radii[12],
+    paddingTop: spacing[16],
+    paddingBottom: spacing[32],
     maxHeight: '60%',
   },
-  sheetTitle: { marginBottom: spacing.md },
+  sheetTitle: { marginBottom: spacing[12] },
   item: {
     flexDirection: 'row-reverse',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.md,
+    paddingHorizontal: spacing[24],
+    paddingVertical: spacing[12],
     borderBottomWidth: 1,
     borderBottomColor: colors.background,
   },
@@ -180,6 +179,6 @@ const styles = StyleSheet.create({
   itemName: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
-    gap: spacing.ms,
+    gap: spacing[10],
   },
 });

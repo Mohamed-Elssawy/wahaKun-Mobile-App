@@ -1,0 +1,90 @@
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font: 12px/1.5 'Inter', -apple-system, sans-serif;
+    margin: 0; padding: 16px;
+    color: #1F2223; background: #fff;
+  }
+  h1 { font-size: 13px; margin: 0 0 2px; }
+  p.sub { margin: 0 0 14px; color: #797A7B; }
+  .row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+  button {
+    font: inherit; font-weight: 600;
+    padding: 8px 14px; border-radius: 6px; border: 1px solid transparent;
+    cursor: pointer;
+  }
+  #dry { background: #fff; border-color: #D2D3D3; color: #1F2223; }
+  #apply { background: #1A6B3C; color: #fff; }
+  #apply:disabled { background: #B1B2B2; cursor: not-allowed; }
+  label { display: flex; gap: 6px; align-items: center; color: #57595A; }
+  pre {
+    background: #F6F6F6; border: 1px solid #EAEAEA; border-radius: 6px;
+    padding: 10px; margin: 0;
+    height: 400px; overflow: auto;
+    font: 11px/1.45 ui-monospace, Menlo, Consolas, monospace;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .warn { color: #A41B12; margin: 10px 0 0; }
+</style>
+
+<h1>Waha KUN — P0 Hygiene</h1>
+<p class="sub">Repoints, renames, locks. Never deletes.</p>
+
+<div class="row">
+  <button id="dry">Dry run</button>
+  <button id="apply" disabled>Apply</button>
+</div>
+<div class="row">
+  <label><input type="checkbox" id="raw"> also repoint raw Latin text (no style attached)</label>
+</div>
+
+<pre id="out">Run a dry run first. Nothing is written until you press Apply.</pre>
+
+<p class="warn" id="warn"></p>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  let dryRunDone = false;
+
+  const send = (apply) =>
+    parent.postMessage(
+      { pluginMessage: { type: 'run', apply, repointRaw: $('raw').checked } },
+      '*',
+    );
+
+  $('dry').onclick = () => {
+    $('out').textContent = 'Working…';
+    send(false);
+  };
+
+  // Two-step rather than confirm() — native dialogs are unreliable inside a
+  // Figma plugin iframe and a blocked one would freeze the plugin.
+  let armed = false;
+  $('apply').onclick = () => {
+    if (!armed) {
+      armed = true;
+      $('apply').textContent = 'Click again to confirm';
+      $('warn').textContent = 'This writes to the open file. Duplicate it first.';
+      setTimeout(() => {
+        armed = false;
+        $('apply').textContent = 'Apply';
+      }, 4000);
+      return;
+    }
+    armed = false;
+    $('apply').textContent = 'Apply';
+    $('out').textContent = 'Working…';
+    send(true);
+  };
+
+  onmessage = (e) => {
+    const msg = e.data.pluginMessage;
+    if (msg.type !== 'report') return;
+    $('out').textContent = msg.text;
+    if (!dryRunDone) {
+      dryRunDone = true;
+      $('apply').disabled = false;
+      $('warn').textContent = 'Duplicate the file before pressing Apply.';
+    }
+  };
+</script>

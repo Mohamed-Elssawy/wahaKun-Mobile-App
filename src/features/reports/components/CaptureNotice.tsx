@@ -16,7 +16,7 @@ export function CaptureNotice({ title, message }: CaptureNoticeProps) {
         {title}
       </Text>
       {message ? (
-        <Text variant="label14" color="textSubtle" align="center">
+        <Text variant="label14" color="textMuted" align="center">
           {message}
         </Text>
       ) : null}
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.xs,
+    gap: spacing[4],
     paddingHorizontal: screenPadding,
   },
 });

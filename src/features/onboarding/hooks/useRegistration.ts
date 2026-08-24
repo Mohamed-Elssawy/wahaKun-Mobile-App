@@ -48,7 +48,7 @@ export function useRegistration() {
       return { status: 'otp-sent' };
     } catch (err) {
       if (__DEV__) {
-        // Firebase's raw code/message — only ever logged in dev builds.
+        // Firebase's raw code/message, only ever logged in dev builds.
         console.log('Registration submit failed:', err);
       }
 

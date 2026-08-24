@@ -48,7 +48,7 @@ export function WizardHeader({
 
         {onBack ? (
           <TouchableOpacity onPress={onBack} hitSlop={hitSlop} accessibilityRole="button">
-            <Text variant="label14" color="textDisabled">
+            <Text variant="label14" color="textSecondary">
               {backLabel}
             </Text>
           </TouchableOpacity>
@@ -72,13 +72,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
     paddingHorizontal: screenPadding,
-    paddingTop: spacing.xxl,
-    paddingBottom: spacing.md,
+    paddingTop: spacing[32],
+    paddingBottom: spacing[12],
   },
   brand: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
-    gap: spacing.md,
+    gap: spacing[12],
   },
   logo: {
     width: 24,

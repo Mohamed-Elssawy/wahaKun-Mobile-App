@@ -21,7 +21,7 @@ export function ReportHeader({ title, subtitle, onBack, children }: ReportHeader
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.header, { paddingTop: insets.top + spacing.xxl }]}>
+    <View style={[styles.header, { paddingTop: insets.top + spacing[32] }]}>
       <View style={styles.row}>
         {onBack ? (
           <TouchableOpacity
@@ -57,17 +57,17 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: colors.primary,
     paddingHorizontal: screenPadding,
-    paddingBottom: spacing.xxl,
-    gap: spacing.xl,
+    paddingBottom: spacing[32],
+    gap: spacing[24],
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
+    gap: spacing[12],
   },
   text: {
     flex: 1,
     alignItems: 'flex-end',
-    gap: spacing.xs,
+    gap: spacing[4],
   },
 });

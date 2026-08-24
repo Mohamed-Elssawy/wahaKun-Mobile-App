@@ -1,7 +1,9 @@
+import type { CaptureMode } from '@/features/reports/types';
+
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-/** The four tabs behind the Home route. */
+/** The four tabs behind the Home route, listed left to right as the bar shows them. */
 export type HomeTabParamList = {
   CommunityFeed: undefined;
   OasisMap: undefined;
@@ -32,8 +34,8 @@ export type RootStackParamList = {
   TermsOfUse: undefined;
   PrivacyPolicy: undefined;
 
-  // Report flow
-  ReportCapture: undefined;
+  /** `mode` opens a tab other than the camera; F-03c sends the farmer to صوت. */
+  ReportCapture: { mode?: CaptureMode } | undefined;
   ReportAnalyzing: { reportId: string };
   ReportDiagnosis: { reportId: string };
   ConnectToExpert: { reportId: string };

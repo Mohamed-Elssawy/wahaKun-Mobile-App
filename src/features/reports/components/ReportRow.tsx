@@ -7,7 +7,7 @@ import type { ColorToken } from '@/theme';
 
 import { formatReportReference } from '../format';
 import { formatRelativeTime } from '../relativeTime';
-import { SEVERITY_COLORS } from '../severity';
+import { describeSeverity } from '../severity';
 
 import type { Report } from '../types';
 
@@ -27,7 +27,9 @@ function stripeColor(report: Report): ColorToken {
   if (report.status === 'Dismissed') {
     return 'success';
   }
-  return report.analysis ? SEVERITY_COLORS[report.analysis.severity] : 'borderStrong';
+  return report.analysis
+    ? describeSeverity(report.analysis.severity).color
+    : 'borderStrong';
 }
 
 /** One report in the My Issues list. */
@@ -59,19 +61,19 @@ export function ReportRow({ report, onPress }: ReportRowProps) {
 
           <View style={styles.meta}>
             <View style={styles.chip}>
-              <Text variant="label12" color="textMuted">
+              <Text variant="label12" color="textSecondary">
                 {formatReportReference(report.id)}
               </Text>
             </View>
 
-            <Clock size={META_ICON_SIZE} color={colors.textMuted} />
-            <Text variant="label12" color="textMuted">
+            <Clock size={META_ICON_SIZE} color={colors.textSecondary} />
+            <Text variant="label12" color="textSecondary">
               {formatRelativeTime(report.createdAt)}
             </Text>
           </View>
         </View>
 
-        <ChevronLeft size={20} color={colors.textDisabled} />
+        <ChevronLeft size={20} color={colors.textSecondary} />
       </View>
     </TouchableOpacity>
   );
@@ -80,7 +82,7 @@ export function ReportRow({ report, onPress }: ReportRowProps) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: radii.md,
+    borderRadius: radii[12],
     // The stripe reaches the rounded corners, so the body's padding cannot inset it.
     overflow: 'hidden',
     ...shadows.card,
@@ -91,13 +93,13 @@ const styles = StyleSheet.create({
   body: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
-    gap: spacing.md,
-    padding: spacing.md,
+    gap: spacing[12],
+    padding: spacing[12],
   },
   thumbnail: {
     width: THUMBNAIL_SIZE,
     height: THUMBNAIL_SIZE,
-    borderRadius: radii.sm,
+    borderRadius: radii[6],
     backgroundColor: colors.surfaceMuted,
   },
   thumbnailEmpty: {
@@ -106,17 +108,17 @@ const styles = StyleSheet.create({
   },
   text: {
     flex: 1,
-    gap: spacing.sm,
+    gap: spacing[8],
   },
   meta: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: spacing[8],
   },
   chip: {
     backgroundColor: colors.surfaceMuted,
-    borderRadius: radii.xs,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xxs,
+    borderRadius: radii[4],
+    paddingHorizontal: spacing[8],
+    paddingVertical: spacing[2],
   },
 });

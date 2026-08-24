@@ -26,4 +26,9 @@ export const API_ENDPOINTS = {
     all: '/Report/GetAllReports',
     delete: (reportId: string) => `/Report/DeleteReport?id=${reportId}`,
   },
+  storage: {
+    /** No [Authorize], which is what lets an <Image> src point straight at it. */
+    download: (objectName: string) =>
+      `/storage?objectName=${encodeURIComponent(objectName)}`,
+  },
 } as const;

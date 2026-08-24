@@ -83,9 +83,10 @@ src/config/env.local.ts
 # google-services.example.json is committed to show the expected shape.
 android/app/google-services.json
 
-# Editor and AI-assistant config — per-developer, not part of the project
-.claude/
-.mcp.json
-CLAUDE.md
+# Editor config — per-developer, not part of the project
 .vscode/*
 !.vscode/settings.json
+
+# Design exports. Regenerated from Figma on demand; ~36 MB of binaries that
+# would bloat every clone and can't be diffed.
+docs/*.pdf

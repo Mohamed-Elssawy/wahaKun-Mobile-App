@@ -8,8 +8,7 @@ import {
 
 import type { RegisterFields } from '../../types';
 
-// Module state rots quietly, so what is pinned here is the lifecycle, not the happy path.
-// The @react-native-firebase/auth mock lives in jest.setup.js; cases override it.
+// Pins the lifecycle rather than the happy path; the auth mock lives in jest.setup.js.
 const signIn = signInWithPhoneNumber as unknown as jest.Mock;
 
 const PROFILE: RegisterFields = {

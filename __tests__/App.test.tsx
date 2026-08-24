@@ -1,6 +1,4 @@
-/**
- * @format
- */
+/** @format */
 
 import ReactTestRenderer from 'react-test-renderer';
 

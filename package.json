@@ -14,12 +14,14 @@
     "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "typecheck": "tsc --noEmit",
     "test": "jest",
-    "verify": "npm run typecheck && npm run lint && npm test"
+    "verify": "npm run typecheck && npm run lint && npm test",
+    "tokens:figma": "node scripts/gen-figma-tokens.js"
   },
   "dependencies": {
     "@gorhom/bottom-sheet": "^5.2.14",
     "@react-native-async-storage/async-storage": "^3.1.1",
     "@react-native-community/geolocation": "^3.4.0",
+    "@react-native-community/netinfo": "^12.0.1",
     "@react-native-firebase/app": "^26.0.0",
     "@react-native-firebase/auth": "^26.0.0",
     "@react-navigation/bottom-tabs": "^7.18.14",

@@ -97,14 +97,14 @@ export default function LocationScreen({ navigation }: ScreenProps<'Location'>) 
 
 const styles = StyleSheet.create({
   form: {
-    gap: spacing.xxxl,
+    gap: spacing[40],
     paddingHorizontal: screenPadding,
-    paddingTop: spacing.xxxl,
+    paddingTop: spacing[40],
   },
   intro: {
-    gap: spacing.md,
+    gap: spacing[12],
   },
   fields: {
-    gap: spacing.xl,
+    gap: spacing[24],
   },
 });

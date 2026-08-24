@@ -7,7 +7,7 @@ export type RepairStepsListProps = {
   steps: string[];
 };
 
-const NUMBER_SIZE = 24;
+const NUMBER_SIZE = 28;
 
 /** Numbered, not ticked: these are instructions in order, and a tick would claim done. */
 export function RepairStepsList({ steps }: RepairStepsListProps) {
@@ -17,12 +17,13 @@ export function RepairStepsList({ steps }: RepairStepsListProps) {
         // No ids and repeatable text, so index is the only key. Never reordered.
         <View key={index} style={styles.step}>
           <View style={styles.number}>
-            <Text variant="label12Bold" color="primary">
+            <Text variant="label14Bold" color="textInverse">
               {index + 1}
             </Text>
           </View>
 
-          <Text variant="body14" align="right" style={styles.text}>
+          {/* label14, not body14: body leading opened visible gaps between one-line steps. */}
+          <Text variant="label14" align="right" style={styles.text}>
             {step}
           </Text>
         </View>
@@ -33,18 +34,19 @@ export function RepairStepsList({ steps }: RepairStepsListProps) {
 
 const styles = StyleSheet.create({
   list: {
-    gap: spacing.md,
+    gap: spacing[12],
   },
   step: {
     flexDirection: 'row-reverse',
     alignItems: 'flex-start',
-    gap: spacing.md,
+    gap: spacing[12],
   },
+  // Filled green with an inverse numeral; G500 on G100 is 3.1:1 and fails AA here.
   number: {
     width: NUMBER_SIZE,
     height: NUMBER_SIZE,
     borderRadius: radii.pill,
-    backgroundColor: colors.primaryTint,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },

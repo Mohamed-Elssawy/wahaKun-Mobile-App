@@ -1,8 +1,4 @@
-/**
- * Creates src/config/env.local.ts from the committed example if it is
- * missing. Runs on postinstall so the file the module graph imports always
- * exists, while staying gitignored so each developer's LAN IP is their own.
- */
+// Runs on postinstall so the gitignored env.local.ts the module graph imports always exists.
 const fs = require('fs');
 const path = require('path');
 
@@ -11,7 +7,7 @@ const target = path.join(configDir, 'env.local.ts');
 const example = path.join(configDir, 'env.local.example.ts');
 
 if (!fs.existsSync(example)) {
-  // Nothing to copy from — likely a partial checkout. Not fatal.
+  // Nothing to copy from, likely a partial checkout. Not fatal.
   process.exit(0);
 }
 

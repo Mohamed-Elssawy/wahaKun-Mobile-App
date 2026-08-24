@@ -2,36 +2,49 @@ import type { ColorToken } from '@/theme';
 
 import type { Severity } from './types';
 
-// Ten levels onto green, amber, red. Blue is skipped: it reads as info, not danger.
-// Unknown is grey, because "we could not tell" is not the claim "it is fine".
-export const SEVERITY_COLORS: Record<Severity, ColorToken> = {
-  Unknown: 'disabled',
-  Negligible: 'success',
-  VeryMinor: 'success',
-  Minor: 'success',
-  Low: 'warning',
-  Medium: 'warning',
-  High: 'error',
-  VeryHigh: 'error',
-  Critical: 'error',
-  VeryCritical: 'error',
+/** The backend's ten `SeverityLevel` steps collapsed to what a farmer acts on. */
+export type SeverityTier = 'critical' | 'medium' | 'low' | 'unknown';
+
+// High and VeryHigh sit in `critical`: under-warning about a damaged pipe costs more.
+const SEVERITY_TIERS: Record<Severity, SeverityTier> = {
+  VeryCritical: 'critical',
+  Critical: 'critical',
+  VeryHigh: 'critical',
+  High: 'critical',
+
+  Medium: 'medium',
+
+  Low: 'low',
+  Minor: 'low',
+  VeryMinor: 'low',
+  Negligible: 'low',
+
+  // Not "it is fine": the model could not tell, which is its own answer.
+  Unknown: 'unknown',
 };
 
-/** Severity levels the farmer is warned about, used by the حرج filter. */
-export const CRITICAL_SEVERITIES: Severity[] = ['Critical', 'VeryCritical'];
-
-// The server sends the English enum name, so the Arabic is produced here.
-// Masculine, to agree with مستوى beside the badge: Critical is حرج, not حرجة.
-export const SEVERITY_LABELS: Record<Severity, string> = {
-  Unknown: 'غير معروف',
-  Negligible: 'ضئيل',
-  VeryMinor: 'بسيط جداً',
-  Minor: 'بسيط',
-  Low: 'منخفض',
-  Medium: 'متوسط',
-  // "مرتفع" not "عالٍ": that tanween renders inconsistently across the Noto cuts.
-  High: 'مرتفع',
-  VeryHigh: 'مرتفع جداً',
-  Critical: 'حرج',
-  VeryCritical: 'حرج جداً',
+export type SeverityDisplay = {
+  /** Feminine, agreeing with الخطورة in "مستوى الخطورة". */
+  label: string;
+  /** The filled badge and the row's severity stripe. */
+  color: ColorToken;
+  /** Same hue at text weight, for a label on a light surface. */
+  textColor: ColorToken;
 };
+
+const TIER_DISPLAY: Record<SeverityTier, SeverityDisplay> = {
+  critical: { label: 'حرجة', color: 'error', textColor: 'errorText' },
+  medium: { label: 'متوسطة', color: 'warning', textColor: 'warningText' },
+  low: { label: 'منخفضة', color: 'info', textColor: 'infoText' },
+  unknown: { label: 'غير معروفة', color: 'disabled', textColor: 'textMuted' },
+};
+
+/** Falls back to `unknown`: the server can grow an enum value before this file does. */
+export function describeSeverity(severity: Severity): SeverityDisplay {
+  return TIER_DISPLAY[SEVERITY_TIERS[severity] ?? 'unknown'];
+}
+
+/** True for the tier the حرج filter shows, so filter and badge agree by construction. */
+export function isCriticalSeverity(severity: Severity): boolean {
+  return SEVERITY_TIERS[severity] === 'critical';
+}

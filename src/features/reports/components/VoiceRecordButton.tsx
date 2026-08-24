@@ -6,9 +6,25 @@ import { colors, radii, spacing } from '@/theme';
 
 const BUTTON_SIZE = 90;
 
-/** Disabled: ReportService has no voice endpoint yet. */
-export function VoiceRecordButton() {
-  const notifyUnavailable = () => {
+export type VoiceRecordButtonProps = {
+  /** Resolves false when the farmer refuses, which is what raises X-04. */
+  onRequestPermission: () => Promise<boolean>;
+  onPermissionDenied: () => void;
+};
+
+/** The permission half is real (X-04 comes through here); recording itself is not built. */
+export function VoiceRecordButton({
+  onRequestPermission,
+  onPermissionDenied,
+}: VoiceRecordButtonProps) {
+  const handlePress = async () => {
+    const isGranted = await onRequestPermission();
+
+    if (!isGranted) {
+      onPermissionDenied();
+      return;
+    }
+
     Alert.alert('غير متاح حالياً', 'سيتم دعم البلاغ الصوتي قريبًا.');
   };
 
@@ -16,13 +32,13 @@ export function VoiceRecordButton() {
     <View style={styles.container}>
       <TouchableOpacity
         style={styles.button}
-        onPress={notifyUnavailable}
+        onPress={handlePress}
         accessibilityRole="button"
         accessibilityLabel="اضغط للتسجيل"
       >
         <Mic size={32} color={colors.textInverse} />
       </TouchableOpacity>
-      <Text variant="label16" color="textMuted" align="center">
+      <Text variant="label16" color="textSecondary" align="center">
         اضغط للتسجيل
       </Text>
     </View>
@@ -32,7 +48,7 @@ export function VoiceRecordButton() {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: spacing[8],
   },
   button: {
     width: BUTTON_SIZE,

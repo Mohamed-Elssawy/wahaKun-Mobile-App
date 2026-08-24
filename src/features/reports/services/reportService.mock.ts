@@ -1,8 +1,7 @@
-// In-memory ReportApi: no ReportService instance is reachable. ./index.ts picks one.
-// Divergence on purpose: create returns Pending, though the real one analyses inline.
+// In-memory ReportApi for when no ReportService is reachable; ./index.ts picks one.
 import { ESCALATE_LOW_CONFIDENCE } from '@/config/env';
 
-import type { AiAnalysis, CreateReportFields, Report } from '../types';
+import type { AiAnalysis, CreatedReport, CreateReportFields, Report } from '../types';
 
 /** Only consulted when ESCALATE_LOW_CONFIDENCE is on, so turning it back on needs no number. */
 export const CONFIDENCE_THRESHOLD = 0.8;
@@ -117,8 +116,30 @@ let nextId = 1004;
 // Alternates, so building against the mock exercises both confidence branches.
 let returnHighConfidence = true;
 
-export async function createReport(fields: CreateReportFields): Promise<Report> {
+/** localId -> report id, so a retried upload resolves to the report already made. */
+const byIdempotencyKey = new Map<string, string>();
+
+/** Narrowed to what the server actually answers with: no attachments, no analysis. */
+const toCreated = (report: Report): CreatedReport => ({
+  id: report.id,
+  description: report.description,
+  status: report.status,
+  createdAt: report.createdAt,
+  updatedAt: report.updatedAt,
+  reporterId: report.reporterId,
+});
+
+export async function createReport(fields: CreateReportFields): Promise<CreatedReport> {
   await delay(LATENCY.create);
+
+  // A repeat is the same report, not an error. The real server files a second row.
+  if (fields.idempotencyKey) {
+    const existingId = byIdempotencyKey.get(fields.idempotencyKey);
+    const existing = existingId && reports.find(report => report.id === existingId);
+    if (existing) {
+      return toCreated(existing);
+    }
+  }
 
   const now = new Date().toISOString();
   const report: Report = {
@@ -141,7 +162,10 @@ export async function createReport(fields: CreateReportFields): Promise<Report> 
   };
 
   reports = [report, ...reports];
-  return report;
+  if (fields.idempotencyKey) {
+    byIdempotencyKey.set(fields.idempotencyKey, report.id);
+  }
+  return toCreated(report);
 }
 
 export async function analyzeReport(reportId: string): Promise<Report> {
@@ -196,4 +220,5 @@ export function resetMockReports() {
   reports = [...SEED];
   nextId = 1004;
   returnHighConfidence = true;
+  byIdempotencyKey.clear();
 }

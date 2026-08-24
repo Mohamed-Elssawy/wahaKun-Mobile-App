@@ -89,9 +89,9 @@ export default function PhoneScreen({ navigation }: ScreenProps<'Phone'>) {
 
 const styles = StyleSheet.create({
   form: {
-    gap: spacing.xxxl,
+    gap: spacing[40],
     paddingHorizontal: screenPadding,
-    paddingTop: spacing.xxxl,
+    paddingTop: spacing[40],
   },
-  intro: { gap: spacing.md },
+  intro: { gap: spacing[12] },
 });

@@ -55,6 +55,35 @@ jest.mock('react-native-vision-camera', () => {
   };
 });
 
+// The vision-camera mock above short-circuits the nitro chain for anything that
+// reaches it through the camera, but services/photoStore.ts imports nitro-image
+// directly, so it needs its own. Round-trips through the queue's tests: the encoded
+// buffer carries whatever bytes were handed in.
+jest.mock('react-native-nitro-image', () => {
+  const makeImage = (width, height, buffer) => ({
+    width,
+    height,
+    resizeAsync: jest.fn((w, h) => Promise.resolve(makeImage(w, h, buffer))),
+    toEncodedImageDataAsync: jest.fn(() =>
+      Promise.resolve({ buffer, width, height, imageFormat: 'jpg' }),
+    ),
+    saveToTemporaryFileAsync: jest.fn(() => Promise.resolve('/mock/tmp/restored.jpg')),
+    saveToFileAsync: jest.fn(() => Promise.resolve()),
+  });
+
+  return {
+    __esModule: true,
+    Images: {
+      loadFromFileAsync: jest.fn(() =>
+        Promise.resolve(makeImage(2048, 1536, new Uint8Array([1, 2, 3, 4, 5]).buffer)),
+      ),
+      loadFromEncodedImageDataAsync: jest.fn(data =>
+        Promise.resolve(makeImage(data.width, data.height, data.buffer)),
+      ),
+    },
+  };
+});
+
 // Native module with no JS fallback. Resolves a fix immediately so
 // useCurrentLocation has something to narrow.
 jest.mock('@react-native-community/geolocation', () => ({
@@ -95,6 +124,13 @@ jest.mock('@react-native-firebase/auth', () => ({
   }),
 }));
 
+// Ships its own mock, which defaults to connected-over-cellular. The offline
+// queue's tests override `fetch`/`addEventListener` per case; this default keeps
+// suites that merely import the queue from hanging on a never-resolving fetch().
+jest.mock('@react-native-community/netinfo', () =>
+  require('@react-native-community/netinfo/jest/netinfo-mock'),
+);
+
 // v3 API surface (getMany/setMany/removeMany — not the removed multi* names).
 jest.mock('@react-native-async-storage/async-storage', () => ({
   __esModule: true,
@@ -109,3 +145,10 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
     clear: jest.fn().mockResolvedValue(undefined),
   },
 }));
+
+// No test may reach the network. Without this the suite silently depends on whether a
+// local ReportService happens to be running: with USE_MOCK_REPORTS off, App.test went
+// from 8s to nearly two minutes against a live one, and would report different results
+// on a machine where the backend is down. Reject the way a dead connection does —
+// client.ts maps that to an offline ApiError, a path the screens already handle.
+global.fetch = jest.fn(() => Promise.reject(new TypeError('Network request failed')));

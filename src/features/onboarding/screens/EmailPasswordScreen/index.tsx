@@ -81,10 +81,10 @@ export default function EmailPasswordScreen({
 
 const styles = StyleSheet.create({
   form: {
-    gap: spacing.xxxl,
+    gap: spacing[40],
     paddingHorizontal: screenPadding,
-    paddingTop: spacing.xxxl,
+    paddingTop: spacing[40],
   },
-  intro: { gap: spacing.md },
-  fields: { gap: spacing.xl },
+  intro: { gap: spacing[12] },
+  fields: { gap: spacing[24] },
 });

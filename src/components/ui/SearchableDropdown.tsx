@@ -81,7 +81,7 @@ export function SearchableDropdown({
               onBlur={handleBlur}
               editable={!disabled}
               placeholder={disabled ? (disabledPlaceholder ?? placeholder) : placeholder}
-              placeholderTextColor={colors.textSubtle}
+              placeholderTextColor={colors.textMuted}
               style={styles.input}
               textAlign="right"
             />
@@ -121,7 +121,7 @@ const ItemSeparator = () => <View style={styles.itemSeparator} />;
 
 const ListEmpty = () => (
   <View style={styles.empty}>
-    <Text variant="label14" color="textSubtle">
+    <Text variant="label14" color="textMuted">
       لا توجد نتائج
     </Text>
   </View>
@@ -130,14 +130,14 @@ const ListEmpty = () => (
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    gap: spacing.xxs,
+    gap: spacing[2],
   },
   box: {
     width: '100%',
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.borderStrong,
-    borderRadius: radii.sm,
+    borderRadius: radii[6],
     overflow: 'hidden',
   },
   boxDisabled: {
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing[12],
   },
   input: {
     flex: 1,
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   item: {
     height: 48,
     justifyContent: 'center',
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing[16],
   },
   itemSeparator: {
     height: StyleSheet.hairlineWidth,

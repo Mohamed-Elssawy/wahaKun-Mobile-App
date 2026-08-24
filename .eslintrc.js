@@ -61,5 +61,9 @@ module.exports = {
     'coverage/',
     '*.config.js',
     'jest.setup.js',
+    // Figma plugins — they run in Figma's sandbox, where `figma`, `__html__`
+    // and the generated `TOKENS` are globals, and none of the React Native
+    // config applies.
+    'tools/',
   ],
 };

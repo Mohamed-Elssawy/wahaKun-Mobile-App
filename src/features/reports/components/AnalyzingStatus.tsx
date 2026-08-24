@@ -25,7 +25,7 @@ export function AnalyzingStatus() {
         <Text variant="h4" align="center">
           {TITLE}
         </Text>
-        <Text variant="label12" color="textSubtle" align="center">
+        <Text variant="label14" color="textSecondary" align="center">
           {SUBTITLE}
         </Text>
       </View>
@@ -36,12 +36,12 @@ export function AnalyzingStatus() {
 const styles = StyleSheet.create({
   status: {
     alignItems: 'center',
-    paddingTop: spacing.xxxl,
+    paddingTop: spacing[40],
     paddingHorizontal: screenPadding,
-    gap: spacing.lg,
+    gap: spacing[16],
   },
   text: {
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: spacing[4],
   },
 });

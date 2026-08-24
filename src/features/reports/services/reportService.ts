@@ -1,9 +1,9 @@
 /** Every ReportController endpoint is [Authorize], hence `authenticated: true` throughout. */
 
 import { API_ENDPOINTS, apiClient } from '@/api';
-import { API_BASE_URLS } from '@/config/env';
+import { API_BASE_URLS, UPLOAD_TIMEOUT_MS } from '@/config/env';
 
-import type { Report, CreateReportFields } from '../types';
+import type { CreatedReport, Report, CreateReportFields } from '../types';
 
 const BASE = API_BASE_URLS.report;
 
@@ -32,6 +32,10 @@ export function buildCreateReportFormData(fields: CreateReportFields): FormData 
   if (fields.description) {
     formData.append('Description', fields.description);
   }
+  // Queued reports only. A retry with the same key gets the report the server already made.
+  if (fields.idempotencyKey) {
+    formData.append('IdempotencyKey', fields.idempotencyKey);
+  }
   if (fields.latitude !== undefined) {
     formData.append('Latitude', String(fields.latitude));
   }
@@ -42,6 +46,14 @@ export function buildCreateReportFormData(fields: CreateReportFields): FormData 
   return formData;
 }
 
+/** Anything with no `Z` and no offset, e.g. "2026-08-09T13:01:13.4206342". */
+const NAIVE_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/;
+
+/** `datetime2` carries no offset, so JS reads a bare server timestamp as local time. */
+export function toUtcTimestamp(timestamp: string): string {
+  return NAIVE_TIMESTAMP.test(timestamp) ? `${timestamp}Z` : timestamp;
+}
+
 // ParseConfidence stores 0.91 for "0.91" but 91 for "91%", and the sender is unknown.
 export function normalizeConfidence(confidence: number): number {
   if (!Number.isFinite(confidence) || confidence <= 0) {
@@ -50,31 +62,63 @@ export function normalizeConfidence(confidence: number): number {
   return confidence > 1 ? Math.min(confidence / 100, 1) : confidence;
 }
 
-/** Every call below routes through here, so confidence means one thing everywhere. */
+// The MinIO bucket is also called `reportimage`, so the word appears twice in a direct URL.
+const OBJECT_KEY_PREFIX = 'reportimage/';
+
+/** Re-points the object key at MediaStorageService; the server's own URLs 403 and hardcode 127.0.0.1. */
+export function resolveAttachmentUrl(url: string): string {
+  const keyStart = url.lastIndexOf(OBJECT_KEY_PREFIX);
+  if (keyStart === -1) {
+    return url;
+  }
+  return `${API_BASE_URLS.media}${API_ENDPOINTS.storage.download(url.slice(keyStart))}`;
+}
+
+/** Every read below routes through here, so a Report means one thing everywhere. */
 function normalizeReport(report: Report): Report {
-  if (!report.analysis) {
-    return report;
+  // Destructured, not spread: the server sends `analysis: null` where the type says undefined.
+  const { analysis, ...rest } = report;
+
+  const normalized: Report = {
+    ...rest,
+    createdAt: toUtcTimestamp(report.createdAt),
+    attachments: report.attachments.map(attachment => ({
+      ...attachment,
+      url: resolveAttachmentUrl(attachment.url),
+      createdAt: toUtcTimestamp(attachment.createdAt),
+    })),
+  };
+
+  // Assigned, not spread: writing `updatedAt: undefined` over the server's null re-adds the key.
+  if (report.updatedAt) {
+    normalized.updatedAt = toUtcTimestamp(report.updatedAt);
+  }
+
+  if (!analysis) {
+    return normalized;
   }
   return {
-    ...report,
+    ...normalized,
     analysis: {
-      ...report.analysis,
-      confidence: normalizeConfidence(report.analysis.confidence),
+      ...analysis,
+      createdAt: toUtcTimestamp(analysis.createdAt),
+      confidence: normalizeConfidence(analysis.confidence),
     },
   };
 }
 
-/** Create also analyses, so it is slow and a failed analysis orphans a committed row. */
+/** Returns as soon as the row exists. Analysis is a separate call, hence `CreatedReport`. */
 export async function createReport(fields: CreateReportFields) {
-  const report = await apiClient.post<Report>(
+  return apiClient.post<CreatedReport>(
     BASE,
     API_ENDPOINTS.report.create,
     buildCreateReportFormData(fields),
     {
       authenticated: true,
+      // Aborting an upload the server is still writing is what produces duplicates.
+      timeoutMs: UPLOAD_TIMEOUT_MS,
     },
   );
-  return normalizeReport(report);
 }
 
 export async function analyzeReport(reportId: string) {
@@ -89,12 +133,14 @@ export async function analyzeReport(reportId: string) {
   return normalizeReport(report);
 }
 
-/** Newest first. Backs the My Issues screen. */
+/** Newest first. Sorted client-side because GetMyReports answers in insertion order. */
 export async function getMyReports() {
   const reports = await apiClient.get<Report[]>(BASE, API_ENDPOINTS.report.myReports, {
     authenticated: true,
   });
-  return reports.map(normalizeReport);
+  return reports
+    .map(normalizeReport)
+    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
 }
 
 export async function getReportById(reportId: string) {

@@ -67,8 +67,8 @@ export default function FullNameScreen({ navigation }: ScreenProps<'FullName'>) 
 
 const styles = StyleSheet.create({
   form: {
-    gap: spacing.xxxl,
+    gap: spacing[40],
     paddingHorizontal: screenPadding,
-    paddingTop: spacing.xxxl,
+    paddingTop: spacing[40],
   },
 });

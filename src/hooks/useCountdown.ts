@@ -33,8 +33,7 @@ export function useCountdown(seconds: number) {
   useEffect(() => {
     start(seconds);
     return clear;
-    // Runs once on purpose: restarts go through start().
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once; restarts call start()
   }, []);
 
   return { secondsLeft, restart: start, isFinished: secondsLeft <= 0 };

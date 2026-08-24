@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     width: '100%',
     paddingHorizontal: screenPadding,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.md,
+    paddingTop: spacing[16],
+    paddingBottom: spacing[12],
   },
 });

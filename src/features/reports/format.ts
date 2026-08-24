@@ -1,6 +1,6 @@
 const REFERENCE_LENGTH = 4;
 
-/** The tail of a GUID, because its leading block repeats across records created together. */
+/** The head, not the tail: EF's sequential GUIDs share a tail across a whole process. */
 export function formatReportReference(id: string): string {
-  return `#${id.slice(-REFERENCE_LENGTH).toUpperCase()}`;
+  return `#${id.slice(0, REFERENCE_LENGTH).toUpperCase()}`;
 }

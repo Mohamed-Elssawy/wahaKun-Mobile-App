@@ -1,6 +1,6 @@
 import { Text as RNText } from 'react-native';
 
-import { colors, textStyles } from '@/theme';
+import { colors, maxFontScale, textStyles } from '@/theme';
 import type { ColorToken, TextVariant } from '@/theme';
 
 import type { StyleProp, TextProps as RNTextProps, TextStyle } from 'react-native';
@@ -25,6 +25,8 @@ export function Text({
 }: TextProps) {
   return (
     <RNText
+      // Capped in one place: unbounded OS scaling overflows every control with a height.
+      maxFontSizeMultiplier={maxFontScale}
       style={[
         textStyles[variant],
         { color: colors[color] },

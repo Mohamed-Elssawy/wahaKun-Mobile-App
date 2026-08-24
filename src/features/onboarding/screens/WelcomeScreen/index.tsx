@@ -70,9 +70,9 @@ const styles = StyleSheet.create({
   brand: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
-    gap: spacing.ms,
+    gap: spacing[10],
     paddingHorizontal: screenPadding,
-    paddingTop: spacing.xxl,
+    paddingTop: spacing[32],
   },
   logo: {
     width: 54,
@@ -92,14 +92,14 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     justifyContent: 'center',
-    gap: spacing.xxxl,
+    gap: spacing[40],
     paddingHorizontal: screenPadding,
   },
   intro: {
-    gap: spacing.md,
+    gap: spacing[12],
     alignItems: 'flex-end',
   },
   cards: {
-    gap: spacing.lg,
+    gap: spacing[16],
   },
 });
