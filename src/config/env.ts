@@ -14,10 +14,10 @@ export const HOST = HOST_OVERRIDE ?? DEFAULT_HOST;
 
 /** Match the http profile in each service's launchSettings.json. */
 export const PORTS = {
-  auth: 5090,
-  user: 5256,
-  notification: 5140,
-  report: 5173,
+  auth: 30080,
+  user: 30050,
+  notification: 30020,
+  report: 30060,
 } as const;
 
 export const API_BASE_URLS = {
