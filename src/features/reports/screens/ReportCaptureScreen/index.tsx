@@ -1,6 +1,6 @@
 import { CloudOff } from 'lucide-react-native';
 import { useState } from 'react';
-import { Image, Linking, StyleSheet, View } from 'react-native';
+import { Linking, StyleSheet, View } from 'react-native';
 import { Camera } from 'react-native-vision-camera';
 
 import type { ScreenProps } from '@/navigation/types';
@@ -12,7 +12,6 @@ import { CaptureHeader } from '../../components/CaptureHeader';
 import { CaptureNotice } from '../../components/CaptureNotice';
 import { MicrophonePermissionDenied } from '../../components/MicrophonePermissionDenied';
 import { PhotoReview } from '../../components/PhotoReview';
-import { QueuedConfirmationSheet } from '../../components/QueuedConfirmationSheet';
 import { ReportErrorView } from '../../components/ReportErrorView';
 import { ReportFailureState } from '../../components/ReportFailureState';
 import { VoiceCapture } from '../../components/VoiceCapture';
@@ -20,8 +19,8 @@ import { useReportCapture } from '../../hooks/useReportCapture';
 
 import type { SubmitResult } from '../../hooks/useReportCapture';
 
-/** The two submit outcomes that keep the farmer on this screen. */
-type Outcome = Extract<SubmitResult['kind'], 'queued' | 'full'> | null;
+/** The one submit outcome that keeps the farmer on this screen. */
+type Outcome = Extract<SubmitResult['kind'], 'full'> | null;
 
 /** F-02. Shutter and gallery share one review step (F-02b), so there is no chooser. */
 export default function ReportCaptureScreen({
@@ -59,14 +58,13 @@ export default function ReportCaptureScreen({
   const handleUsePhoto = async () => {
     const result = await submit();
 
-    if (result.kind === 'uploaded') {
-      // replace, not navigate: the report exists now, so back would only duplicate it.
-      navigation.replace('ReportAnalyzing', { reportId: result.reportId });
+    if (result.kind === 'queued') {
+      // replace, not navigate: the photo is stored now, so back would only duplicate it.
+      navigation.replace('ReportAnalyzing', { localId: result.localId });
       return;
     }
 
-    // Neither is a failure, so both stay on this screen with something to read.
-    if (result.kind === 'queued' || result.kind === 'full') {
+    if (result.kind === 'full') {
       setOutcome(result.kind);
     }
     // 'failed' means the photo could not be stored, and arrives through submitError.
@@ -76,22 +74,7 @@ export default function ReportCaptureScreen({
   const goToMyReports = () => navigation.navigate('Home', { screen: 'MyReports' });
 
   const renderBody = () => {
-    // X-02a. The photo stays visible under the sheet, since nothing was lost.
-    if (outcome === 'queued') {
-      return (
-        <>
-          {photo ? (
-            <Image
-              source={{ uri: photo.uri }}
-              style={StyleSheet.absoluteFill}
-              resizeMode="cover"
-            />
-          ) : null}
-          <QueuedConfirmationSheet onViewReports={goToMyReports} />
-        </>
-      );
-    }
-
+    // X-02a moved to ReportAnalyzing: offline is only known once the drain has tried.
     if (outcome === 'full') {
       return (
         <ReportFailureState

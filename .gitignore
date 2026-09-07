@@ -83,9 +83,30 @@ src/config/env.local.ts
 # google-services.example.json is committed to show the expected shape.
 android/app/google-services.json
 
-# Editor config — per-developer, not part of the project
+# Editor config, per-developer rather than part of the project
 .vscode/*
 !.vscode/settings.json
+
+# Editor and assistant tooling. Per-machine, and no part of the project.
+.claude/
+.mcp.json
+CLAUDE.md
+AGENTS.md
+.cursor/
+.aider*
+.windsurfrules
+.github/copilot-instructions.md
+
+# Working notes and drafts, not project deliverables. docs/ ships the two Word
+# documents only: the requirements and the system overview.
+REFERENCE-NOTES.md
+BACKEND-BLOCKERS.md
+docs/*.md
+
+# Local dev tooling. These drive the .NET stack and the demo data on one machine,
+# with absolute paths to sibling checkouts, so they are no use in a clone.
+scripts/*.ps1
+scripts/demo-photos/
 
 # Design exports. Regenerated from Figma on demand; ~36 MB of binaries that
 # would bloat every clone and can't be diffed.

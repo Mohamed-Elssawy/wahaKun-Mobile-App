@@ -27,7 +27,7 @@
   .warn { color: #A41B12; margin: 10px 0 0; }
 </style>
 
-<h1>Waha KUN — P1 Variables</h1>
+<h1>Waha KUN P1 Variables</h1>
 <p class="sub">Creates variables from src/theme and binds styles to them. Never deletes.</p>
 
 <div class="row">
@@ -55,7 +55,7 @@
     send(false);
   };
 
-  // Two-step rather than confirm() — native dialogs are unreliable inside a
+  // Two-step rather than confirm(): native dialogs are unreliable inside a
   // Figma plugin iframe and a blocked one would freeze the plugin.
   let armed = false;
   $('apply').onclick = () => {

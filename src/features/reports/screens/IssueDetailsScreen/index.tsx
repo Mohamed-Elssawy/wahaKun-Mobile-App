@@ -2,6 +2,8 @@ import { CheckCircle2, ChevronLeft, Clock } from 'lucide-react-native';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { Text } from '@/components/ui';
+import { CommentThread } from '@/features/community/components/CommentThread';
+import { useIssueComments } from '@/features/community/hooks/useIssueComments';
 import type { ScreenProps } from '@/navigation/types';
 import { colors, radii, screenPadding, spacing } from '@/theme';
 
@@ -14,7 +16,7 @@ import { ReportErrorView } from '../../components/ReportErrorView';
 import { ReportHero } from '../../components/ReportHero';
 import { ReportStatusTrack } from '../../components/ReportStatusTrack';
 import { formatReportReference } from '../../format';
-import { useReportDiagnosis } from '../../hooks/useReportDiagnosis';
+import { useIssueDetails } from '../../hooks/useIssueDetails';
 import { formatRelativeTime } from '../../relativeTime';
 
 const DIAGNOSIS_TITLE = 'تشخيص الذكاء الاصطناعي';
@@ -31,7 +33,8 @@ export default function IssueDetailsScreen({
   navigation,
 }: ScreenProps<'IssueDetails'>) {
   const { reportId } = route.params;
-  const { report, error, isLoading, retry } = useReportDiagnosis(reportId);
+  const { report, isOwnReport, error, isLoading, retry } = useIssueDetails(reportId);
+  const comments = useIssueComments(reportId);
 
   if (isLoading) {
     return (
@@ -104,17 +107,20 @@ export default function IssueDetailsScreen({
                 </DiagnosisNote>
               ) : null}
 
-              <TouchableOpacity
-                style={styles.link}
-                onPress={() => navigation.navigate('ReportDiagnosis', { reportId })}
-                accessibilityRole="link"
-                accessibilityLabel={FULL_DIAGNOSIS}
-              >
-                <Text variant="label14Bold" color="primary">
-                  {FULL_DIAGNOSIS}
-                </Text>
-                <ChevronLeft size={LINK_ICON_SIZE} color={colors.primary} />
-              </TouchableOpacity>
+              {/* Only this device's reports have a full diagnosis screen to open. */}
+              {isOwnReport ? (
+                <TouchableOpacity
+                  style={styles.link}
+                  onPress={() => navigation.navigate('ReportDiagnosis', { reportId })}
+                  accessibilityRole="link"
+                  accessibilityLabel={FULL_DIAGNOSIS}
+                >
+                  <Text variant="label14Bold" color="primary">
+                    {FULL_DIAGNOSIS}
+                  </Text>
+                  <ChevronLeft size={LINK_ICON_SIZE} color={colors.primary} />
+                </TouchableOpacity>
+              ) : null}
             </DiagnosisCard>
           ) : (
             <CaptureNotice
@@ -126,6 +132,17 @@ export default function IssueDetailsScreen({
           <DiagnosisCard title={STATUS_TITLE}>
             <ReportStatusTrack status={report.status} />
           </DiagnosisCard>
+
+          <CommentThread
+            comments={comments.comments}
+            total={comments.total}
+            hasMore={comments.hasMore}
+            isLoading={comments.isLoading}
+            isLoadingMore={comments.isLoadingMore}
+            hasError={comments.error !== null}
+            onLoadMore={comments.loadMore}
+            onRetry={comments.retry}
+          />
         </View>
       </ScrollView>
     </View>

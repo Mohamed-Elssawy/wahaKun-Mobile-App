@@ -16,4 +16,4 @@ if (fs.existsSync(target)) {
 }
 
 fs.copyFileSync(example, target);
-console.log('Created src/config/env.local.ts — set HOST_OVERRIDE for physical devices.');
+console.log('Created src/config/env.local.ts. Set HOST_OVERRIDE for physical devices.');

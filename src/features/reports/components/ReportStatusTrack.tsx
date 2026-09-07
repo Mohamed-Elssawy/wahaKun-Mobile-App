@@ -4,6 +4,8 @@ import { StyleSheet, View } from 'react-native';
 import { Text } from '@/components/ui';
 import { colors, radii, spacing } from '@/theme';
 
+import { stageFor } from '../status';
+
 import type { ReportStatus } from '../types';
 
 export type ReportStatusTrackProps = {
@@ -16,22 +18,16 @@ const RAIL_HEIGHT = 2;
 
 type Step = { label: string; isDone: boolean };
 
-// No ReportStatus means resolved, so the frame's third step waits for a closed report.
+/** F-04 draws three fixed steps; IssueStatus's seven collapse onto them. */
 function stepsFor(status: ReportStatus): Step[] {
-  // The row exists, so this one is true the moment there is anything to render.
-  const steps: Step[] = [
+  const stage = stageFor(status);
+
+  return [
+    // The row exists, so this one is true the moment there is anything to render.
     { label: 'تم الإبلاغ', isDone: true },
-    {
-      label: 'تم التشخيص',
-      isDone: status === 'Analyzed' || status === 'Escalated' || status === 'Dismissed',
-    },
+    { label: 'قيد الحل', isDone: stage === 'inProgress' || stage === 'resolved' },
+    { label: 'تم الحل', isDone: stage === 'resolved' },
   ];
-
-  if (status === 'Dismissed') {
-    steps.push({ label: 'أُغلق البلاغ', isDone: true });
-  }
-
-  return steps;
 }
 
 export function ReportStatusTrack({ status }: ReportStatusTrackProps) {

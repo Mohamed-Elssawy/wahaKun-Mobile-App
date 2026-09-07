@@ -17,6 +17,7 @@ import IssueDetailsScreen from '@/features/reports/screens/IssueDetailsScreen';
 import ReportAnalyzingScreen from '@/features/reports/screens/ReportAnalyzingScreen';
 import ReportCaptureScreen from '@/features/reports/screens/ReportCaptureScreen';
 import ReportDiagnosisScreen from '@/features/reports/screens/ReportDiagnosisScreen';
+import ProfileScreen from '@/features/user/screens/ProfileScreen';
 
 import { HomeTabs } from './HomeTabs';
 import { createPlaceholderScreen } from './PlaceholderScreen';
@@ -68,6 +69,7 @@ export function RootNavigator() {
           component={EmailOtpVerificationScreen}
         />
 
+        <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="TermsOfUse" component={TermsOfUseScreen} />
         <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
 

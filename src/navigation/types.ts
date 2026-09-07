@@ -34,9 +34,12 @@ export type RootStackParamList = {
   TermsOfUse: undefined;
   PrivacyPolicy: undefined;
 
+  Profile: undefined;
+
   /** `mode` opens a tab other than the camera; F-03c sends the farmer to صوت. */
   ReportCapture: { mode?: CaptureMode } | undefined;
-  ReportAnalyzing: { reportId: string };
+  /** A localId, not a report id: analyze runs before create, so nothing has one yet. */
+  ReportAnalyzing: { localId: string };
   ReportDiagnosis: { reportId: string };
   ConnectToExpert: { reportId: string };
   IssueDetails: { reportId: string };

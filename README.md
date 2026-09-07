@@ -63,6 +63,11 @@ Adding a native module means a full rebuild. A Metro reload will not pick it up.
 | `npm run verify`                  | typecheck, lint and test. Run this before you push.   |
 | `npm run tokens:figma`            | regenerate the Figma variable plugin from `src/theme` |
 
+Starting the backend is a separate job. The PowerShell scripts that bring up the
+.NET services, the vision service, MinIO and Redis are kept out of the repo,
+because they carry absolute paths to one machine's sibling checkouts. Ask for them
+if you need to run the whole stack locally.
+
 ## Layout
 
 ```
@@ -72,7 +77,7 @@ src/
   components/ui/ design-system primitives (Screen, Text, Button, ...)
   config/        backend host, ports, base URLs, feature flags
   constants/     countries, governorates, areas
-  features/      auth, onboarding, reports, user
+  features/      auth, onboarding, reports, map, community, user
   hooks/         app-wide hooks
   navigation/    the stack, route param types, placeholders
   theme/         colors, typography, layout, taken from Figma
@@ -93,8 +98,9 @@ review:
 2. **Screens compose, components present, hooks do the work.** A screen holds form
    state and decides where to navigate. It does not call `apiClient` or build a
    request body.
-3. **Backend field names are copied verbatim, typos included.** `refershtoken` and
-   `FulltName` are not mistakes in this repo. Fixing them here breaks the request.
+3. **Backend field names are copied verbatim, typos included.** `refershtoken`,
+   `FulltName` and `longitde` are not mistakes in this repo. Fixing them here
+   breaks the request.
 4. **Branch on `ApiError.status`, `isNetworkError` or `isUnauthorized`.** Never on
    the message text.
 5. **Comments say why, not what, and each one fits on a single line.** If it needs
@@ -102,20 +108,37 @@ review:
 
 ## Feature flags
 
-Two booleans in `src/config/env.ts`. Each is the only place its decision is made.
+Five booleans in `src/config/env.ts`. Each is the only place its decision is made.
 
-| Flag                      | Default | Meaning                                                        |
-| ------------------------- | ------- | -------------------------------------------------------------- |
-| `USE_MOCK_REPORTS`        | `false` | serve reports from the in-memory mock instead of ReportService |
-| `ESCALATE_LOW_CONFIDENCE` | `false` | show a low-confidence diagnosis rather than escalating it      |
+| Flag                      | Default | Meaning                                                               |
+| ------------------------- | ------- | --------------------------------------------------------------------- |
+| `USE_MOCK_REPORTS`        | `false` | serve reports from the in-memory mock instead of ReportService        |
+| `USE_LOCAL_REPORT_MIRROR` | `true`  | read My Issues and Issue Details from this device's own mirror        |
+| `USE_MOCK_COMMUNITY`      | `true`  | serve the feed from seeded posts instead of composing it from the map |
+| `ENABLE_COMMENT_POSTING`  | `false` | allow posting a comment                                               |
+| `ESCALATE_LOW_CONFIDENCE` | `false` | escalate a low-confidence diagnosis rather than showing it            |
+
+The three that default on or block a feature are all waiting on the backend, not
+on product decisions. `USE_LOCAL_REPORT_MIRROR` is on because IssueController
+exposes no `GetMyIssues` or `GetIssueById`. `USE_MOCK_COMMUNITY` is on because
+CommunityService has no feed endpoint and `MapResponseDto` carries no reporter, so
+the real path shows no author and no counts. `ENABLE_COMMENT_POSTING` is off
+because posting needs a moderation service on `:8000` that is not in the backend
+repo.
 
 ## What is built
 
-Registration (seven-step wizard), phone login and email login, against AuthService
-and UserService. The report flow is complete: capture from camera or gallery, an
-offline delivery queue, AI analysis, the diagnosis screen, My Issues with filters,
-and issue details, with designed states for offline, unauthorized, upload failure
-and a photo the model cannot read.
+- **Registration**, a seven-step wizard, plus phone login and email login against
+  AuthService and UserService.
+- **Reports**, end to end: capture from camera or gallery, an offline delivery
+  queue, AI analysis, the diagnosis screen, My Issues with filters, and issue
+  details. Designed states exist for offline, unauthorized, upload failure and a
+  photo the model cannot read.
+- **The oasis map**, on MapLibre over satellite imagery: one pin per issue when
+  zoomed in, counted clusters when zoomed out, a peek sheet per pin, Arabic search
+  that folds spelling, and a legend.
+- **The community feed** and the comment thread on issue details.
+- **Profile and settings.**
 
 Filing a report never blocks on the network. The photo is re-encoded into
 AsyncStorage first, then uploaded when a connection allows, so composing a report
@@ -129,8 +152,8 @@ token alone to `/Auth/firebase-login`.
 Six routes are themed placeholders because screens already navigate to them:
 `ForgotPassword`, `AccountRecovery`, `EmailOtpVerification`, `TermsOfUse`,
 `PrivacyPolicy`, `ConnectToExpert`. The Figma file has roughly 100 designed screens
-across Farmer, Expert and Admin. The feed, map, notifications and admin dashboard
-are still to build.
+across Farmer, Expert and Admin. Notifications, the expert screens and the admin
+dashboard are still to build.
 
 ## Known follow-ups
 
@@ -142,11 +165,17 @@ Left alone deliberately, with the reason:
   will not diagnose; ReportService turns that into an untyped 500, so
   `features/reports/errors.ts` has to sniff the body. It only works on a
   Development build. Tracked as a TODO in that file.
-- **`features/user/` is unused.** The UserService bindings are written and correct,
-  but no profile screen calls them yet.
+- **My Issues reads a local mirror.** IssueController's three read endpoints are
+  commented out server-side. `features/reports/services/reportStore.ts` stands in
+  and should be deleted when they come back.
+- **The My Issues card is missing its tracker.** F-07 draws a progress step, a
+  progress bar and a contextual box on an active card, and a resolved card names
+  the team that fixed it. None of that has an endpoint yet.
 - **Voice capture is a text box.** `CreateReportRequest` has no audio field and no
   recording library is installed, so the record control says so rather than
   failing silently. The typed description is real and uploads with the photo.
+- **The community hub is not wired.** CommunityService exposes a SignalR hub for
+  live counters. Nothing connects to it.
 - **Font bundle.** 56 `.ttf` files are linked natively and 5 are used. Trimming
   needs a native re-link and a rebuild to verify.
 - **Native project naming.** The JS module is `WahaKun`, the iOS folder is still
@@ -163,4 +192,4 @@ Left alone deliberately, with the reason:
 Source of truth for every contract: `youssefzienhoum/Graduation-Project`. Read the
 DTOs and the controller before changing a request shape here, because several field
 names and route spellings are reproduced verbatim and cannot be corrected on this
-side.
+side. The open gaps are written up separately for the backend team.

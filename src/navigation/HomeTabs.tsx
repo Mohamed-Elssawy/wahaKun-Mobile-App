@@ -3,6 +3,8 @@ import { useNavigation } from '@react-navigation/native';
 import { StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import CommunityFeedScreen from '@/features/community/screens/CommunityFeedScreen';
+import OasisMapScreen from '@/features/map/screens/OasisMapScreen';
 import MyReportsScreen from '@/features/reports/screens/MyReportsScreen';
 import { colors, shadows, spacing, textStyles } from '@/theme';
 
@@ -17,8 +19,6 @@ import type { HomeTabParamList } from './types';
 
 const Tab = createBottomTabNavigator<HomeTabParamList>();
 
-const CommunityFeedScreen = createPlaceholderScreen('المجتمع');
-const OasisMapScreen = createPlaceholderScreen('خريطة الواحة');
 const ReportAnIssueScreen = createPlaceholderScreen('الإبلاغ عن مشكلة');
 
 const ICON_SIZE = 24;

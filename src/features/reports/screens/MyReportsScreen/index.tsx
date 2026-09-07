@@ -3,7 +3,8 @@ import { FileSearch, FileText } from 'lucide-react-native';
 import { useCallback } from 'react';
 import { SectionList, StyleSheet, View } from 'react-native';
 
-import { Text } from '@/components/ui';
+import { AppHeader, Text } from '@/components/ui';
+import { useIdentity } from '@/features/user/hooks/useIdentity';
 import { colors, screenPadding, spacing } from '@/theme';
 
 import { ProgressRing } from '../../components/ProgressRing';
@@ -12,7 +13,6 @@ import { QueuedReportRow } from '../../components/QueuedReportRow';
 import { ReportCtaCard } from '../../components/ReportCtaCard';
 import { ReportErrorView } from '../../components/ReportErrorView';
 import { ReportFilterTabs } from '../../components/ReportFilterTabs';
-import { ReportHeader } from '../../components/ReportHeader';
 import { ReportRow } from '../../components/ReportRow';
 import { ReportsEmptyState } from '../../components/ReportsEmptyState';
 import { useMyReports } from '../../hooks/useMyReports';
@@ -25,6 +25,7 @@ const TITLE = 'بلاغاتي';
 // The frame's tracker, expert and appointment data has no endpoint, so it is left out.
 export default function MyReportsScreen() {
   const navigation = useNavigation();
+  const { avatarUrl } = useIdentity();
   const {
     sections,
     isEmpty,
@@ -129,7 +130,11 @@ export default function MyReportsScreen() {
 
   return (
     <View style={styles.screen}>
-      <ReportHeader title={TITLE} />
+      <AppHeader
+        title={TITLE}
+        avatarUrl={avatarUrl}
+        onOpenProfile={() => navigation.navigate('Profile')}
+      />
 
       <QueueBanner />
 

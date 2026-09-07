@@ -29,9 +29,11 @@ module.exports = {
       },
     ],
     'import/no-duplicates': 'error',
-    // Metro resolves these; the static resolver does not follow react-native
-    // platform extensions or the svg transformer.
+    // Metro resolves these; the static resolver follows neither platform extensions nor svg.
     'import/no-unresolved': 'off',
+    // AsyncStorage, Svg and BootSplash all re-export their default under its own name.
+    'import/no-named-as-default': 'off',
+    'import/no-named-as-default-member': 'off',
 
     // Enforces the design system: no raw colours or font names in styles.
     'no-restricted-syntax': [
@@ -61,9 +63,7 @@ module.exports = {
     'coverage/',
     '*.config.js',
     'jest.setup.js',
-    // Figma plugins — they run in Figma's sandbox, where `figma`, `__html__`
-    // and the generated `TOKENS` are globals, and none of the React Native
-    // config applies.
+    // Figma plugins run in Figma's sandbox, where none of the React Native config applies.
     'tools/',
   ],
 };

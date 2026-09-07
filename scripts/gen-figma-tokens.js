@@ -142,14 +142,12 @@ async function loadLayout() {
   console.log(`  ${Object.keys(semantic).length} semantic aliases`);
   if (collide.length) {
     console.log(
-      '\n  note — primitives sharing a value (alias target picked by first match):',
+      '\n  note: primitives sharing a value (alias target picked by first match):',
     );
     for (const c of collide) console.log('    ' + c);
   }
   if (missing.length) {
-    console.log(
-      '\n  WARNING — colors keys with no semantic path (add to SEMANTIC_PATH):',
-    );
+    console.log('\n  WARNING: colors keys with no semantic path (add to SEMANTIC_PATH):');
     for (const m of missing) console.log('    ' + m);
     process.exitCode = 1;
   }

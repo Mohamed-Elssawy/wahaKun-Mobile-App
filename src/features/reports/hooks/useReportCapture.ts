@@ -11,12 +11,7 @@ import type { PickedImage } from '@/types/image';
 
 import { describeError } from '../errors';
 import { useCurrentLocation } from './useCurrentLocation';
-import {
-  drainQueue,
-  enqueueReport,
-  QueueFullError,
-  takeDeliveredReportId,
-} from '../services/reportQueue';
+import { enqueueReport, QueueFullError } from '../services/reportQueue';
 
 import type { ReportError } from '../errors';
 import type { CaptureMode } from '../types';
@@ -25,11 +20,10 @@ import type { TargetCameraPosition } from 'react-native-vision-camera';
 /** Where the photo under review came from, which is not the same as the tab. */
 export type PhotoSource = 'camera' | 'gallery';
 
-/** Where a submitted report got to. Only 'uploaded' has somewhere to navigate. */
+/** Where a submitted report got to. Only 'queued' has somewhere to navigate. */
 export type SubmitResult =
-  | { kind: 'uploaded'; reportId: string }
-  /** Safely stored and will send itself. The normal outcome offline. */
-  | { kind: 'queued' }
+  /** Stored and handed to the queue. Analysis happens there, so the wait has its own screen. */
+  | { kind: 'queued'; localId: string }
   /** At REPORT_QUEUE_MAX. Nothing was dropped; the farmer has to wait or discard. */
   | { kind: 'full' }
   /** The photo could not be stored at all. */
@@ -130,9 +124,10 @@ export function useReportCapture(initialMode: CaptureMode = 'photo') {
   }, [photoOutput]);
 
   /** The queue persists the photo before any network call, so there is no offline branch. */
+  // Returns as soon as the photo is stored; ReportAnalyzing watches the rest by localId.
   const submit = useCallback(async (): Promise<SubmitResult> => {
     if (!photo) {
-      return { kind: 'queued' };
+      return { kind: 'failed' };
     }
 
     setIsSubmitting(true);
@@ -144,11 +139,8 @@ export function useReportCapture(initialMode: CaptureMode = 'photo') {
         description: description.trim() || undefined,
         ...location,
       });
-      // Awaited so an online farmer lands on the diagnosis, not a "saved" confirmation.
-      await drainQueue();
 
-      const reportId = takeDeliveredReportId(queued.localId);
-      return reportId ? { kind: 'uploaded', reportId } : { kind: 'queued' };
+      return { kind: 'queued', localId: queued.localId };
     } catch (err) {
       if (err instanceof QueueFullError) {
         return { kind: 'full' };

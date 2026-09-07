@@ -4,6 +4,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { describeError } from '../errors';
 import { reportApi } from '../services';
 import { isCriticalSeverity } from '../severity';
+import { isResolvedStatus } from '../status';
 import { useReportQueue } from './useReportQueue';
 
 import type { ReportError } from '../errors';
@@ -16,11 +17,11 @@ export type ReportFilter = 'all' | 'active' | 'resolved' | 'critical';
 /** One SectionList section. The title is copy, so it is decided here, not in the UI. */
 export type ReportSection = { title: string; data: ReportListItem[] };
 
-// resolved is never true: no backend status means "fixed", and Dismissed is not it.
+// resolved finally answers something: IssueStatus has Repaired and completed.
 const MATCHES: Record<ReportFilter, (report: Report) => boolean> = {
   all: () => true,
-  active: report => report.status !== 'Dismissed',
-  resolved: () => false,
+  active: report => !isResolvedStatus(report.status),
+  resolved: report => isResolvedStatus(report.status),
   // `!= null`, not `!== undefined`: the server sends null for an unanalysed report.
   critical: report =>
     report.analysis != null && isCriticalSeverity(report.analysis.severity),

@@ -12,7 +12,7 @@ module.exports = {
         },
       },
     ],
-    // Must stay last — the worklets plugin has to see the final AST.
+    // Must stay last: the worklets plugin has to see the final AST.
     'react-native-worklets/plugin',
   ],
 };

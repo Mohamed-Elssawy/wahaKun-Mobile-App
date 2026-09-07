@@ -1,19 +1,21 @@
+import { Sprout } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { ESCALATE_LOW_CONFIDENCE } from '@/config/env';
 import type { ScreenProps } from '@/navigation/types';
 import { colors } from '@/theme';
 
 import { AnalyzingStatus } from '../../components/AnalyzingStatus';
+import { QueuedConfirmationSheet } from '../../components/QueuedConfirmationSheet';
 import { ReportErrorView } from '../../components/ReportErrorView';
+import { ReportFailureState } from '../../components/ReportFailureState';
 import { ReportHeader } from '../../components/ReportHeader';
 import { UnrecognizedPhotoState } from '../../components/UnrecognizedPhotoState';
-import { useReportAnalysis } from '../../hooks/useReportAnalysis';
+import { useReportSubmission } from '../../hooks/useReportSubmission';
 
-/** The header speaks for whichever of the two states is on screen. */
+/** The header speaks for whichever state is on screen. */
 const HEADINGS = {
-  analyzing: {
+  working: {
     title: 'جاري التحليل',
     subtitle: 'يحلل الذكاء الاصطناعي الصورة...',
   },
@@ -21,70 +23,102 @@ const HEADINGS = {
     title: 'لم نتعرف على المشكلة',
     subtitle: 'لا تقلق، سنحاول مرة أخرى معًا',
   },
+  tooMinor: {
+    title: 'لا حاجة لبلاغ',
+    subtitle: 'المشكلة تبدو بسيطة',
+  },
+  saved: {
+    title: 'تم حفظ البلاغ',
+    subtitle: 'سيُرسل تلقائيًا عند عودة الاتصال',
+  },
 } as const;
 
-/** Branches on Status, never on confidence: that threshold is the server's policy. */
-// Replaces in both directions, since the report exists and going back would duplicate it.
+/** X-02. Watches one queued report through analyze and create, which is where its id comes from. */
 export default function ReportAnalyzingScreen({
   route,
   navigation,
 }: ScreenProps<'ReportAnalyzing'>) {
-  const { reportId } = route.params;
-  const { report, error, retry, discard } = useReportAnalysis(reportId);
+  const { localId } = route.params;
+  const { state, retry, discard } = useReportSubmission(localId);
 
   useEffect(() => {
-    if (!report) {
-      return;
+    if (state.kind === 'delivered') {
+      // replace: the report is filed, so back would land on a screen with nothing to do.
+      navigation.replace('ReportDiagnosis', { reportId: state.reportId });
     }
+  }, [state, navigation]);
 
-    // The hook guarantees these are the only two statuses that reach here.
-    if (ESCALATE_LOW_CONFIDENCE && report.status === 'Escalated') {
-      navigation.replace('ConnectToExpert', { reportId: report.id });
-    } else {
-      navigation.replace('ReportDiagnosis', { reportId: report.id });
-    }
-  }, [report, navigation]);
+  const failureKind = state.kind === 'failed' ? state.error.kind : null;
 
-  const isUnrecognized = error?.kind === 'unrecognized';
+  /** The queue keeps working after this screen closes, so the list is the place to be. */
+  const goToMyReports = () => navigation.navigate('Home', { screen: 'MyReports' });
 
-  // Every exit off F-03c deletes, back included: the report can never resolve.
+  // Every exit off F-03c drops the report, back included: it can never resolve.
   const startOver = (mode: 'photo' | 'voice') => {
     discard();
-    // replace, not navigate: the report is gone, so there is nothing to return to.
     navigation.replace('ReportCapture', { mode });
   };
 
   const goBack = () => {
-    // Only from F-03c; a spinner or a failure both leave a report a retry can rescue.
-    if (isUnrecognized) {
+    if (failureKind === 'unrecognized' || failureKind === 'tooMinor') {
       discard();
     }
     navigation.goBack();
   };
 
+  const heading =
+    failureKind === 'unrecognized'
+      ? HEADINGS.unrecognized
+      : failureKind === 'tooMinor'
+        ? HEADINGS.tooMinor
+        : state.kind === 'saved'
+          ? HEADINGS.saved
+          : HEADINGS.working;
+
+  const renderBody = () => {
+    if (failureKind === 'unrecognized') {
+      return (
+        <UnrecognizedPhotoState
+          onRetakePhoto={() => startOver('photo')}
+          onUseVoice={() => startOver('voice')}
+        />
+      );
+    }
+
+    // ReportService refuses anything below Medium, so retrying the same photo cannot help.
+    if (failureKind === 'tooMinor') {
+      return (
+        <ReportFailureState
+          icon={Sprout}
+          title="لا حاجة لبلاغ"
+          message="حلّل الذكاء الاصطناعي الصورة ووجد أن المشكلة بسيطة ولا تستدعي بلاغًا. صوّر مشكلة أخرى إن احتجت."
+          action={{ label: 'تصوير مشكلة أخرى', onPress: () => startOver('photo') }}
+        />
+      );
+    }
+
+    if (state.kind === 'failed') {
+      return (
+        <ReportErrorView
+          error={state.error}
+          unknownTitle="تعذر إرسال البلاغ"
+          onRetry={retry}
+        />
+      );
+    }
+
+    // X-02a. Nothing was lost: the photo is stored and the queue will send it.
+    if (state.kind === 'saved') {
+      return <QueuedConfirmationSheet onViewReports={goToMyReports} />;
+    }
+
+    return <AnalyzingStatus />;
+  };
+
   return (
     <View style={styles.screen}>
-      <ReportHeader
-        {...HEADINGS[isUnrecognized ? 'unrecognized' : 'analyzing']}
-        onBack={goBack}
-      />
-
-      <View style={styles.body}>
-        {isUnrecognized ? (
-          <UnrecognizedPhotoState
-            onRetakePhoto={() => startOver('photo')}
-            onUseVoice={() => startOver('voice')}
-          />
-        ) : error ? (
-          <ReportErrorView
-            error={error}
-            unknownTitle="تعذر تحليل البلاغ"
-            onRetry={retry}
-          />
-        ) : (
-          <AnalyzingStatus />
-        )}
-      </View>
+      <ReportHeader {...heading} onBack={goBack} />
+      <View style={styles.body}>{renderBody()}</View>
     </View>
   );
 }

@@ -15,6 +15,11 @@
     android:theme="@style/AppTheme"
     android:usesCleartextTraffic="${usesCleartextTraffic}"
     android:supportsRtl="true">
+    <!-- Fed by WAHAKUN_MAPS_API_KEY in the gitignored local.properties, so no key is
+         committed. Without it the app still builds and runs; map tiles render blank. -->
+    <meta-data
+      android:name="com.google.android.geo.API_KEY"
+      android:value="${mapsApiKey}" />
     <activity
       android:name=".MainActivity"
       android:label="@string/app_name"

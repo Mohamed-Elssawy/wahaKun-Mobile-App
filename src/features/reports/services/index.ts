@@ -9,4 +9,4 @@ import type { ReportApi } from '../types';
 
 export const reportApi: ReportApi = USE_MOCK_REPORTS ? mock : real;
 
-export { buildCreateReportFormData } from './reportService';
+export { buildAnalyzeFormData } from './reportService';

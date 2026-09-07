@@ -37,7 +37,7 @@ async function getOrCreateCollection(name, apply) {
   const all = await figma.variables.getLocalVariableCollectionsAsync();
   const found = all.find(c => c.name === name);
   if (found) {
-    log(`  collection "${name}" already exists — updating in place`);
+    log(`  collection "${name}" already exists, updating in place`);
     return found;
   }
   if (!apply) {
@@ -70,7 +70,7 @@ async function upsertVariable(collection, name, type, setValue, apply, stats) {
 async function run(apply) {
   out = [];
   const t0 = Date.now();
-  log(apply ? '=== APPLY ===' : '=== DRY RUN — nothing is written ===');
+  log(apply ? '=== APPLY ===' : '=== DRY RUN, nothing is written ===');
   log('');
 
   await figma.loadAllPagesAsync();
@@ -152,7 +152,7 @@ async function run(apply) {
   log(`  ${semStats.created} to create, ${semStats.updated} already present`);
   if (unresolved)
     log(
-      `  ${unresolved} aliases pending — primitives must exist first (apply resolves this)`,
+      `  ${unresolved} aliases pending, primitives must exist first (apply resolves this)`,
     );
   log('');
 
@@ -170,7 +170,7 @@ async function run(apply) {
 
     // Two styles share `Accent/Blue/B500`. Bind the matching one and report the other.
     if (!sameColor(paint.color, parseColor(hex))) {
-      ambiguous.push(`${style.name} is not the palette value — left alone`);
+      ambiguous.push(`${style.name} is not the palette value, left alone`);
       continue;
     }
     bound++;
@@ -213,7 +213,7 @@ async function run(apply) {
   log(`primitives:  ${primStats.created} created, ${primStats.updated} updated`);
   log(`semantic:    ${semStats.created} created, ${semStats.updated} updated`);
   log(`styles bound:${bound}`);
-  log(`deleted:     0  — by design`);
+  log(`deleted:     0 , by design`);
   log(`${((Date.now() - t0) / 1000).toFixed(1)}s`);
   if (!apply) log('\nDry run only. Nothing was written.');
 

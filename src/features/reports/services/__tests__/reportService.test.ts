@@ -1,19 +1,41 @@
 import { API_BASE_URLS } from '@/config/env';
 
 import {
+  analyzeIssue,
+  createIssue,
+  describeStatus,
   getMyReports,
-  getReportById,
   normalizeConfidence,
   resolveAttachmentUrl,
   toUtcTimestamp,
 } from '../reportService';
+import { resetReportMirror } from '../reportStore';
 
-const mockGet = jest.fn();
+const mockPost = jest.fn();
 
 jest.mock('@/api', () => ({
-  apiClient: { get: (...args: unknown[]) => mockGet(...args) },
+  apiClient: { post: (...args: unknown[]) => mockPost(...args) },
   API_ENDPOINTS: jest.requireActual('@/api/endpoints').API_ENDPOINTS,
 }));
+
+// jest.setup's stub never returns what it stored, and the mirror is the read path here.
+jest.mock('@react-native-async-storage/async-storage', () => {
+  const store = new Map<string, string>();
+  return {
+    __esModule: true,
+    default: {
+      getItem: (key: string) => Promise.resolve(store.get(key) ?? null),
+      setItem: (key: string, value: string) => {
+        store.set(key, value);
+        return Promise.resolve();
+      },
+      removeItem: (key: string) => {
+        store.delete(key);
+        return Promise.resolve();
+      },
+    },
+  };
+});
 
 // Pins what makes the fold safe: a value already in range must come back untouched.
 describe('normalizeConfidence', () => {
@@ -94,22 +116,54 @@ describe('toUtcTimestamp', () => {
   });
 });
 
-// A real GetReportById body, trimmed. Every field that differs from the mock has bitten us.
-describe('a report off the wire', () => {
-  beforeEach(mockGet.mockReset);
+// IssueStatus crosses the wire as an int, and a wrong mapping is invisible to the compiler.
+describe('describeStatus', () => {
+  it('names every IssueStatus the server can send', () => {
+    expect(describeStatus(0)).toBe('Reported');
+    expect(describeStatus(1)).toBe('Diagnosed');
+    expect(describeStatus(4)).toBe('Scheduled');
+    expect(describeStatus(5)).toBe('Repaired');
+    expect(describeStatus(6)).toBe('Completed');
+  });
 
-  it('reads its timestamps as the UTC the server meant', async () => {
-    mockGet.mockResolvedValue({
+  it('falls back rather than throwing on a step this build does not know', () => {
+    expect(describeStatus(99 as unknown as 0)).toBe('Reported');
+  });
+
+  it('passes an already-named status through', () => {
+    expect(describeStatus('Scheduled')).toBe('Scheduled');
+  });
+});
+
+// create returns neither the photo nor the analysis, so the client assembles the Report.
+describe('createIssue', () => {
+  const ANALYSIS = {
+    filePath: 'http://127.0.0.1:9000/reportimage/reportimage/f8086949.jpg',
+    problemName: 'Pipe_Damage',
+    problemArabic: 'تسريب في الأنبوب',
+    // The vision service formats confidence as "95.98%", so ParseConfidence stores 95.98.
+    confidence: 95.98,
+    severity: 'حرجة جداً' as const,
+    recommendation: 'أوقف مصدر المياه',
+    explanation: 'شرح',
+    repairSteps: ['خطوة'],
+  };
+
+  beforeEach(async () => {
+    mockPost.mockReset();
+    await resetReportMirror();
+  });
+
+  it('reads create timestamps as the UTC the server meant', async () => {
+    mockPost.mockResolvedValue({
       id: '05533e56',
-      status: 'Analyzed',
+      status: 1,
       createdAt: '2026-08-09T13:01:13.4206342',
       updatedAt: '2026-08-09T13:10:25.8708138',
       reporterId: 'f86295b1',
-      attachments: [],
-      analysis: null,
     });
 
-    const report = await getReportById('05533e56');
+    const report = await createIssue({ analysis: ANALYSIS });
 
     // The instant, not the string: what went wrong was the parse, not the format.
     expect(Date.parse(report.createdAt)).toBe(Date.UTC(2026, 7, 9, 13, 1, 13, 420));
@@ -118,73 +172,84 @@ describe('a report off the wire', () => {
     );
   });
 
-  it('drops the null analysis the server sends for an unanalysed report', async () => {
-    mockGet.mockResolvedValue({
+  it('resolves the analysed photo onto MediaStorage', async () => {
+    mockPost.mockResolvedValue({
       id: '05533e56',
-      status: 'Pending',
-      createdAt: '2026-08-09T13:01:13.4206342',
+      status: 1,
+      createdAt: '2026-08-09T13:01:13.42Z',
       updatedAt: null,
       reporterId: 'f86295b1',
-      attachments: [],
-      analysis: null,
     });
 
-    const report = await getReportById('05533e56');
+    const report = await createIssue({ analysis: ANALYSIS });
 
-    // Not `toBeUndefined()`: null passes an `!== undefined` guard, and My Issues crashed.
-    expect(report).not.toHaveProperty('analysis');
-  });
-
-  it('resolves attachment keys and folds the percentage confidence', async () => {
-    mockGet.mockResolvedValue({
-      id: '05533e56',
-      status: 'Analyzed',
-      createdAt: '2026-08-09T13:01:13.42Z',
-      reporterId: 'f86295b1',
-      attachments: [
-        {
-          id: 'dbe60e73',
-          type: 'Photo',
-          url: 'http://127.0.0.1:9000/reportimage/reportimage/f8086949.jpg',
-          createdAt: '',
-        },
-      ],
-      // The vision service formats confidence as "95.98%", so ParseConfidence stores 95.98.
-      analysis: {
-        problemName: 'Pipe_Damage',
-        confidence: 95.98,
-        severity: 'VeryCritical',
-      },
-    });
-
-    const report = await getReportById('05533e56');
-
+    expect(report.attachments).toHaveLength(1);
     expect(report.attachments[0].url).toBe(
       `${API_BASE_URLS.media}/storage?objectName=reportimage%2Ff8086949.jpg`,
     );
-    expect(report.analysis?.confidence).toBeCloseTo(0.9598);
+    expect(report.status).toBe('Diagnosed');
+    // Assigned, not spread: writing over the server's null would re-add the key.
+    expect(report).not.toHaveProperty('updatedAt');
+  });
+
+  // Folded once, at the boundary: create is handed an analysis analyze already normalised.
+  it('folds the percentage confidence in analyzeIssue, not again in create', async () => {
+    mockPost.mockResolvedValue({ ...ANALYSIS, confidence: 95.98 });
+
+    const analysis = await analyzeIssue({ uri: 'file:///photo.jpg' });
+
+    expect(analysis.confidence).toBeCloseTo(0.9598);
+  });
+
+  it('posts the analysis back whole, with coordinates as the strings create expects', async () => {
+    mockPost.mockResolvedValue({
+      id: '05533e56',
+      status: 1,
+      createdAt: '2026-08-09T13:01:13.42Z',
+      reporterId: 'f86295b1',
+    });
+
+    // 0 is a real coordinate, so it must survive rather than being dropped as falsy.
+    await createIssue({ analysis: ANALYSIS, latitude: 0, longitude: 25.5195 });
+
+    expect(mockPost).toHaveBeenCalledWith(
+      expect.anything(),
+      '/Issue/create',
+      expect.objectContaining({
+        aiAnalysisResponse: ANALYSIS,
+        latitude: '0',
+        longitude: '25.5195',
+      }),
+      expect.anything(),
+    );
   });
 });
 
-// GetMyReports answers in insertion order, so the newest report arrives last.
+// The mirror stands in for GetMyIssues, which IssueController no longer exposes.
 describe('getMyReports', () => {
-  beforeEach(mockGet.mockReset);
+  beforeEach(async () => {
+    mockPost.mockReset();
+    await resetReportMirror();
+  });
 
   it('puts the newest report first', async () => {
-    const wire = (id: string, createdAt: string) => ({
-      id,
-      status: 'Pending',
-      createdAt,
-      reporterId: 'f86295b1',
-      attachments: [],
-      analysis: null,
-    });
+    const analysis = {
+      filePath: 'reportimage/a.jpg',
+      problemName: 'Blockage',
+      confidence: 0.9,
+      severity: 'حرجة' as const,
+      recommendation: '',
+      repairSteps: [],
+    };
 
-    mockGet.mockResolvedValue([
-      wire('oldest', '2026-08-09T13:01:13.4206342'),
-      wire('middle', '2026-08-09T13:37:59.6010209'),
-      wire('newest', '2026-08-10T12:45:58.0923551'),
-    ]);
+    for (const [id, createdAt] of [
+      ['oldest', '2026-08-09T13:01:13.4206342'],
+      ['newest', '2026-08-10T12:45:58.0923551'],
+      ['middle', '2026-08-09T13:37:59.6010209'],
+    ]) {
+      mockPost.mockResolvedValue({ id, status: 1, createdAt, reporterId: 'f86295b1' });
+      await createIssue({ analysis });
+    }
 
     const reports = await getMyReports();
 

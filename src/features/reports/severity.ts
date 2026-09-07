@@ -21,6 +21,21 @@ const SEVERITY_TIERS: Record<Severity, SeverityTier> = {
 
   // Not "it is fine": the model could not tell, which is its own answer.
   Unknown: 'unknown',
+
+  // The vision service sends SeverityLevel.value, so these are what the server actually stores.
+  'حرجة جداً': 'critical',
+  حرجة: 'critical',
+  'عالية جداً': 'critical',
+  عالية: 'critical',
+
+  متوسطة: 'medium',
+
+  منخفضة: 'low',
+  بسيطة: 'low',
+  'بسيطة جداً': 'low',
+  'غير مؤثرة': 'low',
+
+  'غير معروفة': 'unknown',
 };
 
 export type SeverityDisplay = {
@@ -39,12 +54,12 @@ const TIER_DISPLAY: Record<SeverityTier, SeverityDisplay> = {
   unknown: { label: 'غير معروفة', color: 'disabled', textColor: 'textMuted' },
 };
 
-/** Falls back to `unknown`: the server can grow an enum value before this file does. */
-export function describeSeverity(severity: Severity): SeverityDisplay {
-  return TIER_DISPLAY[SEVERITY_TIERS[severity] ?? 'unknown'];
+/** Takes a bare string: `severity` is a C# string, so the server can send a step this file lacks. */
+export function describeSeverity(severity: string): SeverityDisplay {
+  return TIER_DISPLAY[SEVERITY_TIERS[severity as Severity] ?? 'unknown'];
 }
 
 /** True for the tier the حرج filter shows, so filter and badge agree by construction. */
-export function isCriticalSeverity(severity: Severity): boolean {
-  return SEVERITY_TIERS[severity] === 'critical';
+export function isCriticalSeverity(severity: string): boolean {
+  return SEVERITY_TIERS[severity as Severity] === 'critical';
 }

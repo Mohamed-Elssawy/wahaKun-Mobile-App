@@ -9,6 +9,8 @@ export type ReportErrorKind =
   | 'unauthorized'
   /** The model looked at the photo and would not diagnose it. F-03c answers this. */
   | 'unrecognized'
+  /** Diagnosed fine, but ReportService refuses to file anything below Medium priority. */
+  | 'tooMinor'
   /** Reached the server and it refused, or something non-API threw. */
   | 'unknown';
 
@@ -40,21 +42,32 @@ export function describeError(error: unknown, fallback: string): ReportError {
 }
 
 const UNRECOGNIZED_MESSAGE = 'لم نتمكن من رؤية مشكلة واضحة في الصورة';
+const TOO_MINOR_MESSAGE = 'المشكلة تبدو بسيطة، ولا يحتاج هذا البلاغ إلى متابعة';
 
-// Sniffs the body because ReportService turns every vision refusal into an untyped 500.
+// Both refusals are untyped 500s, so the call that threw is the only thing telling them apart.
 
-// TODO: needs a typed 422 from ReportService; a published backend sends no body to match.
-function isPhotoRefusal(error: ApiError): boolean {
-  if (error.status !== 500 || typeof error.body !== 'string') {
-    return false;
-  }
-  return error.body.includes('InvalidOperationException');
+// TODO: needs a typed 4xx from ReportService; until then a 500 body is all there is to match.
+function isRefusal(error: unknown): boolean {
+  return (
+    error instanceof ApiError &&
+    error.status === 500 &&
+    typeof error.body === 'string' &&
+    error.body.includes('InvalidOperationException')
+  );
 }
 
-/** describeError, plus the one failure that has a screen of its own rather than a retry. */
+/** For api/Issue/analyze, where a refusal means the model would not read the photo. */
 export function describeAnalysisError(error: unknown, fallback: string): ReportError {
-  if (error instanceof ApiError && isPhotoRefusal(error)) {
+  if (isRefusal(error)) {
     return { kind: 'unrecognized', message: UNRECOGNIZED_MESSAGE };
+  }
+  return describeError(error, fallback);
+}
+
+/** For api/Issue/create, where the same shape means the priority was below Medium. */
+export function describeCreateError(error: unknown, fallback: string): ReportError {
+  if (isRefusal(error)) {
+    return { kind: 'tooMinor', message: TOO_MINOR_MESSAGE };
   }
   return describeError(error, fallback);
 }

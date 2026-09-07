@@ -1,7 +1,7 @@
 // In-memory ReportApi for when no ReportService is reachable; ./index.ts picks one.
-import { ESCALATE_LOW_CONFIDENCE } from '@/config/env';
+import type { PickedImage } from '@/types/image';
 
-import type { AiAnalysis, CreatedReport, CreateReportFields, Report } from '../types';
+import type { AiAnalysis, AiAnalysisResult, CreateIssueFields, Report } from '../types';
 
 /** Only consulted when ESCALATE_LOW_CONFIDENCE is on, so turning it back on needs no number. */
 export const CONFIDENCE_THRESHOLD = 0.8;
@@ -21,10 +21,12 @@ const LATENCY = {
 } as const;
 
 const CANAL_BLOCKAGE: AiAnalysis = {
-  problemName: 'Canal blockage',
+  filePath: 'reportimage/mock-canal.jpg',
+  problemName: 'Blockage',
   problemArabic: 'انسداد في القناة',
   confidence: 0.91,
-  severity: 'High',
+  // Arabic, matching what the vision service actually sends.
+  severity: 'حرجة',
   recommendation: 'إزالة الحشائش والرواسب المتراكمة في مجرى القناة خلال 48 ساعة.',
   explanation:
     'تُظهر الصورة تراكم حشائش ورواسب طينية تسد أكثر من نصف عرض القناة، ما يقلل تدفق المياه إلى الأراضي الواقعة بعدها ويزيد فقد المياه بالتبخر.',
@@ -43,8 +45,9 @@ const CANAL_BLOCKAGE: AiAnalysis = {
 const SEED: Report[] = [
   {
     id: 'r-1001',
+    title: 'انسداد في القناة',
     description: 'الماء لا يصل إلى الأرض الشمالية منذ يومين.',
-    status: 'Analyzed',
+    status: 'Diagnosed',
     createdAt: '2026-07-22T07:14:00Z',
     updatedAt: '2026-07-22T07:14:38Z',
     reporterId: REPORTER_ID,
@@ -62,9 +65,9 @@ const SEED: Report[] = [
   },
   {
     id: 'r-1002',
+    title: 'تسريب محتمل في الأنبوب',
     description: 'تسريب حول الأنبوب الرئيسي.',
-    // Under the threshold and Analyzed anyway, which is what the gate being off means.
-    status: 'Analyzed',
+    status: 'Scheduled',
     createdAt: '2026-07-21T16:02:00Z',
     updatedAt: '2026-07-21T16:02:41Z',
     reporterId: REPORTER_ID,
@@ -79,10 +82,11 @@ const SEED: Report[] = [
       },
     ],
     analysis: {
-      problemName: 'Possible pipe leak',
+      filePath: 'reportimage/mock-pipe.jpg',
+      problemName: 'Pipe_Damage',
       problemArabic: 'تسريب محتمل في الأنبوب',
       confidence: 0.62,
-      severity: 'Medium',
+      severity: 'متوسطة',
       recommendation: 'افحص وصلات الأنبوب وأعد إحكام الأطواق المرتخية.',
       explanation:
         'تظهر رطوبة حول وصلة الأنبوب الرئيسي، لكن الصورة غير واضحة بدرجة كافية لتأكيد مصدر التسريب.',
@@ -96,9 +100,12 @@ const SEED: Report[] = [
   },
   {
     id: 'r-1003',
-    status: 'Pending',
+    title: 'تسريب في القناة الفرعية',
+    status: 'Completed',
     createdAt: '2026-07-20T05:48:00Z',
     reporterId: REPORTER_ID,
+    latitude: 29.2012,
+    longitude: 25.5164,
     attachments: [
       {
         id: 'a-2003',
@@ -107,6 +114,11 @@ const SEED: Report[] = [
         createdAt: '2026-07-20T05:48:00Z',
       },
     ],
+    analysis: {
+      ...CANAL_BLOCKAGE,
+      severity: 'منخفضة',
+      createdAt: '2026-07-20T05:48:30Z',
+    },
   },
 ];
 
@@ -116,83 +128,51 @@ let nextId = 1004;
 // Alternates, so building against the mock exercises both confidence branches.
 let returnHighConfidence = true;
 
-/** localId -> report id, so a retried upload resolves to the report already made. */
-const byIdempotencyKey = new Map<string, string>();
-
-/** Narrowed to what the server actually answers with: no attachments, no analysis. */
-const toCreated = (report: Report): CreatedReport => ({
-  id: report.id,
-  description: report.description,
-  status: report.status,
-  createdAt: report.createdAt,
-  updatedAt: report.updatedAt,
-  reporterId: report.reporterId,
-});
-
-export async function createReport(fields: CreateReportFields): Promise<CreatedReport> {
-  await delay(LATENCY.create);
-
-  // A repeat is the same report, not an error. The real server files a second row.
-  if (fields.idempotencyKey) {
-    const existingId = byIdempotencyKey.get(fields.idempotencyKey);
-    const existing = existingId && reports.find(report => report.id === existingId);
-    if (existing) {
-      return toCreated(existing);
-    }
-  }
-
-  const now = new Date().toISOString();
-  const report: Report = {
-    id: `r-${nextId++}`,
-    description: fields.description,
-    status: 'Pending',
-    createdAt: now,
-    reporterId: REPORTER_ID,
-    latitude: fields.latitude,
-    longitude: fields.longitude,
-    attachments: [
-      {
-        id: `a-${nextId}`,
-        type: 'Photo',
-        // The real backend returns a storage URL; a local file URI renders the same.
-        url: fields.photo.uri,
-        createdAt: now,
-      },
-    ],
-  };
-
-  reports = [report, ...reports];
-  if (fields.idempotencyKey) {
-    byIdempotencyKey.set(fields.idempotencyKey, report.id);
-  }
-  return toCreated(report);
-}
-
-export async function analyzeReport(reportId: string): Promise<Report> {
+export async function analyzeIssue(photo: PickedImage): Promise<AiAnalysisResult> {
   await delay(LATENCY.analyze);
-
-  const existing = reports.find(report => report.id === reportId);
-  if (!existing) {
-    throw new Error(`Mock: no report with id ${reportId}`);
-  }
 
   const confidence = returnHighConfidence ? 0.91 : 0.62;
   returnHighConfidence = !returnHighConfidence;
 
+  const {
+    modelVersion: _modelVersion,
+    createdAt: _createdAt,
+    ...result
+  } = CANAL_BLOCKAGE;
+
+  // The real service returns the stored object key; a local file URI renders the same.
+  return { ...result, confidence, filePath: photo.uri };
+}
+
+export async function createIssue(fields: CreateIssueFields): Promise<Report> {
+  await delay(LATENCY.create);
+
+  const { analysis, description, latitude, longitude } = fields;
   const now = new Date().toISOString();
-  const analyzed: Report = {
-    ...existing,
-    // With the gate off this only ever resolves to Analyzed. Nothing produces Escalated.
-    status:
-      ESCALATE_LOW_CONFIDENCE && confidence < CONFIDENCE_THRESHOLD
-        ? 'Escalated'
-        : 'Analyzed',
-    updatedAt: now,
-    analysis: { ...CANAL_BLOCKAGE, confidence, createdAt: now },
+
+  const report: Report = {
+    id: `r-${nextId++}`,
+    title: analysis.problemArabic || analysis.problemName,
+    description,
+    // create files the issue already diagnosed; there is no unanalysed state any more.
+    status: 'Diagnosed',
+    createdAt: now,
+    reporterId: REPORTER_ID,
+    latitude,
+    longitude,
+    attachments: [
+      {
+        id: `a-${nextId}`,
+        type: 'Photo',
+        url: analysis.filePath,
+        createdAt: now,
+      },
+    ],
+    analysis: { ...analysis, modelVersion: '', createdAt: now },
   };
 
-  reports = reports.map(report => (report.id === reportId ? analyzed : report));
-  return analyzed;
+  reports = [report, ...reports];
+  return report;
 }
 
 export async function getMyReports(): Promise<Report[]> {
@@ -220,5 +200,4 @@ export function resetMockReports() {
   reports = [...SEED];
   nextId = 1004;
   returnHighConfidence = true;
-  byIdempotencyKey.clear();
 }

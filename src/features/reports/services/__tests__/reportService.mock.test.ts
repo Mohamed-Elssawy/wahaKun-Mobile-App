@@ -1,51 +1,76 @@
+import type { PickedImage } from '@/types/image';
+
 import {
   CONFIDENCE_THRESHOLD,
-  analyzeReport,
-  createReport,
+  analyzeIssue,
+  createIssue,
   getReportById,
   resetMockReports,
 } from '../reportService.mock';
 
-import type { CreateReportFields } from '../../types';
+const PHOTO: PickedImage = { uri: 'file:///test-report.jpg' };
 
-// Pins the gate being off; turning it back on is meant to break the second test.
-const PHOTO: CreateReportFields = { photo: { uri: 'file:///test-report.jpg' } };
-
-/** The mock simulates latency: 900ms to create, 2200ms to analyse. */
+/** The mock simulates latency: 2200ms to analyse, 900ms to create. */
 const TIMEOUT = 20_000;
 
-describe('reportService mock:the confidence gate', () => {
+describe('reportService mock:analyzeIssue', () => {
   // The mock's state is module-level, so each test would inherit the last one's.
   beforeEach(resetMockReports);
 
   it(
-    'marks a report Analyzed when confidence reaches the threshold',
+    'diagnoses the photo before anything is filed',
     async () => {
-      const created = await createReport(PHOTO);
-      const analyzed = await analyzeReport(created.id);
+      const analysis = await analyzeIssue(PHOTO);
 
-      expect(analyzed.analysis?.confidence).toBeGreaterThanOrEqual(CONFIDENCE_THRESHOLD);
-      expect(analyzed.status).toBe('Analyzed');
+      // create is called with this whole object, so every field it reads must be here.
+      expect(analysis.filePath).toBeTruthy();
+      expect(analysis.severity).toBeTruthy();
+      expect(analysis.confidence).toBeGreaterThanOrEqual(CONFIDENCE_THRESHOLD);
+      // Pinned so the mock cannot promise a stored report that does not exist yet.
+      expect(analysis).not.toHaveProperty('id');
     },
     TIMEOUT,
   );
 
   it(
-    'shows a low-confidence report instead of escalating it',
+    'alternates confidence so both branches are reachable in dev',
     async () => {
-      const created = await createReport(PHOTO);
+      await analyzeIssue(PHOTO);
+      const unsure = await analyzeIssue(PHOTO);
 
-      // The mock alternates, so the first call takes the high-confidence turn.
-      await analyzeReport(created.id);
-      const unsure = await analyzeReport(created.id);
+      expect(unsure.confidence).toBeLessThan(CONFIDENCE_THRESHOLD);
+    },
+    TIMEOUT,
+  );
+});
 
-      expect(unsure.analysis?.confidence).toBeLessThan(CONFIDENCE_THRESHOLD);
-      // Analyzed, not Escalated: nothing anywhere produces Escalated today.
-      expect(unsure.status).toBe('Analyzed');
+describe('reportService mock:createIssue', () => {
+  beforeEach(resetMockReports);
 
-      // A low confidence is not a missing one, asserted here to reuse the fixture.
-      expect(unsure.analysis).toBeDefined();
-      expect(unsure.updatedAt).toBeDefined();
+  it(
+    'files an already-diagnosed issue and keeps the analysis on it',
+    async () => {
+      const analysis = await analyzeIssue(PHOTO);
+      const report = await createIssue({ analysis, description: 'وصف' });
+
+      expect(report.id).toBeTruthy();
+      // There is no unanalysed state any more: create runs after the model, not before.
+      expect(report.status).toBe('Diagnosed');
+      expect(report.analysis?.confidence).toBe(analysis.confidence);
+      expect(report.title).toBe(analysis.problemArabic);
+    },
+    TIMEOUT,
+  );
+
+  it(
+    'stores the analysed photo against the report',
+    async () => {
+      const analysis = await analyzeIssue(PHOTO);
+      const created = await createIssue({ analysis });
+      const fetched = await getReportById(created.id);
+
+      expect(fetched.attachments).toHaveLength(1);
+      expect(fetched.attachments[0].url).toBe(PHOTO.uri);
     },
     TIMEOUT,
   );
@@ -53,38 +78,7 @@ describe('reportService mock:the confidence gate', () => {
   it(
     'rejects an unknown report id',
     async () => {
-      await expect(analyzeReport('r-does-not-exist')).rejects.toThrow();
-    },
-    TIMEOUT,
-  );
-});
-
-describe('reportService mock:createReport', () => {
-  beforeEach(resetMockReports);
-
-  it(
-    'returns an id and a Pending status, unanalysed',
-    async () => {
-      const created = await createReport(PHOTO);
-
-      // The whole flow rests on this field: it is what AnalyzeReport is called with.
-      expect(created.id).toBeTruthy();
-      expect(created.status).toBe('Pending');
-      // Pinned so the mock cannot drift wider than CreateReportResponse.
-      expect(created).not.toHaveProperty('analysis');
-      expect(created).not.toHaveProperty('attachments');
-    },
-    TIMEOUT,
-  );
-
-  it(
-    'still stores the photo, even though create does not return it',
-    async () => {
-      const created = await createReport(PHOTO);
-      const fetched = await getReportById(created.id);
-
-      expect(fetched.attachments).toHaveLength(1);
-      expect(fetched.attachments[0].url).toBe(PHOTO.photo.uri);
+      await expect(getReportById('r-does-not-exist')).rejects.toThrow();
     },
     TIMEOUT,
   );

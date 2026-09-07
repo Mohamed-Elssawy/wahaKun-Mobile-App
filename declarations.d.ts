@@ -7,11 +7,7 @@ declare module '*.svg' {
   export default content;
 }
 
-/**
- * Raster images resolve to the opaque asset handle that Image's `source`
- * accepts. Typing these lets screens `import logo from '@assets/...'` instead
- * of an untyped require().
- */
+/** Raster images resolve to Image's opaque source handle, so screens can import instead of require. */
 declare module '*.png' {
   import type { ImageSourcePropType } from 'react-native';
 

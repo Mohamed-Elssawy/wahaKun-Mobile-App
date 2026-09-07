@@ -12,7 +12,7 @@ Feature slices on a shared foundation. Imports flow downward only.
                |
              navigation/     route table, param types, placeholders
                |
-             features/       auth, onboarding, reports, user
+             features/       auth, onboarding, reports, map, community, user
                |             (screens, feature components, hooks, services)
                |
    +-----------+-----------+--------------+
@@ -27,7 +27,8 @@ Four rules keep that honest:
 1. `theme/`, `api/` and `config/` import nothing from `features/`.
 2. `components/ui/` is presentational. No API calls, no navigation, no feature imports.
 3. A feature may import another feature's services and types, never its screens.
-   Onboarding uses `features/auth/services/authService` to register.
+   Onboarding uses `features/auth/services/authService` to register, and community
+   composes its feed from `features/map/services/mapService`.
 4. Only `features/*/screens/` and `app/` know about navigation.
 
 Two placements follow from rule 1 and surprise people:
@@ -75,16 +76,33 @@ src/
       format.ts            the short report reference shown to the farmer
       relativeTime.ts      Arabic durations
       severity.ts          severity to colour and Arabic label
+      status.ts            IssueStatus's seven values onto three display stages
       components/          capture, diagnosis, queue and failure-state pieces
-      hooks/               useReportCapture, useReportAnalysis, useMyReports, ...
+      hooks/               useReportCapture, useReportDiagnosis, useMyReports, ...
       screens/             ReportCapture, ReportAnalyzing, ReportDiagnosis, ...
       services/
-        reportService.ts     the real ReportService binding
+        reportService.ts     the real IssueController binding
         reportService.mock.ts in-memory stand-in behind USE_MOCK_REPORTS
         reportQueue.ts       offline delivery queue
         photoStore.ts        durable storage for a queued photo
+        reportStore.ts       local mirror standing in for the missing read endpoints
         index.ts             picks an implementation, exports reportApi
-    user/                UserService bindings, not yet called by any screen
+    map/                 the oasis map
+      clustering.ts        grid clustering and the zoomed-in threshold
+      search.ts            Arabic spelling folding and word matching
+      tier.ts              priority and status onto the legend's four tiers
+      tiles.ts             the basemap style
+      components/          pins, clusters, legend, search bar, peek sheet
+      hooks/useOasisMap    camera, viewport, selection and fetch
+      services/mapService  MapService binding
+    community/           the feed and the comment thread
+      distance.ts          haversine, for the "0.8 كم" line
+      components/          feed card, filter tabs, status pill, comment thread
+      hooks/               useCommunityFeed, useIssueComments
+      services/            communityService.ts, its mock, and the index that picks
+    user/                profile, settings and the header identity
+      hooks/               useIdentity, useProfile
+      services/            userService.ts, preferencesStore.ts
   hooks/               useCountdown, useImagePicker
   navigation/
     RootNavigator.tsx    the single stack
@@ -125,21 +143,29 @@ Arabic message, and `ReportErrorView` picks a designed screen from the kind.
 
 **Endpoint paths are verbatim.** ASP.NET matches routes exactly, so `endpoints.ts`
 reproduces the backend's casing and its typos. So do the DTO field names in each
-feature's `types.ts`: `refershtoken`, `FulltName`, `ClinetUrl`, `ConfemedPassword`.
-Do not tidy them here. They can only be fixed in the backend.
+feature's `types.ts`: `refershtoken`, `FulltName`, `ClinetUrl`, `ConfemedPassword`,
+and `longitde` on `MapResponseDto`. Do not tidy them here. They can only be fixed in
+the backend.
 
-**One exception to PascalCase.** The wire shapes in `features/reports/types.ts` are
-camelCase, because ReportService's `Program.cs` calls a bare `AddControllers()` and
-System.Text.Json then applies `JsonSerializerDefaults.Web`, which renames every
-property. Matching the C# declaration would compile and read `undefined` at
-runtime. Enum values keep their casing, because the server maps those with
-`.ToString()`.
+**One exception to PascalCase.** The wire shapes in `features/reports/types.ts`,
+`features/map/types.ts` and `features/user/types.ts` are camelCase, because those
+services' `Program.cs` calls a bare `AddControllers()` and System.Text.Json then
+applies `JsonSerializerDefaults.Web`, which renames every property. Matching the C#
+declaration would compile and read `undefined` at runtime. Enum values keep their
+casing, because the server maps those with `.ToString()`.
 
-**Normalising a report.** Every read routes through `normalizeReport`, so a
-`Report` means one thing everywhere. It marks server timestamps as the UTC they
-already are (`datetime2` carries no offset, so JS would read them as local time),
-rewrites attachment URLs onto MediaStorageService, folds confidence into 0-1, and
-drops the `analysis: null` the server sends for an unanalysed report.
+**Filing a report is two calls.** `analyze` uploads the photo and runs the model;
+`create` takes analyze's whole response back unreshaped and files the issue.
+Nothing exists server-side until `create` returns, which is why the queue
+checkpoints between them and why `ReportAnalyzing` is routed to with a `localId`
+rather than a report id.
+
+**Assembling a `Report`.** `create`'s response carries neither the photo nor the
+analysis, so `createIssue` builds the whole `Report` itself. It marks server
+timestamps as the UTC they already are (`datetime2` carries no offset, so JS would
+read them as local time), rewrites the attachment key onto MediaStorageService
+because the server's own URLs 403 and hardcode `127.0.0.1`, folds confidence into
+0-1, and maps the integer `IssueStatus` onto a name.
 
 ## The offline queue
 
@@ -162,6 +188,8 @@ confirmation and the queue keeps working after the screen closes.
   directory the OS may evict and the picker returns a path the user can delete, so
   holding the path is not holding the photo. No filesystem module is installed;
   `react-native-nitro-image` does the encoding and the bytes go to AsyncStorage.
+- **A checkpoint sits between analyze and create.** A retry after a successful
+  analyze re-uploads nothing and re-runs no model.
 - **Retries back off** from 5s to 5min, capped, so a queue left open on a dead
   connection stops burning battery. A network failure stops the whole pass; a
   rejected item is marked failed and the drain steps over it.
@@ -170,12 +198,38 @@ confirmation and the queue keeps working after the screen closes.
 - **A 401 pauses rather than fails.** The rejected token is remembered, and a
   refresh or fresh login produces a different one, which is what resumes the queue.
   Auth never has to know the queue exists.
+- **Two refusals never retry.** A photo the model will not read and a problem below
+  Medium priority answer the same way every time, so the item is marked failed.
 - **Triggers** are enqueue, a NetInfo connectivity change, the app returning to the
   foreground, and a timer for the next due item.
 
 `REPORT_QUEUE_MAX` (5) is a storage budget, since each entry holds a photo.
 `enqueueReport` throws `QueueFullError` at the cap so the screen can say so rather
 than drop the report.
+
+## The map
+
+MapLibre over Esri World Imagery. Satellite rather than streets because Siwa is
+fields, palm groves and canals, and a street basemap of it renders almost empty.
+`tiles.ts` is the one place the basemap is decided, and it carries the licence
+caveat plus the OpenFreeMap constant to swap to.
+
+F-05 has two states rather than a continuum, so `ZOOMED_IN_SPAN` is the single line
+between them. Below it the map draws one pin per issue; above it, counted clusters.
+
+- **Grid clustering, not centroid.** A pin has to hold still while the farmer pans,
+  and a k-means centroid moves every frame.
+- **Coincident issues merge even when zoomed in.** Two reports about the same canal
+  land within about 45 metres, which is one pixel at that zoom, so without merging
+  the newest pin draws under the oldest and filing a report looks like it did
+  nothing. Tapping a merged pin lists them instead of zooming, because zooming
+  could never pull them apart.
+- **A cluster takes the worst tier it holds,** so a critical issue never hides
+  behind a count that reads as safe.
+- **Search is client-side.** `SearchForIssueByTitleInMap` answers 500 rather than
+  `[]` when nothing matches and folds no Arabic spelling, so `search.ts` folds the
+  letters a farmer and a keyboard spell differently and matches every word
+  separately. The reference on the card is searchable too.
 
 ## The theme system
 
@@ -221,9 +275,10 @@ there to exist, so `navigate()` to anything else fails to compile. The
 Login and registration completion use `navigation.reset(...)`, so the auth flow
 leaves the back stack.
 
-`Home` is `HomeTabs`, a bottom-tab navigator typed by `HomeTabParamList`. The report
-tab is an action tab: it renders no screen, and a `tabPress` listener cancels the
-switch and pushes `ReportCapture` onto the root stack.
+`Home` is `HomeTabs`, a bottom-tab navigator typed by `HomeTabParamList`: the feed,
+the map, the report action and My Issues. The report tab is an action tab: it
+renders no screen, and a `tabPress` listener cancels the switch and pushes
+`ReportCapture` onto the root stack.
 
 ## State
 
@@ -245,29 +300,41 @@ native session that cannot travel through navigation params.
 **Report queue.** Module scope in `services/reportQueue.ts`, for the same reason.
 See the offline queue section above.
 
+**Notification preferences.** `features/user/services/preferencesStore.ts`, on the
+phone. Neither S-07 toggle has a field on `AppUser` or an endpoint, and the UI says
+so rather than implying the setting follows the farmer to a new device.
+
 ## Feature flags
 
-Two booleans in `config/env.ts`, each the single switch for one decision:
+Five booleans in `config/env.ts`, each the single switch for one decision:
 
-| Flag                      | Effect                                       |
-| ------------------------- | -------------------------------------------- |
-| `USE_MOCK_REPORTS`        | serve reports from the in-memory mock        |
-| `ESCALATE_LOW_CONFIDENCE` | send a low-confidence diagnosis to an expert |
+| Flag                      | Default | Effect                                            |
+| ------------------------- | ------- | ------------------------------------------------- |
+| `USE_MOCK_REPORTS`        | `false` | serve reports from the in-memory mock             |
+| `USE_LOCAL_REPORT_MIRROR` | `true`  | read My Issues and Issue Details from this device |
+| `USE_MOCK_COMMUNITY`      | `true`  | serve the feed from seeded posts                  |
+| `ENABLE_COMMENT_POSTING`  | `false` | allow posting a comment                           |
+| `ESCALATE_LOW_CONFIDENCE` | `false` | send a low-confidence diagnosis to an expert      |
 
-`features/reports/services/index.ts` picks the real service or the mock and exports
-it as `ReportApi`. That annotation is load-bearing: change a signature and whichever
-implementation drifts stops compiling, so the mock cannot promise data the backend
-will not send. Screens and hooks import `reportApi` and never reach past it.
+`features/reports/services/index.ts` and `features/community/services/index.ts`
+each pick the real service or the mock and export it under an interface name. That
+annotation is load-bearing: change a signature and whichever implementation drifts
+stops compiling, so a mock cannot promise data the backend will not send. Screens
+and hooks import `reportApi` or `communityApi` and never reach past them.
 
-The mock stays useful for working on the diagnosis screens with no backend running,
-and it is the only place the duplicate-upload path can be exercised, because it
-honours the idempotency key and the real server does not yet.
+The mocks stay useful for working on the diagnosis and feed screens with no backend
+running, and the report mock is the only place the duplicate-upload path can be
+exercised, because it honours the idempotency key and the real server does not yet.
+
+Three of the five are open backend gaps rather than product decisions, written up
+separately for the backend team.
 
 ## Testing
 
 Jest with `@react-native/jest-preset`. `jest.setup.js` mocks the native modules that
 throw on import (bootsplash, gesture-handler, reanimated, bottom-sheet,
-vision-camera, geolocation, async-storage, Firebase auth), and
+vision-camera, nitro-image, geolocation, async-storage, NetInfo, MapLibre, Firebase
+auth), stubs `fetch` so no test can reach the network, and
 `transformIgnorePatterns` allowlists the ESM packages that need Babel.
 
 `__tests__/App.test.tsx` renders the whole navigator, which is a cheap smoke test
@@ -275,4 +342,5 @@ for broken imports and provider wiring. The unit tests cover the places where a 
 would be invisible to the compiler: the AsyncStorage batch API, the registration
 draft lifecycle, Arabic plurals, confidence normalisation, timestamp and attachment
 normalisation, severity tiering, base64 round trips, the Firebase verification
-lifecycle, and the queue's retry policy, persistence and ordering.
+lifecycle, map clustering and tier precedence, Arabic search folding, haversine
+distance, and the queue's retry policy, persistence and ordering.

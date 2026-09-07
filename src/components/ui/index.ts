@@ -1,3 +1,6 @@
+export { AppHeader } from './AppHeader';
+export type { AppHeaderProps } from './AppHeader';
+
 export { BackHeader } from './BackHeader';
 export type { BackHeaderProps } from './BackHeader';
 

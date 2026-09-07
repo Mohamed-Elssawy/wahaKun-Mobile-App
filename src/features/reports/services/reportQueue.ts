@@ -7,7 +7,7 @@ import { AppState } from 'react-native';
 import { getAccessToken } from '@/api';
 import { REPORT_QUEUE_MAX } from '@/config/env';
 
-import { describeError } from '../errors';
+import { describeAnalysisError, describeCreateError } from '../errors';
 import { reportApi } from './index';
 import {
   persistPhoto,
@@ -16,7 +16,8 @@ import {
   restorePhoto,
 } from './photoStore';
 
-import type { CreateReportFields, QueuedReport } from '../types';
+import type { ReportError } from '../errors';
+import type { QueuedReport, QueueReportFields } from '../types';
 
 const INDEX_KEY = 'wk.queue.index';
 
@@ -141,65 +142,67 @@ function scheduleNextAttempt(): void {
   );
 }
 
+/** Shared tail: whichever of the two calls threw, the item is parked the same way. */
+async function handleFailure(item: QueuedReport, error: ReportError): Promise<Outcome> {
+  if (error.kind === 'unauthorized') {
+    rejectedToken = await getAccessToken();
+    await patch(item.localId, { state: 'queued' });
+    return 'paused';
+  }
+
+  if (error.kind === 'offline') {
+    const attempts = item.attempts + 1;
+    await patch(item.localId, {
+      state: 'queued',
+      attempts,
+      nextAttemptAt: Date.now() + backoffFor(attempts),
+    });
+    return 'retry';
+  }
+
+  // A refused photo and a too-minor problem answer the same a thousand times. Stop.
+  await patch(item.localId, { state: 'failed', failureKind: error.kind });
+  return 'failed';
+}
+
 async function uploadOne(item: QueuedReport): Promise<Outcome> {
   await patch(item.localId, { state: 'uploading' });
 
-  const photo = await restorePhoto(item.localId);
-  if (!photo) {
-    // The bytes are gone and there is no way to get them back, so retrying is a lie.
-    await patch(item.localId, { state: 'failed', failureKind: 'unknown' });
-    return 'failed';
-  }
+  let { analysis } = item;
 
-  try {
-    let { serverId } = item;
-
-    if (!serverId) {
-      const created = await reportApi.createReport({
-        photo,
-        description: item.description,
-        latitude: item.latitude,
-        longitude: item.longitude,
-        // Survives a lost response: the server returns the report it already has.
-        idempotencyKey: item.localId,
-      });
-      serverId = created.id;
-      // Recorded before analysis, so a crash in between does not re-upload the photo.
-      await patch(item.localId, { serverId });
+  // Only the analyze step needs the bytes; a checkpointed item is past that.
+  if (!analysis) {
+    const photo = await restorePhoto(item.localId);
+    if (!photo) {
+      // The bytes are gone and there is no way to get them back, so retrying is a lie.
+      await patch(item.localId, { state: 'failed', failureKind: 'unknown' });
+      return 'failed';
     }
 
     try {
-      await reportApi.analyzeReport(serverId);
-    } catch {
-      // Already delivered, so a failed analysis just shows as Pending in My Issues.
+      analysis = await reportApi.analyzeIssue(photo);
+    } catch (error) {
+      return handleFailure(item, describeAnalysisError(error, ''));
     }
 
+    // Checkpointed before create, so a retry re-uploads nothing and re-runs no model.
+    await patch(item.localId, { analysis });
+  }
+
+  try {
+    const report = await reportApi.createIssue({
+      analysis,
+      description: item.description,
+      latitude: item.latitude,
+      longitude: item.longitude,
+    });
+
     // Recorded before the drop, so the capture screen can still find where it landed.
-    delivered.set(item.localId, serverId);
+    delivered.set(item.localId, report.id);
     await drop(item.localId);
     return 'sent';
   } catch (error) {
-    const { kind } = describeError(error, '');
-
-    if (kind === 'unauthorized') {
-      rejectedToken = await getAccessToken();
-      await patch(item.localId, { state: 'queued' });
-      return 'paused';
-    }
-
-    if (kind === 'offline') {
-      const attempts = item.attempts + 1;
-      await patch(item.localId, {
-        state: 'queued',
-        attempts,
-        nextAttemptAt: Date.now() + backoffFor(attempts),
-      });
-      return 'retry';
-    }
-
-    // A 400 on a malformed photo fails the same way a thousand times. Stop.
-    await patch(item.localId, { state: 'failed', failureKind: kind });
-    return 'failed';
+    return handleFailure(item, describeCreateError(error, ''));
   }
 }
 
@@ -269,9 +272,7 @@ function createLocalId(): string {
 }
 
 /** Resolves once the photo is stored, not once it is uploaded. @throws {QueueFullError} */
-export async function enqueueReport(
-  fields: Omit<CreateReportFields, 'idempotencyKey'>,
-): Promise<QueuedReport> {
+export async function enqueueReport(fields: QueueReportFields): Promise<QueuedReport> {
   await hydrate();
 
   if (items.length >= REPORT_QUEUE_MAX) {
@@ -312,11 +313,9 @@ export async function retryQueuedReport(localId: string): Promise<void> {
   await drainQueue();
 }
 
-/** Server id of a report delivered this session, or null. Reading consumes it. */
-export function takeDeliveredReportId(localId: string): string | null {
-  const serverId = delivered.get(localId) ?? null;
-  delivered.delete(localId);
-  return serverId;
+/** Server id of a report delivered this session, or null. Non-consuming: subscribers read after. */
+export function getDeliveredReportId(localId: string): string | null {
+  return delivered.get(localId) ?? null;
 }
 
 export function getQueueSnapshot(): QueueSnapshot {

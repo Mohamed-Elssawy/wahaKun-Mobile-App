@@ -1,15 +1,8 @@
-/**
- * Jest setup — mocks the native modules the app pulls in at import time.
- *
- * Anything here is a module whose TurboModule/native binary does not exist in
- * the Node test environment. Without these, simply importing App.tsx throws
- * before a single assertion runs.
- */
+// Mocks the native modules the app imports at load time; without them importing App.tsx throws.
 
 require('react-native-gesture-handler/jestSetup');
 
-// Reanimated 4's own mock imports react-native-worklets, which needs the
-// native binary — so mock the surface directly instead of using it.
+// Reanimated 4's own mock needs the worklets binary, so mock the surface directly instead.
 jest.mock('react-native-reanimated', () => {
   const View = require('react-native').View;
   return {
@@ -35,9 +28,7 @@ jest.mock('@gorhom/bottom-sheet', () => {
   };
 });
 
-// v5 (Nitro) reaches for the native NitroModules TurboModule at import time,
-// which doesn't exist under Node. Mocking VisionCamera short-circuits the whole
-// vision-camera → nitro-modules chain, so nitro needs no separate mock.
+// v5 reaches for the Nitro TurboModule on import; mocking the camera short-circuits that chain.
 jest.mock('react-native-vision-camera', () => {
   const View = require('react-native').View;
   return {
@@ -55,10 +46,7 @@ jest.mock('react-native-vision-camera', () => {
   };
 });
 
-// The vision-camera mock above short-circuits the nitro chain for anything that
-// reaches it through the camera, but services/photoStore.ts imports nitro-image
-// directly, so it needs its own. Round-trips through the queue's tests: the encoded
-// buffer carries whatever bytes were handed in.
+// photoStore imports nitro-image directly, past the camera mock, so it needs its own round trip.
 jest.mock('react-native-nitro-image', () => {
   const makeImage = (width, height, buffer) => ({
     width,
@@ -84,8 +72,7 @@ jest.mock('react-native-nitro-image', () => {
   };
 });
 
-// Native module with no JS fallback. Resolves a fix immediately so
-// useCurrentLocation has something to narrow.
+// Native module with no JS fallback. Resolves a fix at once so useCurrentLocation has one.
 jest.mock('@react-native-community/geolocation', () => ({
   __esModule: true,
   default: {
@@ -100,19 +87,15 @@ jest.mock('@react-native-community/geolocation', () => ({
   },
 }));
 
-// Ships no jest mock of its own — hide() is the only API the app calls.
+// Ships no jest mock of its own; hide() is the only API the app calls.
 jest.mock('react-native-bootsplash', () => ({
   hide: jest.fn().mockResolvedValue(undefined),
   isVisible: jest.fn().mockResolvedValue(false),
   useHideAnimation: jest.fn(),
 }));
 
-// Ships untranspiled ESM and is not matched by transformIgnorePatterns, so
-// importing the real module throws "Cannot use import statement outside a
-// module" — and there is no JS fallback for phone verification regardless.
-// Mocking it also means transformIgnorePatterns needs no entry, because the real
-// module is never loaded. Tests that drive the flow override these per case; the
-// defaults exist so a suite that merely imports the auth hooks keeps working.
+// Untranspiled ESM with no JS fallback, so the real module throws on import and is never loaded.
+// Tests that drive the flow override these; the defaults keep a suite that only imports it working.
 jest.mock('@react-native-firebase/auth', () => ({
   __esModule: true,
   getAuth: jest.fn(() => ({ app: { name: '[DEFAULT]' } })),
@@ -124,14 +107,12 @@ jest.mock('@react-native-firebase/auth', () => ({
   }),
 }));
 
-// Ships its own mock, which defaults to connected-over-cellular. The offline
-// queue's tests override `fetch`/`addEventListener` per case; this default keeps
-// suites that merely import the queue from hanging on a never-resolving fetch().
+// Its own mock, defaulting to connected. The queue's tests override it; this stops others hanging.
 jest.mock('@react-native-community/netinfo', () =>
   require('@react-native-community/netinfo/jest/netinfo-mock'),
 );
 
-// v3 API surface (getMany/setMany/removeMany — not the removed multi* names).
+// v3 API surface (getMany/setMany/removeMany, not the removed multi* names).
 jest.mock('@react-native-async-storage/async-storage', () => ({
   __esModule: true,
   default: {
@@ -146,9 +127,32 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   },
 }));
 
-// No test may reach the network. Without this the suite silently depends on whether a
-// local ReportService happens to be running: with USE_MOCK_REPORTS off, App.test went
-// from 8s to nearly two minutes against a live one, and would report different results
-// on a machine where the backend is down. Reject the way a dead connection does —
-// client.ts maps that to an offline ApiError, a path the screens already handle.
+// Native views that render nothing. Map forwards children, since the pins are what tests assert on.
+jest.mock('@maplibre/maplibre-react-native', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const passthrough = name =>
+    React.forwardRef((props, ref) =>
+      React.createElement(View, { ...props, ref, testID: props.testID ?? name }),
+    );
+
+  return {
+    __esModule: true,
+    Map: passthrough('Map'),
+    Camera: passthrough('Camera'),
+    Marker: passthrough('Marker'),
+    UserLocation: passthrough('UserLocation'),
+    RasterSource: passthrough('RasterSource'),
+    Layer: passthrough('Layer'),
+    Images: passthrough('Images'),
+    GeoJSONSource: passthrough('GeoJSONSource'),
+    ViewAnnotation: passthrough('ViewAnnotation'),
+    Callout: passthrough('Callout'),
+    LocationManager: { start: jest.fn(), stop: jest.fn() },
+    LogManager: { setLogLevel: jest.fn() },
+  };
+});
+
+// No test may reach the network, or the suite depends on whether a local backend is running.
+// Rejects the way a dead connection does, which client.ts already maps to an offline ApiError.
 global.fetch = jest.fn(() => Promise.reject(new TypeError('Network request failed')));

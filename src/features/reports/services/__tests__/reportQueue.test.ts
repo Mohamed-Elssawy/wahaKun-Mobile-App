@@ -50,18 +50,18 @@ jest.mock('@/api', () => {
 });
 
 // `mock` prefix required: jest hoists the factory above these declarations.
-const mockCreateReport = jest.fn();
-const mockAnalyzeReport = jest.fn();
+const mockAnalyzeIssue = jest.fn();
+const mockCreateIssue = jest.fn();
 
 jest.mock('../index', () => ({
   reportApi: {
-    createReport: (...args: unknown[]) => mockCreateReport(...args),
-    analyzeReport: (...args: unknown[]) => mockAnalyzeReport(...args),
+    analyzeIssue: (...args: unknown[]) => mockAnalyzeIssue(...args),
+    createIssue: (...args: unknown[]) => mockCreateIssue(...args),
   },
 }));
 
-const createReport = mockCreateReport;
-const analyzeReport = mockAnalyzeReport;
+const analyzeIssue = mockAnalyzeIssue;
+const createIssue = mockCreateIssue;
 
 const PHOTO: PickedImage = {
   uri: 'file:///mock/photo.jpg',
@@ -73,16 +73,30 @@ const offlineError = () => new ApiError('offline', NETWORK_ERROR_STATUS);
 const rejectedError = () => new ApiError('bad photo', 400);
 const unauthorizedError = () => new ApiError('expired', 401);
 
+/** How ReportService refuses a below-Medium problem: an untyped 500 with a string body. */
+const tooMinorError = () =>
+  new ApiError('failed', 500, 'System.InvalidOperationException: priority too low');
+
+const ANALYSIS = {
+  filePath: 'reportimage/analysed.jpg',
+  problemName: 'Pipe_Damage',
+  problemArabic: 'تسريب',
+  confidence: 0.91,
+  severity: 'حرجة' as const,
+  recommendation: '',
+  repairSteps: [],
+};
+
 const asyncStorage = jest.requireMock('@react-native-async-storage/async-storage')
   .default as { __store: Map<string, string> };
 
 beforeEach(async () => {
   await resetReportQueue();
   asyncStorage.__store.clear();
-  createReport.mockReset();
-  analyzeReport.mockReset();
-  createReport.mockResolvedValue({ id: 'r-1', status: 'Pending' });
-  analyzeReport.mockResolvedValue({ id: 'r-1', status: 'Analyzed' });
+  analyzeIssue.mockReset();
+  createIssue.mockReset();
+  analyzeIssue.mockResolvedValue(ANALYSIS);
+  createIssue.mockResolvedValue({ id: 'r-1', status: 'Diagnosed' });
 });
 
 describe('enqueue', () => {
@@ -90,21 +104,25 @@ describe('enqueue', () => {
     await enqueueReport({ photo: PHOTO });
     await drainQueue();
 
-    expect(createReport).toHaveBeenCalledTimes(1);
+    expect(analyzeIssue).toHaveBeenCalledTimes(1);
     expect(getQueueSnapshot().items).toHaveLength(0);
   });
 
-  it('sends the localId as the idempotency key', async () => {
-    const queued = await enqueueReport({ photo: PHOTO });
+  it('analyses before it files, and files what the model returned', async () => {
+    await enqueueReport({ photo: PHOTO });
     await drainQueue();
 
-    expect(createReport).toHaveBeenCalledWith(
-      expect.objectContaining({ idempotencyKey: queued.localId }),
+    // Order matters: create is what stores the issue, and it needs analyze's filePath.
+    expect(analyzeIssue.mock.invocationCallOrder[0]).toBeLessThan(
+      createIssue.mock.invocationCallOrder[0],
+    );
+    expect(createIssue).toHaveBeenCalledWith(
+      expect.objectContaining({ analysis: ANALYSIS }),
     );
   });
 
   it('refuses past the cap instead of dropping the report', async () => {
-    createReport.mockRejectedValue(offlineError());
+    analyzeIssue.mockRejectedValue(offlineError());
 
     for (let i = 0; i < 5; i += 1) {
       await enqueueReport({ photo: PHOTO });
@@ -118,7 +136,7 @@ describe('enqueue', () => {
 
 describe('retry policy', () => {
   it('keeps a network failure queued and backs it off', async () => {
-    createReport.mockRejectedValue(offlineError());
+    analyzeIssue.mockRejectedValue(offlineError());
 
     await enqueueReport({ photo: PHOTO });
     await drainQueue();
@@ -130,18 +148,18 @@ describe('retry policy', () => {
   });
 
   it('does not retry a rejection the server will repeat', async () => {
-    createReport.mockRejectedValue(rejectedError());
+    analyzeIssue.mockRejectedValue(rejectedError());
 
     await enqueueReport({ photo: PHOTO });
     await drainQueue();
     await drainQueue();
 
-    expect(createReport).toHaveBeenCalledTimes(1);
+    expect(analyzeIssue).toHaveBeenCalledTimes(1);
     expect(getQueueSnapshot().items[0].state).toBe('failed');
   });
 
   it('pauses the whole queue on an expired session rather than failing the item', async () => {
-    createReport.mockRejectedValue(unauthorizedError());
+    analyzeIssue.mockRejectedValue(unauthorizedError());
 
     await enqueueReport({ photo: PHOTO });
     await drainQueue();
@@ -152,11 +170,11 @@ describe('retry policy', () => {
 
     // The same rejected token must not be spent on another attempt.
     await drainQueue();
-    expect(createReport).toHaveBeenCalledTimes(1);
+    expect(analyzeIssue).toHaveBeenCalledTimes(1);
   });
 
   it('backs off further on each successive failure', async () => {
-    createReport.mockRejectedValue(offlineError());
+    analyzeIssue.mockRejectedValue(offlineError());
 
     // A virtual clock, because the real retry schedule starts at five seconds.
     let clock = Date.now();
@@ -182,13 +200,13 @@ describe('retry policy', () => {
   });
 
   it('resets the backoff when the farmer asks to send now', async () => {
-    createReport.mockRejectedValue(offlineError());
+    analyzeIssue.mockRejectedValue(offlineError());
 
     await enqueueReport({ photo: PHOTO });
     await drainQueue();
     expect(getQueueSnapshot().items[0].attempts).toBe(1);
 
-    createReport.mockResolvedValue({ id: 'r-3', status: 'Pending' });
+    analyzeIssue.mockResolvedValue({ id: 'r-3', status: 'Pending' });
     await retryQueuedReport(getQueueSnapshot().items[0].localId);
 
     // A manual send ignores the wait it would otherwise be sitting out.
@@ -202,21 +220,22 @@ describe('ordering and concurrency', () => {
     await enqueueReport({ photo: PHOTO, description: 'second' });
     await drainQueue();
 
-    expect(createReport.mock.calls[0][0].description).toBe('first');
-    expect(createReport.mock.calls[1][0].description).toBe('second');
+    // analyze only ever gets the photo, so the description rides on create.
+    expect(createIssue.mock.calls[0][0].description).toBe('first');
+    expect(createIssue.mock.calls[1][0].description).toBe('second');
   });
 
   it('runs one drain at a time', async () => {
     let inFlight = 0;
     let maxInFlight = 0;
-    createReport.mockImplementation(async () => {
+    analyzeIssue.mockImplementation(async () => {
       inFlight += 1;
       maxInFlight = Math.max(maxInFlight, inFlight);
       await new Promise<void>(resolve => {
         setTimeout(() => resolve(), 5);
       });
       inFlight -= 1;
-      return { id: 'r-1', status: 'Pending' };
+      return ANALYSIS;
     });
 
     await enqueueReport({ photo: PHOTO });
@@ -227,7 +246,7 @@ describe('ordering and concurrency', () => {
   });
 
   it('stops the pass on a network failure but steps over a rejected one', async () => {
-    createReport
+    analyzeIssue
       .mockRejectedValueOnce(rejectedError())
       .mockRejectedValueOnce(offlineError());
 
@@ -236,7 +255,7 @@ describe('ordering and concurrency', () => {
     await drainQueue();
 
     // Both were attempted: the rejection did not end the pass.
-    expect(createReport).toHaveBeenCalledTimes(2);
+    expect(analyzeIssue).toHaveBeenCalledTimes(2);
     const states = getQueueSnapshot().items.map(item => item.state);
     expect(states).toContain('failed');
     expect(states).toContain('queued');
@@ -244,30 +263,57 @@ describe('ordering and concurrency', () => {
 });
 
 describe('delivery', () => {
-  it('leaves the report uploaded when analysis fails', async () => {
-    analyzeReport.mockRejectedValue(offlineError());
+  it('keeps the report queued when create fails', async () => {
+    createIssue.mockRejectedValue(offlineError());
 
     await enqueueReport({ photo: PHOTO });
     await drainQueue();
 
-    // Analysis is opportunistic; the report already reached the server.
+    // Nothing exists server-side until create returns, so this is not delivered.
+    expect(getQueueSnapshot().items).toHaveLength(1);
+  });
+
+  // The whole point of the checkpoint: analyze uploads a photo and runs a model.
+  it('does not re-analyse a report create already has an analysis for', async () => {
+    createIssue.mockRejectedValueOnce(offlineError());
+
+    await enqueueReport({ photo: PHOTO });
+    await drainQueue();
+    expect(getQueueSnapshot().items[0].analysis).toEqual(ANALYSIS);
+
+    createIssue.mockResolvedValue({ id: 'r-9', status: 'Diagnosed' });
+    await retryQueuedReport(getQueueSnapshot().items[0].localId);
+
+    expect(analyzeIssue).toHaveBeenCalledTimes(1);
     expect(getQueueSnapshot().items).toHaveLength(0);
   });
 
-  it('does not re-upload a report the server already accepted', async () => {
-    analyzeReport.mockRejectedValueOnce(unauthorizedError());
-    createReport.mockResolvedValue({ id: 'r-9', status: 'Pending' });
+  // Retrying a below-Medium problem answers the same every time, so it must not loop.
+  it('fails a report ReportService refuses as too minor', async () => {
+    createIssue.mockRejectedValue(tooMinorError());
 
     await enqueueReport({ photo: PHOTO });
     await drainQueue();
 
-    expect(createReport).toHaveBeenCalledTimes(1);
+    const [item] = getQueueSnapshot().items;
+    expect(item.state).toBe('failed');
+    expect(item.failureKind).toBe('tooMinor');
+  });
+
+  // The same 500 shape off analyze means the model would not read the photo. F-03c.
+  it('tells a refused photo apart from a too-minor problem', async () => {
+    analyzeIssue.mockRejectedValue(tooMinorError());
+
+    await enqueueReport({ photo: PHOTO });
+    await drainQueue();
+
+    expect(getQueueSnapshot().items[0].failureKind).toBe('unrecognized');
   });
 });
 
 describe('persistence', () => {
   it('survives a restart with the photo intact', async () => {
-    createReport.mockRejectedValue(offlineError());
+    analyzeIssue.mockRejectedValue(offlineError());
 
     await enqueueReport({ photo: PHOTO, description: 'queued overnight' });
     await drainQueue();
@@ -279,34 +325,37 @@ describe('persistence', () => {
     const [restored] = getQueueSnapshot().items;
     expect(restored.description).toBe('queued overnight');
 
-    createReport.mockResolvedValue({ id: 'r-2', status: 'Pending' });
-    await drainQueue();
-    expect(createReport).toHaveBeenCalledWith(
+    // retry, not drain: the restored item is still sitting out the backoff it earned.
+    analyzeIssue.mockResolvedValue(ANALYSIS);
+    await retryQueuedReport(restored.localId);
+
+    expect(createIssue).toHaveBeenCalledWith(
       expect.objectContaining({ description: 'queued overnight' }),
     );
+    expect(getQueueSnapshot().items).toHaveLength(0);
   });
 
   it('re-queues an item a kill left mid-upload', async () => {
     // Never settles, so the item persists as 'uploading', which is what a kill leaves.
-    createReport.mockImplementation(() => new Promise(() => {}));
+    analyzeIssue.mockImplementation(() => new Promise(() => {}));
 
     await enqueueReport({ photo: PHOTO });
-    void drainQueue();
+    drainQueue();
     await waitFor(() => getQueueSnapshot().items[0]?.state === 'uploading');
 
-    createReport.mockReset();
-    createReport.mockRejectedValue(offlineError());
+    analyzeIssue.mockReset();
+    analyzeIssue.mockRejectedValue(offlineError());
     await simulateRestart();
 
     // Only reachable if hydrate put 'uploading' back to due-now.
-    expect(createReport).toHaveBeenCalledTimes(1);
+    expect(analyzeIssue).toHaveBeenCalledTimes(1);
     expect(getQueueSnapshot().items[0].state).toBe('queued');
   });
 });
 
 describe('discard', () => {
   it('clears a failed report and its photo', async () => {
-    createReport.mockRejectedValue(rejectedError());
+    analyzeIssue.mockRejectedValue(rejectedError());
 
     const queued = await enqueueReport({ photo: PHOTO });
     await drainQueue();

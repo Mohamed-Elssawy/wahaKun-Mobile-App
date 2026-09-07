@@ -14,31 +14,3 @@ export {
   controlHeight,
   maxFontScale,
 } from './layout';
-
-import { colors, palette } from './colors';
-import {
-  controlHeight,
-  maxFontScale,
-  radii,
-  screenPadding,
-  shadows,
-  spacing,
-} from './layout';
-import { fonts, fontSizes, textStyles } from './typography';
-
-/** Aggregate, for passing the whole theme as one object. */
-export const theme = {
-  colors,
-  palette,
-  fonts,
-  fontSizes,
-  textStyles,
-  spacing,
-  radii,
-  shadows,
-  screenPadding,
-  controlHeight,
-  maxFontScale,
-} as const;
-
-export type Theme = typeof theme;

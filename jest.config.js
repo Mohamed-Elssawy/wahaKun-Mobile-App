@@ -5,8 +5,7 @@ module.exports = {
     // The preset resolves .svg as an asset, which is not a renderable element.
     '\\.svg$': '<rootDir>/__mocks__/svgMock.js',
   },
-  // These ship untranspiled ESM and must go through Babel rather than being
-  // ignored like the rest of node_modules.
+  // These ship untranspiled ESM, so they go through Babel rather than being ignored.
   transformIgnorePatterns: [
     'node_modules/(?!(?:.pnpm/)?(' +
       '(jest-)?react-native' +
