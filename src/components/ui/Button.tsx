@@ -28,16 +28,14 @@ export type ButtonProps = {
 const VARIANT_STYLE: Record<ButtonVariant, ViewStyle> = {
   primary: { backgroundColor: colors.primary },
   secondary: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: colors.textSecondary,
+    backgroundColor: colors.surface,
   },
   ghost: { backgroundColor: 'transparent' },
 };
 
 const VARIANT_LABEL_COLOR = {
   primary: 'textInverse',
-  secondary: 'textSecondary',
+  secondary: 'primary',
   ghost: 'primary',
 } as const;
 

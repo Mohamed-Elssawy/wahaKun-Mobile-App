@@ -65,8 +65,7 @@ export default function IntroSlideshowScreen({
         data={SLIDES}
         keyExtractor={slide => slide.key}
         horizontal
-        // inverted: slide one sits on the right and progress runs leftwards, which is the
-        // direction the dots show and the way an Arabic reader turns a page.
+        // inverted: slide one sits right and progress runs leftward, the way an Arabic reader turns a page.
         inverted
         pagingEnabled
         showsHorizontalScrollIndicator={false}

@@ -9,8 +9,7 @@ const REQUEST_ERROR = 'تعذر إرسال رابط الاستعادة، حاو�
 const RESET_ERROR = 'تعذر تغيير كلمة المرور، قد يكون الرابط منتهي الصلاحية';
 const OFFLINE_ERROR = 'تحقق من اتصالك وحاول مرة أخرى';
 
-// AuthService has no exception middleware, so "user not found" and a real fault are both
-// an unhandled 500 whose body carries no usable message. Only offline is distinguishable.
+// AuthService has no exception middleware: every fault is a 500 with no usable message, so only offline is distinguishable.
 function describeResetError(err: unknown, fallback: string): string {
   if (err instanceof ApiError && err.isNetworkError) {
     return OFFLINE_ERROR;

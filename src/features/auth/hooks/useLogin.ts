@@ -1,7 +1,9 @@
 import { useState } from 'react';
 
 import { ApiError, saveTokens } from '@/api';
+import { resumeReportQueue } from '@/features/reports/services/reportQueue';
 
+import { describeAuthApiError } from '../authErrors';
 import { describeFirebaseError } from '../firebaseErrors';
 import { loginWithEmail } from '../services/authService';
 import { sendVerificationCode } from '../services/firebaseAuth';
@@ -22,7 +24,7 @@ export function useLogin() {
     } catch (err) {
       setError(
         err instanceof ApiError
-          ? err.message
+          ? describeAuthApiError(err, 'تعذر إرسال رمز التحقق، حاول مرة أخرى')
           : describeFirebaseError(err, 'تعذر إرسال رمز التحقق، حاول مرة أخرى'),
       );
       return false;
@@ -38,14 +40,25 @@ export function useLogin() {
     try {
       const result = await loginWithEmail(email, password);
 
-      if (result.accessToken && result.refreshToken) {
-        await saveTokens(result.accessToken, result.refreshToken);
+      // No tokens means no session, so this is a failure however the server dressed it up.
+      if (!result.accessToken || !result.refreshToken) {
+        setError('تعذر تسجيل الدخول، حاول مرة أخرى');
+        return false;
       }
+
+      await saveTokens(result.accessToken, result.refreshToken);
+      // A new token can un-pause a queue that a prior expiry stopped.
+      resumeReportQueue();
 
       return true;
     } catch (err) {
       setError(
-        err instanceof ApiError ? err.message : 'حدث خطأ في الاتصال، حاول مرة أخرى',
+        err instanceof ApiError
+          ? describeAuthApiError(
+              err,
+              'تعذر تسجيل الدخول، تأكد من البيانات وحاول مرة أخرى',
+            )
+          : 'حدث خطأ في الاتصال، حاول مرة أخرى',
       );
       return false;
     } finally {

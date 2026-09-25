@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { describeError } from '@/features/reports/errors';
 import type { ReportError } from '@/features/reports/errors';
-import { useCurrentLocation } from '@/features/reports/hooks/useCurrentLocation';
+import { useCurrentLocation } from '@/hooks/useCurrentLocation';
 
 import { boundsOf, clusterIssues, COINCIDENT_SPAN, isZoomedIn } from '../clustering';
 import { filterIssues } from '../search';

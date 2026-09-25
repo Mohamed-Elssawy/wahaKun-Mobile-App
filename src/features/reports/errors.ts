@@ -22,6 +22,7 @@ export type ReportError = {
 
 const OFFLINE_MESSAGE = 'تحقق من اتصالك وحاول مرة أخرى';
 const UNAUTHORIZED_MESSAGE = 'انتهت جلستك، سجّل الدخول مرة أخرى';
+const FORBIDDEN_MESSAGE = 'ليست لديك صلاحية لهذا الإجراء';
 
 /** Each caller passes its own fallback, since loading and sending fail differently. */
 export function describeError(error: unknown, fallback: string): ReportError {
@@ -35,6 +36,11 @@ export function describeError(error: unknown, fallback: string): ReportError {
 
   if (error.isUnauthorized) {
     return { kind: 'unauthorized', message: UNAUTHORIZED_MESSAGE };
+  }
+
+  // Forbidden, not expired: re-login cannot fix it, so 'unknown' fails this item instead of pausing the queue.
+  if (error.isForbidden) {
+    return { kind: 'unknown', message: FORBIDDEN_MESSAGE };
   }
 
   // client.ts already pulled the server's own message out of the ASP.NET body.
@@ -71,3 +77,14 @@ export function describeCreateError(error: unknown, fallback: string): ReportErr
   }
   return describeError(error, fallback);
 }
+
+const UNKNOWN_MESSAGE = 'تعذر إرسال البلاغ، حاول مرة أخرى';
+
+/** Kind to Arabic copy, for a failed queue item the screen shows without a live error object. */
+export const FAILURE_MESSAGES: Record<ReportErrorKind, string> = {
+  offline: OFFLINE_MESSAGE,
+  unauthorized: UNAUTHORIZED_MESSAGE,
+  unrecognized: UNRECOGNIZED_MESSAGE,
+  tooMinor: TOO_MINOR_MESSAGE,
+  unknown: UNKNOWN_MESSAGE,
+};

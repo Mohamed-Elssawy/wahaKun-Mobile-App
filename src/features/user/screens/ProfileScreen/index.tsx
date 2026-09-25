@@ -24,6 +24,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/components/ui';
+import { useLogout } from '@/features/auth/hooks/useLogout';
 import { ReportErrorView } from '@/features/reports/components/ReportErrorView';
 import type { ScreenProps } from '@/navigation/types';
 import { colors, radii, screenPadding, shadows, spacing } from '@/theme';
@@ -47,8 +48,15 @@ const DEVICE_ONLY = 'على هذا الجهاز فقط';
 export default function ProfileScreen({ navigation }: ScreenProps<'Profile'>) {
   const insets = useSafeAreaInsets();
   const { user, preferences, isLoading, error, retry, togglePreference } = useProfile();
+  const logout = useLogout();
 
   const region = [user?.region, user?.village].filter(Boolean).join('، ');
+
+  const handleLogout = async () => {
+    // Clear the session before leaving, so the queue cannot upload under it afterward.
+    await logout();
+    navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] });
+  };
 
   return (
     <View style={styles.screen}>
@@ -196,9 +204,7 @@ export default function ProfileScreen({ navigation }: ScreenProps<'Profile'>) {
               icon={LogOut}
               label="تسجيل الخروج"
               tone="error"
-              onPress={() =>
-                navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })
-              }
+              onPress={handleLogout}
             />
           </View>
         </ScrollView>

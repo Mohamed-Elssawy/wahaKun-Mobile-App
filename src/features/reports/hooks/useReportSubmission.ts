@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { FAILURE_MESSAGES } from '../errors';
 import {
   discardQueuedReport,
   drainQueue,
@@ -10,14 +11,6 @@ import {
 } from '../services/reportQueue';
 
 import type { ReportError } from '../errors';
-
-const FAILURE_MESSAGES: Record<string, string> = {
-  offline: 'تحقق من اتصالك وحاول مرة أخرى',
-  unauthorized: 'انتهت جلستك، سجّل الدخول مرة أخرى',
-  unrecognized: 'لم نتمكن من رؤية مشكلة واضحة في الصورة',
-  tooMinor: 'المشكلة تبدو بسيطة، ولا يحتاج هذا البلاغ إلى متابعة',
-  unknown: 'تعذر إرسال البلاغ، حاول مرة أخرى',
-};
 
 /** Where one submitted report has got to. The screen picks a design from this. */
 export type SubmissionState =

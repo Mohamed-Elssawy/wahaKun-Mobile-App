@@ -63,6 +63,9 @@ let retryTimer: ReturnType<typeof setTimeout> | null = null;
 // A refresh or fresh login yields a different token, which is what resumes the queue.
 let rejectedToken: string | null = null;
 
+// Set on a 401 so the drain rests instead of re-scheduling itself; cleared by a usable session.
+let pausedForAuth = false;
+
 // localId -> server id for this session. Read once, then discarded.
 const delivered = new Map<string, string>();
 
@@ -126,6 +129,11 @@ function scheduleNextAttempt(): void {
     retryTimer = null;
   }
 
+  // Paused on a 401: scheduling now would spin a 0ms timer against a dead token; resume comes from a trigger.
+  if (pausedForAuth) {
+    return;
+  }
+
   const due = items
     .filter(item => item.state === 'queued')
     .map(item => item.nextAttemptAt);
@@ -146,6 +154,7 @@ function scheduleNextAttempt(): void {
 async function handleFailure(item: QueuedReport, error: ReportError): Promise<Outcome> {
   if (error.kind === 'unauthorized') {
     rejectedToken = await getAccessToken();
+    pausedForAuth = true;
     await patch(item.localId, { state: 'queued' });
     return 'paused';
   }
@@ -216,6 +225,7 @@ async function hasUsableSession(): Promise<boolean> {
     return false;
   }
   rejectedToken = null;
+  pausedForAuth = false;
   return true;
 }
 
@@ -313,6 +323,11 @@ export async function retryQueuedReport(localId: string): Promise<void> {
   await drainQueue();
 }
 
+/** A fresh login or refresh wrote a new token, so nudge a queue that paused on the old one. */
+export function resumeReportQueue(): void {
+  startDrain();
+}
+
 /** Server id of a report delivered this session, or null. Non-consuming: subscribers read after. */
 export function getDeliveredReportId(localId: string): string | null {
   return delivered.get(localId) ?? null;
@@ -358,6 +373,22 @@ export function startReportQueue(): void {
   startDrain();
 }
 
+/** Wipes the queue and its stored photos. On logout: the items belong to the session that ended. */
+export async function clearReportQueue(): Promise<void> {
+  if (retryTimer) {
+    clearTimeout(retryTimer);
+    retryTimer = null;
+  }
+  items = [];
+  // A new login must not inherit the previous farmer's rejected-token pause.
+  rejectedToken = null;
+  pausedForAuth = false;
+  await AsyncStorage.removeItem(INDEX_KEY);
+  // Empty live set, so every persisted photo is swept, not just the indexed ones.
+  await pruneOrphanedPhotos([]);
+  emit();
+}
+
 /** Test seam. Nothing in the app calls this. */
 export async function resetReportQueue(): Promise<void> {
   if (retryTimer) {
@@ -370,6 +401,7 @@ export async function resetReportQueue(): Promise<void> {
   started = false;
   draining = null;
   rejectedToken = null;
+  pausedForAuth = false;
   listeners.clear();
   await AsyncStorage.removeItem(INDEX_KEY);
 }

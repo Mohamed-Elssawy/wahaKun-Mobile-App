@@ -1,7 +1,9 @@
 import { useState } from 'react';
 
 import { ApiError, saveTokens } from '@/api';
+import { resumeReportQueue } from '@/features/reports/services/reportQueue';
 
+import { describeAuthApiError } from '../authErrors';
 import { describeFirebaseError } from '../firebaseErrors';
 import { buildRegisterFormData, firebaseLogin, register } from '../services/authService';
 import {
@@ -27,9 +29,15 @@ export function useOtpVerification() {
         ? await register(buildRegisterFormData(profile, idToken))
         : await firebaseLogin(idToken);
 
-      if (result.accessToken && result.refreshToken) {
-        await saveTokens(result.accessToken, result.refreshToken);
+      // No tokens means no session, so this is a failure whatever the status code said.
+      if (!result.accessToken || !result.refreshToken) {
+        setError('تعذر إكمال العملية، حاول مرة أخرى');
+        return false;
       }
+
+      await saveTokens(result.accessToken, result.refreshToken);
+      // A new token can un-pause a queue that a prior expiry stopped.
+      resumeReportQueue();
 
       // Only after storing, so a failed exchange leaves the token there to retry.
       resetPhoneVerification();
@@ -37,7 +45,7 @@ export function useOtpVerification() {
     } catch (err) {
       setError(
         err instanceof ApiError
-          ? err.message
+          ? describeAuthApiError(err, 'تعذر إكمال العملية، حاول مرة أخرى')
           : describeFirebaseError(err, 'رمز التحقق غير صحيح، حاول مرة أخرى'),
       );
       return false;

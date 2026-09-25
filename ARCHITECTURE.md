@@ -26,9 +26,15 @@ Four rules keep that honest:
 
 1. `theme/`, `api/` and `config/` import nothing from `features/`.
 2. `components/ui/` is presentational. No API calls, no navigation, no feature imports.
-3. A feature may import another feature's services and types, never its screens.
-   Onboarding uses `features/auth/services/authService` to register, and community
-   composes its feed from `features/map/services/mapService`.
+3. A feature may import another feature's services, types, hooks and shared
+   presentational components, never its screens. Onboarding uses
+   `features/auth/services/authService` to register, community composes its feed
+   from `features/map/services/mapService`, and map, community and user all reuse
+   `features/reports/errors` and `ReportErrorView`. Code three or more features
+   share belongs below `features/` instead: `hooks/useImagePicker` and
+   `hooks/useCurrentLocation` sit there for that reason. (`features/reports` still
+   holds shared helpers like the error taxonomy and `relativeTime`; moving those
+   down is a known follow-up.)
 4. Only `features/*/screens/` and `app/` know about navigation.
 
 Two placements follow from rule 1 and surprise people:
@@ -103,7 +109,7 @@ src/
     user/                profile, settings and the header identity
       hooks/               useIdentity, useProfile
       services/            userService.ts, preferencesStore.ts
-  hooks/               useCountdown, useImagePicker
+  hooks/               useCountdown, useImagePicker, useCurrentLocation
   navigation/
     RootNavigator.tsx    the single stack
     HomeTabs.tsx         the four bottom tabs behind Home
@@ -326,8 +332,8 @@ The mocks stay useful for working on the diagnosis and feed screens with no back
 running, and the report mock is the only place the duplicate-upload path can be
 exercised, because it honours the idempotency key and the real server does not yet.
 
-Three of the five are open backend gaps rather than product decisions, written up
-separately for the backend team.
+Three of the five are open backend gaps rather than product decisions. The feature
+tables in this doc and in the README note which, and why.
 
 ## Testing
 

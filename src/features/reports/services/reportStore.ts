@@ -1,6 +1,5 @@
-// A stand-in for reads, not a cache: ReportService has no GetMyIssues/GetIssueById today.
+// A stand-in for reads, not a cache: ReportService has no GetMyIssues/GetIssueById, so rows come from analyze + create and this device sees only its own.
 
-// The rows are assembled from analyze + create, so this device only ever sees its own reports.
 // TODO: delete this file once ReportService re-exposes the three commented-out read endpoints.
 
 import AsyncStorage from '@react-native-async-storage/async-storage';

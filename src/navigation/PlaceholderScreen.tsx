@@ -1,9 +1,10 @@
 import { useNavigation } from '@react-navigation/native';
 import { ArrowRight } from 'lucide-react-native';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { colors, screenPadding, spacing, textStyles } from '@/theme';
+import { Text } from '@/components/ui';
+import { colors, screenPadding, spacing } from '@/theme';
 
 /** Screens already navigate to these, so a placeholder beats "no screen named X". */
 export function createPlaceholderScreen(title: string, note?: string) {
@@ -21,8 +22,12 @@ export function createPlaceholderScreen(title: string, note?: string) {
         </View>
 
         <View style={styles.body}>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.note}>{note ?? 'هذه الشاشة قيد التطوير.'}</Text>
+          <Text variant="h3" align="center">
+            {title}
+          </Text>
+          <Text variant="body14" color="textSecondary" align="center">
+            {note ?? 'هذه الشاشة قيد التطوير.'}
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -52,15 +57,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing[12],
     paddingHorizontal: screenPadding,
-  },
-  title: {
-    ...textStyles.h3,
-    color: colors.textPrimary,
-    textAlign: 'center',
-  },
-  note: {
-    ...textStyles.body14,
-    color: colors.textSecondary,
-    textAlign: 'center',
   },
 });

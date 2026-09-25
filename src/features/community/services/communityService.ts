@@ -1,7 +1,6 @@
 /** GetCommentsByIssueId is [Authorize]; the feed is composed from MapService, which is not. */
 
-// No feed endpoint, so the feed is assembled from ShowIssueInMap, the only call returning everything.
-// That costs the author and the counters, which is why USE_MOCK_COMMUNITY exists for demo work.
+// ShowIssueInMap is the only call returning everything, but it costs the author and counters, which is why USE_MOCK_COMMUNITY exists for demo work.
 
 import { API_ENDPOINTS, apiClient } from '@/api';
 import { API_BASE_URLS } from '@/config/env';

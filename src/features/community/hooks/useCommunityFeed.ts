@@ -3,7 +3,7 @@ import { useCallback, useRef, useState } from 'react';
 
 import { describeError } from '@/features/reports/errors';
 import type { ReportError } from '@/features/reports/errors';
-import { useCurrentLocation } from '@/features/reports/hooks/useCurrentLocation';
+import { useCurrentLocation } from '@/hooks/useCurrentLocation';
 
 import { communityApi } from '../services';
 

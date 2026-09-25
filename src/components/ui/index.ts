@@ -20,6 +20,7 @@ export { Screen } from './Screen';
 export type { ScreenProps } from './Screen';
 
 export { SearchableDropdown } from './SearchableDropdown';
+export type { SearchableDropdownProps } from './SearchableDropdown';
 
 export { Text } from './Text';
 export type { TextProps } from './Text';

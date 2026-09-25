@@ -143,8 +143,6 @@ export type QueuedReport = {
   createdAt: string;
   /** Checkpoint: analyze uploaded the photo and ran the model, so a retry skips both. */
   analysis?: AiAnalysisResult;
-  /** Set once create succeeds. */
-  serverId?: string;
   /** Why it stopped. Never 'offline' (that retries) and never 'unauthorized'. */
   failureKind?: ReportErrorKind;
 };

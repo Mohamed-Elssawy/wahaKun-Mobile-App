@@ -1,3 +1,4 @@
+import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { describeError } from '@/features/reports/errors';
@@ -50,9 +51,12 @@ export function useProfile() {
     }
   }, []);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  // Refetches on focus, so an edit made on EditRegion or EditProfilePicture shows on return.
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load]),
+  );
 
   /** Sends only what changed: UserRepo.UpdateAsync throws on zero rows, so a no-op PUT is a 500. */
   const save = useCallback(
@@ -66,8 +70,7 @@ export function useProfile() {
         return true;
       }
 
-      // UserService rebuilds Address from the request, so leaving these out nulls them and
-      // the NOT NULL columns reject the whole update. Always carry the current values.
+      // UserService rebuilds Address from the request, so omitting these nulls NOT NULL columns and 500s the update.
       const payload: UserUpdateRequest = {
         region: user?.region ?? '',
         village: user?.village ?? '',

@@ -6,11 +6,11 @@ import {
   usePhotoOutput,
 } from 'react-native-vision-camera';
 
+import { useCurrentLocation } from '@/hooks/useCurrentLocation';
 import { useImagePicker } from '@/hooks/useImagePicker';
 import type { PickedImage } from '@/types/image';
 
 import { describeError } from '../errors';
-import { useCurrentLocation } from './useCurrentLocation';
 import { enqueueReport, QueueFullError } from '../services/reportQueue';
 
 import type { ReportError } from '../errors';

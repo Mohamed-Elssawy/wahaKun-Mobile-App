@@ -17,6 +17,14 @@ export type ReportFilter = 'all' | 'active' | 'resolved' | 'critical';
 /** One SectionList section. The title is copy, so it is decided here, not in the UI. */
 export type ReportSection = { title: string; data: ReportListItem[] };
 
+/** The server-report section heading follows the filter, so it never mislabels resolved as active. */
+const SECTION_TITLE: Record<ReportFilter, string> = {
+  all: 'كل البلاغات',
+  active: 'البلاغات النشطة',
+  resolved: 'البلاغات التي تم حلها',
+  critical: 'البلاغات الحرجة',
+};
+
 // resolved finally answers something: IssueStatus has Repaired and completed.
 const MATCHES: Record<ReportFilter, (report: Report) => boolean> = {
   all: () => true,
@@ -94,7 +102,7 @@ export function useMyReports() {
     const visible = reports.filter(MATCHES[filter]);
     if (visible.length > 0) {
       result.push({
-        title: 'البلاغات النشطة',
+        title: SECTION_TITLE[filter],
         data: visible.map(item => ({ kind: 'server' as const, report: item })),
       });
     }

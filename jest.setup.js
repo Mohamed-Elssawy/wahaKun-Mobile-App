@@ -94,8 +94,7 @@ jest.mock('react-native-bootsplash', () => ({
   useHideAnimation: jest.fn(),
 }));
 
-// Untranspiled ESM with no JS fallback, so the real module throws on import and is never loaded.
-// Tests that drive the flow override these; the defaults keep a suite that only imports it working.
+// Untranspiled ESM that throws on import, so mock it; tests that drive the flow override these defaults.
 jest.mock('@react-native-firebase/auth', () => ({
   __esModule: true,
   getAuth: jest.fn(() => ({ app: { name: '[DEFAULT]' } })),
@@ -153,6 +152,5 @@ jest.mock('@maplibre/maplibre-react-native', () => {
   };
 });
 
-// No test may reach the network, or the suite depends on whether a local backend is running.
-// Rejects the way a dead connection does, which client.ts already maps to an offline ApiError.
+// No test may reach the network; rejecting like a dead connection maps to client.ts's offline ApiError.
 global.fetch = jest.fn(() => Promise.reject(new TypeError('Network request failed')));

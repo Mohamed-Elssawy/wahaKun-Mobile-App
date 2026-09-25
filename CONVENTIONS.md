@@ -16,7 +16,7 @@ title: { color: '#1F2223', fontFamily: 'Cairo-Regular', fontSize: 24 }
 
 // ✓
 <Text variant="h3">…</Text>
-title: { color: colors.textPrimary, marginTop: spacing.lg }
+title: { color: colors.textPrimary, marginTop: spacing[24] }
 ```
 
 Two `no-restricted-syntax` rules fail the build on raw colour literals and raw

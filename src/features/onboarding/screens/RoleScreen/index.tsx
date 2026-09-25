@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { Button, Screen, Text } from '@/components/ui';
 import type { UserRole } from '@/features/auth/types';
 import type { ScreenProps } from '@/navigation/types';
-import { palette, screenPadding, spacing } from '@/theme';
+import { colors, screenPadding, spacing } from '@/theme';
 
 import ExpertIcon from '@assets/icons/expert.svg';
 import FarmerIcon from '@assets/icons/farmer.svg';
@@ -60,7 +60,7 @@ export default function RoleScreen({ navigation }: ScreenProps<'Role'>) {
                 icon={
                   <Icon
                     {...ICON_SIZE}
-                    color={isSelected ? palette.primary.G700 : palette.primary.G500}
+                    color={isSelected ? colors.primaryStrong : colors.primary}
                   />
                 }
                 title={title}

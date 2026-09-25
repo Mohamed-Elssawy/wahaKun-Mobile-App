@@ -50,8 +50,12 @@ export type RootStackParamList = {
   Home: NavigatorScreenParams<HomeTabParamList> | undefined;
 };
 
-/** The only two routes the app may boot at, so no dev shortcut can reach the rest. */
-export type BootRoute = Extract<keyof RootStackParamList, 'IntroSlideshow' | 'Welcome'>;
+/** The routes the app may boot at, so no dev shortcut can reach the rest. */
+// Home is here for session restore: a stored token boots straight in.
+export type BootRoute = Extract<
+  keyof RootStackParamList,
+  'IntroSlideshow' | 'Welcome' | 'Home'
+>;
 
 /** Props for a screen component, e.g. `ScreenProps<'Otp'>`. */
 export type ScreenProps<T extends keyof RootStackParamList> = NativeStackScreenProps<

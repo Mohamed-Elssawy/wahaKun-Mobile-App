@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { ApiError } from '@/api';
+import { describeAuthApiError } from '@/features/auth/authErrors';
 import { describeFirebaseError } from '@/features/auth/firebaseErrors';
 import {
   buildRegisterFormData,
@@ -54,7 +55,7 @@ export function useRegistration() {
 
       setError(
         err instanceof ApiError
-          ? err.message
+          ? describeAuthApiError(err, 'حدث خطأ أثناء إنشاء الحساب، حاول مرة أخرى')
           : describeFirebaseError(err, 'حدث خطأ أثناء إنشاء الحساب، حاول مرة أخرى'),
       );
       return null;

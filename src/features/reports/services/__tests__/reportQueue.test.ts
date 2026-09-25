@@ -10,6 +10,7 @@ import {
   getQueueSnapshot,
   QueueFullError,
   resetReportQueue,
+  resumeReportQueue,
   retryQueuedReport,
 } from '../reportQueue';
 
@@ -171,6 +172,39 @@ describe('retry policy', () => {
     // The same rejected token must not be spent on another attempt.
     await drainQueue();
     expect(analyzeIssue).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not busy-loop while paused on an expired session', async () => {
+    analyzeIssue.mockRejectedValue(unauthorizedError());
+
+    await enqueueReport({ photo: PHOTO });
+    await drainQueue();
+    expect(getQueueSnapshot().items[0].state).toBe('queued');
+
+    // A paused queue must not re-schedule itself: nothing should poll the token unprompted.
+    const { getAccessToken } = jest.requireMock('@/api');
+    const callsWhilePaused = getAccessToken.mock.calls.length;
+    await new Promise<void>(resolve => setTimeout(resolve, 150));
+
+    expect(getAccessToken.mock.calls.length).toBe(callsWhilePaused);
+  });
+
+  it('resumes the paused queue once a new token is issued', async () => {
+    analyzeIssue.mockRejectedValueOnce(unauthorizedError());
+
+    await enqueueReport({ photo: PHOTO });
+    await drainQueue();
+    expect(getQueueSnapshot().items[0].state).toBe('queued');
+
+    // A fresh login writes a different token and nudges the queue, which is what un-pauses it.
+    const { getAccessToken } = jest.requireMock('@/api');
+    getAccessToken.mockResolvedValue('fresh-token');
+    analyzeIssue.mockResolvedValue(ANALYSIS);
+
+    resumeReportQueue();
+    await drainQueue();
+
+    expect(getQueueSnapshot().items).toHaveLength(0);
   });
 
   it('backs off further on each successive failure', async () => {

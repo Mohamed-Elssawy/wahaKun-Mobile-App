@@ -16,17 +16,6 @@ export const fonts = {
   latinStrong: 'Lora-SemiBold',
 } as const;
 
-export const fontSizes = {
-  xs: 12,
-  sm: 14,
-  md: 16,
-  lg: 18,
-  xl: 20,
-  xxl: 24,
-  xxxl: 32,
-  display: 40,
-} as const;
-
 // Body is loose for running text, Label is tight for UI chrome. Both exist at 14px.
 export const textStyles = {
   h1: { fontFamily: fonts.heading, fontSize: 40, lineHeight: 50 },

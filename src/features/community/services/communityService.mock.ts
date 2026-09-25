@@ -1,5 +1,4 @@
-// Seeded feed for when CommunityService has no GetFeed; ./index.ts picks one.
-// Every card F-01 draws is reachable, including the author and counts the real path cannot fill.
+// Seeded feed for when CommunityService has no GetFeed, so F-01 can show the author and counts the real path cannot; ./index.ts picks one.
 
 import { isResolvedStatus } from '@/features/reports/status';
 

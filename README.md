@@ -191,4 +191,5 @@ Left alone deliberately, with the reason:
 Source of truth for every contract: `youssefzienhoum/Graduation-Project`. Read the
 DTOs and the controller before changing a request shape here, because several field
 names and route spellings are reproduced verbatim and cannot be corrected on this
-side. The open gaps are written up separately for the backend team.
+side. The open backend gaps are noted inline: see "Known follow-ups" above and the
+feature-flag notes.

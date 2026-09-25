@@ -99,7 +99,7 @@ export default function PhoneLoginScreen({ navigation }: ScreenProps<'PhoneLogin
           label="الدخول بالبريد الإلكتروني"
           variant="secondary"
           onPress={() => navigation.navigate('EmailLogin')}
-          icon={<Mail size={20} color={colors.textSecondary} />}
+          icon={<Mail size={20} color={colors.primary} />}
         />
       </View>
     </Screen>

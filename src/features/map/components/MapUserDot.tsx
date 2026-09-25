@@ -1,6 +1,6 @@
 import { GeoJSONSource, Layer } from '@maplibre/maplibre-react-native';
 
-import type { Coordinates } from '@/features/reports/hooks/useCurrentLocation';
+import type { Coordinates } from '@/hooks/useCurrentLocation';
 import { colors } from '@/theme';
 
 export type MapUserDotProps = {

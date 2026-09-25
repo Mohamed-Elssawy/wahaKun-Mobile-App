@@ -18,7 +18,8 @@ export type VoiceCaptureProps = {
 
 const WRITE_TITLE = 'صف المشكلة بالكتابة';
 const PLACEHOLDER = 'مثال: القناة مكسورة و الماء يتسرب إلى الحقل';
-const SUBMIT = 'ارسال المشكلة';
+// The button switches to the صورة tab, so it must not say "send": a report needs a photo.
+const ADD_PHOTO = 'أضف صورة للمتابعة';
 const PHOTO_REQUIRED = 'البلاغ يحتاج صورة للمشكلة — أضفها من تبويب صورة.';
 
 const DESCRIPTION_LINES = 4;
@@ -61,7 +62,7 @@ export function VoiceCapture({
         />
       </View>
 
-      <Button label={SUBMIT} onPress={onNeedsPhoto} showArrow />
+      <Button label={ADD_PHOTO} onPress={onNeedsPhoto} showArrow />
 
       <Text variant="label12" color="textSecondary" align="center">
         {PHOTO_REQUIRED}

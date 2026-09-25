@@ -109,7 +109,8 @@ const styles = StyleSheet.create({
     width: '100%',
     minHeight: controlHeight,
     borderWidth: 1,
-    borderColor: colors.borderStrong,
+    // borderControl (not borderStrong): the box outline is what marks this as a control (WCAG 1.4.11).
+    borderColor: colors.borderControl,
     borderRadius: radii[6],
     backgroundColor: colors.surface,
     paddingHorizontal: spacing[12],

@@ -44,8 +44,7 @@ export async function uploadProfilePicture(image: PickedImage): Promise<string> 
 }
 
 /** Avatars we upload store MediaStorage's objectName verbatim, so it needs no recovery. */
-// reportService's resolver assumes the key starts with the bucket name, which is true of
-// reports (folder `reportimage`) and false here, so that path is only a fallback.
+// reportService's resolver assumes the key starts with the bucket name, false here, so that path is only a fallback.
 export function resolveProfilePictureUrl(value: string): string {
   if (!value.startsWith(`${AVATAR_FOLDER}/`)) {
     return resolveAttachmentUrl(value);

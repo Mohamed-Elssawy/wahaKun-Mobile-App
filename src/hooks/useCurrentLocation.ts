@@ -22,6 +22,7 @@ async function ensureLocationPermission(): Promise<boolean> {
 }
 
 /** Asked on mount, because a fix takes seconds and the farmer spends them framing. */
+// Shared by reports, map and community, so it sits in hooks/ rather than a feature.
 export function useCurrentLocation() {
   // No permission state is returned: coordinates are optional, so nothing may gate submit.
   const [location, setLocation] = useState<Coordinates | null>(null);

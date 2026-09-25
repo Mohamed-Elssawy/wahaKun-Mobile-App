@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { resolveAttachmentUrl } from '@/features/reports/services/reportService';
-
-import { getUserDetails } from '../services/userService';
+import { getUserDetails, resolveProfilePictureUrl } from '../services/userService';
 
 import type { UserDetails } from '../types';
 
@@ -31,8 +29,8 @@ export function useIdentity() {
 
   return {
     displayName: user?.fullName || '',
-    // `picture` is an object key when it was uploaded through MediaStorageService.
-    avatarUrl: user?.picture ? resolveAttachmentUrl(user.picture) : undefined,
+    // Same resolver the profile screen uses, so a profile-pictures/ key resolves the same way.
+    avatarUrl: user?.picture ? resolveProfilePictureUrl(user.picture) : undefined,
     location: region || undefined,
   };
 }

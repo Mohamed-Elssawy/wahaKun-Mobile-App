@@ -3,7 +3,7 @@
 export { colors, palette } from './colors';
 export type { ColorToken } from './colors';
 
-export { fonts, fontSizes, textStyles } from './typography';
+export { fonts, textStyles } from './typography';
 export type { TextVariant } from './typography';
 
 export {

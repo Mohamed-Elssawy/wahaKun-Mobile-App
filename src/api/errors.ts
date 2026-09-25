@@ -19,7 +19,13 @@ export class ApiError extends Error {
     return this.status === NETWORK_ERROR_STATUS;
   }
 
+  /** 401 only: the session is missing or expired, so re-authenticating can fix it. */
   get isUnauthorized(): boolean {
-    return this.status === 401 || this.status === 403;
+    return this.status === 401;
+  }
+
+  /** 403: authenticated but not allowed. Re-login will not help, so callers must not retry. */
+  get isForbidden(): boolean {
+    return this.status === 403;
   }
 }
