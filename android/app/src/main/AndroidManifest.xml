@@ -32,6 +32,16 @@
         <action android:name="android.intent.action.MAIN" />
         <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
+      <!-- The emailed password-reset link. launchMode is singleTask above, so this
+           resumes the running task rather than starting a second activity. -->
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data
+          android:scheme="wahakun"
+          android:host="reset-password" />
+      </intent-filter>
     </activity>
   </application>
 </manifest>

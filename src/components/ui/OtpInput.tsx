@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 
 import { colors, radii, spacing, textStyles } from '@/theme';
@@ -20,6 +20,7 @@ export function OtpInput({
   autoFocus = true,
 }: OtpInputProps) {
   const inputs = useRef<Array<TextInput | null>>([]);
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const digits = Array.from({ length }, (_, i) => value[i] ?? '');
 
   const setDigit = (raw: string, index: number) => {
@@ -60,7 +61,13 @@ export function OtpInput({
           ref={ref => {
             inputs.current[index] = ref;
           }}
-          style={[styles.box, digit ? styles.boxFilled : null]}
+          style={[
+            styles.box,
+            digit ? styles.boxFilled : null,
+            focusedIndex === index ? styles.boxFocused : null,
+          ]}
+          onFocus={() => setFocusedIndex(index)}
+          onBlur={() => setFocusedIndex(current => (current === index ? null : current))}
           value={digit}
           onChangeText={text => setDigit(text, index)}
           onKeyPress={event => handleKeyPress(event, index)}
@@ -76,24 +83,30 @@ export function OtpInput({
 }
 
 const styles = StyleSheet.create({
+  // row, not row-reverse: digits read left to right even on an Arabic screen.
   row: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'space-between',
     gap: spacing[8],
     width: '100%',
   },
   box: {
     flex: 1,
-    minHeight: 56,
+    // minHeight, not height: a fixed 50 clips the digit at large OS font sizes.
+    minHeight: 50,
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii[6],
+    borderColor: colors.borderControl,
+    borderRadius: radii[10],
     backgroundColor: colors.surface,
-    ...textStyles.label20Bold,
-    color: colors.textPrimary,
+    ...textStyles.label16,
+    color: colors.primaryStrong,
     padding: 0,
   },
   boxFilled: {
     borderColor: colors.primary,
+    backgroundColor: colors.primaryTint,
+  },
+  boxFocused: {
+    borderColor: colors.textStrong,
   },
 });

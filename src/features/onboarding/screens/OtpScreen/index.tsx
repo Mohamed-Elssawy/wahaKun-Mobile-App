@@ -12,7 +12,7 @@ import { WizardHeader } from '../../components/WizardHeader';
 const OTP_LENGTH = 6;
 const RESEND_SECONDS = 30;
 
-/** Step 7 of the registration wizard. Confirms the OTP and stores tokens. */
+/** Step 5 of the registration wizard. Confirms the OTP and stores tokens. */
 export default function OtpScreen({ navigation, route }: ScreenProps<'Otp'>) {
   const { phoneNumber } = route.params;
 
@@ -58,35 +58,40 @@ export default function OtpScreen({ navigation, route }: ScreenProps<'Otp'>) {
         />
       }
     >
-      <WizardHeader step={7} onBack={() => navigation.goBack()} />
+      <WizardHeader step={5} onBack={() => navigation.goBack()} />
 
       <View style={styles.form}>
         <View style={styles.intro}>
-          <Text variant="h3" align="center">
+          <Text variant="h3" color="textStrong" align="center">
             تحقق من رقمك
           </Text>
-          <Text variant="body14" color="textSecondary" align="center">
+          <Text variant="body14" color="textMuted" align="center">
             {`أرسلنا رمزاً مكوناً من ${OTP_LENGTH} أرقام إلى\n${phoneNumber}`}
           </Text>
         </View>
 
         <View style={styles.field}>
-          <Text variant="label14" align="right">
-            ادخل رمز التحقق
-          </Text>
+          <View style={styles.inputGroup}>
+            <Text variant="label14" color="textSecondary" align="right">
+              ادخل رمز التحقق
+            </Text>
 
-          <OtpInput value={code} onChange={setCode} length={OTP_LENGTH} />
+            <OtpInput value={code} onChange={setCode} length={OTP_LENGTH} />
+          </View>
 
           <TouchableOpacity onPress={handleResend} disabled={!isFinished}>
-            <Text
-              variant="label14"
-              color={isFinished ? 'primary' : 'textDisabled'}
-              align="right"
-            >
-              {isFinished
-                ? 'إعادة إرسال الرمز'
-                : `إعادة الإرسال خلال ${formatCountdown(secondsLeft)}`}
-            </Text>
+            {isFinished ? (
+              <Text variant="label12" color="primary" align="center">
+                إعادة إرسال الرمز
+              </Text>
+            ) : (
+              <Text variant="label12" color="textMuted" align="center">
+                إعادة الإرسال خلال{' '}
+                <Text variant="label12" color="primary">
+                  {formatCountdown(secondsLeft)}
+                </Text>
+              </Text>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -108,4 +113,5 @@ const styles = StyleSheet.create({
   },
   intro: { gap: spacing[12] },
   field: { gap: spacing[12] },
+  inputGroup: { gap: spacing[4] },
 });

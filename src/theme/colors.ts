@@ -46,6 +46,8 @@ export const colors = {
   primaryPressed: palette.primary.G700,
   primaryMuted: palette.primary.G300,
   primaryTint: palette.primary.G100,
+  /** G700 as a static fill, not a press state: intro CTA, selected role card, OTP digit. */
+  primaryStrong: palette.primary.G700,
 
   background: palette.background,
   surface: palette.neutral.white,
@@ -67,6 +69,8 @@ export const colors = {
   borderStrong: palette.neutral.N300,
   /** 1.4.11 needs 3:1 here, since the border is the only thing marking it as a control. */
   borderControl: palette.neutral.N550,
+  /** Card hairlines. Decorative: the white fill, not this edge, is what marks a card. */
+  borderCard: palette.neutral.N400,
   divider: palette.neutral.N200,
 
   disabled: palette.neutral.N400,

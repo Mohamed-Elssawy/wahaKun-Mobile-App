@@ -1,4 +1,4 @@
-import { Eye, EyeOff } from 'lucide-react-native';
+import { AlertCircle, Eye, EyeOff } from 'lucide-react-native';
 import { useState } from 'react';
 import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -33,7 +33,7 @@ export function TextField({
   return (
     <View style={[styles.group, containerStyle]}>
       {label ? (
-        <Text variant="label14" color="textPrimary" align="right">
+        <Text variant="label14" color="textSecondary" align="right">
           {label}
         </Text>
       ) : null}
@@ -61,18 +61,27 @@ export function TextField({
             accessibilityLabel={isRevealed ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
           >
             {isRevealed ? (
-              <EyeOff size={20} color={colors.textSecondary} />
+              <EyeOff size={20} color={colors.textMuted} />
             ) : (
-              <Eye size={20} color={colors.textSecondary} />
+              <Eye size={20} color={colors.textMuted} />
             )}
           </TouchableOpacity>
         ) : null}
       </View>
 
       {hasError ? (
-        <Text variant="label14Bold" color="errorText" align="right">
-          {error}
-        </Text>
+        // row-reverse: Figma draws this row LTR, but the message it carries is Arabic.
+        <View style={styles.errorRow}>
+          <AlertCircle size={16} color={colors.error} />
+          <Text
+            variant="label12Bold"
+            color="errorText"
+            align="right"
+            style={styles.errorText}
+          >
+            {error}
+          </Text>
+        </View>
       ) : null}
     </View>
   );
@@ -83,7 +92,15 @@ const hitSlop = { top: 10, bottom: 10, left: 10, right: 10 };
 const styles = StyleSheet.create({
   group: {
     width: '100%',
-    gap: spacing[8],
+    gap: spacing[4],
+  },
+  errorRow: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: spacing[4],
+  },
+  errorText: {
+    flex: 1,
   },
   box: {
     flexDirection: 'row',
@@ -92,10 +109,10 @@ const styles = StyleSheet.create({
     width: '100%',
     minHeight: controlHeight,
     borderWidth: 1,
-    borderColor: colors.borderControl,
+    borderColor: colors.borderStrong,
     borderRadius: radii[6],
     backgroundColor: colors.surface,
-    paddingHorizontal: spacing[16],
+    paddingHorizontal: spacing[12],
   },
   boxMultiline: {
     alignItems: 'flex-start',

@@ -66,11 +66,19 @@ export function useProfile() {
         return true;
       }
 
+      // UserService rebuilds Address from the request, so leaving these out nulls them and
+      // the NOT NULL columns reject the whole update. Always carry the current values.
+      const payload: UserUpdateRequest = {
+        region: user?.region ?? '',
+        village: user?.village ?? '',
+        ...Object.fromEntries(pending),
+      };
+
       setIsSaving(true);
       setSaveError(null);
 
       try {
-        await updateUserDetails(Object.fromEntries(pending));
+        await updateUserDetails(payload);
         if (isMounted.current) {
           setUser(current => (current ? { ...current, ...changes } : current));
         }

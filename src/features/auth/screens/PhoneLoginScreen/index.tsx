@@ -1,6 +1,6 @@
 import { Mail } from 'lucide-react-native';
 import { useState } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { BackHeader, Button, PhoneField, Screen, Text } from '@/components/ui';
 import { DEFAULT_COUNTRY } from '@/constants/countries';
@@ -59,10 +59,10 @@ export default function PhoneLoginScreen({ navigation }: ScreenProps<'PhoneLogin
 
       <View style={styles.content}>
         <View style={styles.intro}>
-          <Text variant="h3" align="center">
+          <Text variant="h3" color="textStrong" align="center">
             تسجيل الدخول
           </Text>
-          <Text variant="body14" color="textSecondary" align="center">
+          <Text variant="body14" color="textMuted" align="center">
             {'أدخل رقم هاتفك للحصول على رمز\nتحقق وتسجيل الدخول بأمان.'}
           </Text>
         </View>
@@ -89,7 +89,7 @@ export default function PhoneLoginScreen({ navigation }: ScreenProps<'PhoneLogin
 
         <View style={styles.dividerRow}>
           <View style={styles.dividerLine} />
-          <Text variant="label14" color="textMuted">
+          <Text variant="label20" color="textMuted">
             أو
           </Text>
           <View style={styles.dividerLine} />
@@ -101,18 +101,6 @@ export default function PhoneLoginScreen({ navigation }: ScreenProps<'PhoneLogin
           onPress={() => navigation.navigate('EmailLogin')}
           icon={<Mail size={20} color={colors.textSecondary} />}
         />
-
-        <TouchableOpacity
-          onPress={() => navigation.navigate('AccountRecovery')}
-          activeOpacity={0.7}
-        >
-          <Text variant="body14" color="textMuted" align="center">
-            لا يمكنني الوصول لرقمي؟{' '}
-            <Text variant="body14" color="primary">
-              ماذا أفعل؟
-            </Text>
-          </Text>
-        </TouchableOpacity>
       </View>
     </Screen>
   );
@@ -128,11 +116,11 @@ const styles = StyleSheet.create({
   dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing[12],
+    gap: spacing[16],
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: colors.border,
+    backgroundColor: colors.borderControl,
   },
 });

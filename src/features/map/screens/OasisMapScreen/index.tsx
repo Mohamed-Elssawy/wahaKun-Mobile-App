@@ -169,8 +169,7 @@ export default function OasisMapScreen() {
           />
         </View>
 
-        {/* none, not box-none: this fills the middle of the map and holds only notices,
-            so anything it caught would be a tap meant for a pin. */}
+        {/* none, not box-none: this layer holds only notices, so any tap it caught would be one meant for a pin. */}
         <View style={styles.spacer} pointerEvents="none">
           {isLoading ? <MapNotice /> : null}
 

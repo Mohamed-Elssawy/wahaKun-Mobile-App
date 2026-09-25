@@ -23,3 +23,10 @@ export type UserDetails = {
   village: string;
   region: string;
 };
+
+/** MediaStorageService's UploadFileResponse. `filePath` is the key User/update stores. */
+export type UploadFileResponse = {
+  fileName: string;
+  filePath: string;
+  fileUrl: string;
+};

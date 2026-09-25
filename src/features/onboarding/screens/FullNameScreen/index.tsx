@@ -29,7 +29,7 @@ export default function FullNameScreen({ navigation }: ScreenProps<'FullName'>) 
     }
     setError('');
     update({ fullName: fullName.trim() });
-    navigation.navigate('ProfilePicture');
+    navigation.navigate('Role');
   };
 
   return (
@@ -39,10 +39,10 @@ export default function FullNameScreen({ navigation }: ScreenProps<'FullName'>) 
       }
     >
       {/* Step 1 leaves the flow entirely rather than going back a step. */}
-      <WizardHeader step={1} backLabel="الخروج" onBack={handleExit} />
+      <WizardHeader step={1} onBack={handleExit} />
 
       <View style={styles.form}>
-        <Text variant="h3" align="center">
+        <Text variant="h3" color="textStrong" align="center">
           ادخل اسمك بالكامل
         </Text>
 

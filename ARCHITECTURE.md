@@ -40,7 +40,7 @@ Two placements follow from rule 1 and surprise people:
   by onboarding and reports, and it sits below `features/`, so it cannot import a
   type out of one.
 
-Onboarding and auth are separate features because onboarding owns the seven-step
+Onboarding and auth are separate features because onboarding owns the five-step
 wizard and auth owns login plus every AuthService binding. That keeps auth usable
 by anything that needs a session without pulling in the wizard.
 
@@ -63,10 +63,10 @@ src/
     auth/                login flows and all AuthService bindings
       firebaseErrors.ts    Firebase error code to Arabic
       phoneNumber.ts       toE164
-      hooks/               useLogin, useOtpVerification
-      screens/             PhoneLogin, LoginOtp, EmailLogin
+      hooks/               useLogin, useOtpVerification, usePasswordReset
+      screens/             PhoneLogin, LoginOtp, EmailLogin, ForgotPassword, ResetPassword
       services/            authService.ts, firebaseAuth.ts
-    onboarding/          the seven-step registration wizard
+    onboarding/          the five-step registration wizard
       context/             RegistrationContext, the in-progress draft
       hooks/               useRegistration
       screens/             Welcome through RegistrationSuccess

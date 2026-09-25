@@ -37,13 +37,13 @@ export default function RegistrationSuccessScreen({
       </View>
 
       <View style={styles.body}>
-        <Text variant="h3" align="center">
+        <Text variant="h2" color="textStrong" align="center">
           اكتمل التسجيل!
         </Text>
-        <Text variant="body14" color="textSecondary" align="center">
+        <Text variant="body14" color="textMuted" align="center">
           {pendingApproval
             ? 'تم تأكيد رقم هاتفك. حسابك كخبير الآن قيد المراجعة\nوسيتم إعلامك فور الموافقة عليه.'
-            : 'يمكنك الأن الاستمتاع بجميع مزايا\nالتطبيق'}
+            : 'يمكنك الآن الاستمتاع بجميع مزايا\nالتطبيق'}
         </Text>
       </View>
     </Screen>
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing[12],
     paddingHorizontal: screenPadding,
-    paddingTop: spacing[32],
+    paddingTop: spacing[56],
     paddingBottom: spacing[12],
   },
   logo: { width: 24, height: 24 },

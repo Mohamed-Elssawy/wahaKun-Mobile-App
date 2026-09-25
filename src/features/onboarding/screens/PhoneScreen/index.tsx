@@ -11,7 +11,7 @@ import { WizardHeader } from '../../components/WizardHeader';
 import { useRegistrationDraft } from '../../context/RegistrationContext';
 import { useRegistration } from '../../hooks/useRegistration';
 
-/** Step 6 of the registration wizard, and the one that submits. */
+/** Step 4 of the registration wizard, and the one that submits. */
 export default function PhoneScreen({ navigation }: ScreenProps<'Phone'>) {
   const { draft } = useRegistrationDraft();
   const [country, setCountry] = useState<Country>(DEFAULT_COUNTRY);
@@ -59,14 +59,14 @@ export default function PhoneScreen({ navigation }: ScreenProps<'Phone'>) {
         />
       }
     >
-      <WizardHeader step={6} onBack={() => navigation.goBack()} />
+      <WizardHeader step={4} onBack={() => navigation.goBack()} />
 
       <View style={styles.form}>
         <View style={styles.intro}>
-          <Text variant="h3" align="center">
+          <Text variant="h3" color="textStrong" align="center">
             أدخل رقم هاتفك
           </Text>
-          <Text variant="body14" color="textSecondary" align="center">
+          <Text variant="body14" color="textMuted" align="center">
             للحصول على رمز تحقق وتسجيل الدخول بأمان.
           </Text>
         </View>

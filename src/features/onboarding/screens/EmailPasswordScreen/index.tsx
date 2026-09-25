@@ -8,7 +8,7 @@ import { screenPadding, spacing } from '@/theme';
 import { WizardHeader } from '../../components/WizardHeader';
 import { useRegistrationDraft } from '../../context/RegistrationContext';
 
-/** Step 5 of the registration wizard. */
+/** Step 3 of the registration wizard. */
 export default function EmailPasswordScreen({
   navigation,
 }: ScreenProps<'EmailPassword'>) {
@@ -35,14 +35,14 @@ export default function EmailPasswordScreen({
         <Button label="التالي" onPress={handleNext} showArrow disabled={!isValid} />
       }
     >
-      <WizardHeader step={5} onBack={() => navigation.goBack()} />
+      <WizardHeader step={3} onBack={() => navigation.goBack()} />
 
       <View style={styles.form}>
         <View style={styles.intro}>
-          <Text variant="h3" align="center">
+          <Text variant="h3" color="textStrong" align="center">
             أدخل بريدك الإلكتروني
           </Text>
-          <Text variant="body14" color="textSecondary" align="center">
+          <Text variant="body14" color="textMuted" align="center">
             استخدمه للدخول في حال فقدان الوصول لرقم هاتفك.
           </Text>
         </View>

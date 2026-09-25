@@ -1,21 +1,22 @@
 import { useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
-import { Button, Screen, SearchableDropdown, Text } from '@/components/ui';
+import { BackHeader, Button, Screen, SearchableDropdown, Text } from '@/components/ui';
 import { getAreasForGovernorate } from '@/constants/areas';
 import { governorates } from '@/constants/governorates';
+import { ReportErrorView } from '@/features/reports/components/ReportErrorView';
 import type { ScreenProps } from '@/navigation/types';
-import { screenPadding, spacing } from '@/theme';
+import { colors, screenPadding, spacing } from '@/theme';
 import type { LocationItem } from '@/types/location';
 
-import { WizardHeader } from '../../components/WizardHeader';
-import { useRegistrationDraft } from '../../context/RegistrationContext';
+import { useProfile } from '../../hooks/useProfile';
 
 type ActiveField = 'governorate' | 'area' | null;
 
-/** Step 3 of the registration wizard. */
-export default function LocationScreen({ navigation }: ScreenProps<'Location'>) {
-  const { update } = useRegistrationDraft();
+/** S-07's "تغيير المنطقة". Signup stopped collecting this, so here is where it is set. */
+export default function EditRegionScreen({ navigation }: ScreenProps<'EditRegion'>) {
+  const { user, isLoading, error, retry, save, isSaving, saveError } = useProfile();
+
   const [governorate, setGovernorate] = useState<LocationItem | null>(null);
   const [area, setArea] = useState<LocationItem | null>(null);
   const [activeField, setActiveField] = useState<ActiveField>(null);
@@ -40,28 +41,61 @@ export default function LocationScreen({ navigation }: ScreenProps<'Location'>) 
     setActiveField(null);
   };
 
-  const handleNext = () => {
+  const handleSave = async () => {
     if (!isValid) {
       return;
     }
-    update({ governorate: governorate ?? undefined, location: area ?? undefined });
-    navigation.navigate('Role');
+    if (await save({ region: governorate?.name, village: area?.name })) {
+      navigation.goBack();
+    }
   };
+
+  if (isLoading) {
+    return (
+      <Screen>
+        <BackHeader onBack={() => navigation.goBack()} />
+        <View style={styles.fallback}>
+          <ActivityIndicator color={colors.primary} />
+        </View>
+      </Screen>
+    );
+  }
+
+  if (error) {
+    return (
+      <Screen>
+        <BackHeader onBack={() => navigation.goBack()} />
+        <View style={styles.fallback}>
+          <ReportErrorView
+            error={error}
+            unknownTitle="تعذر تحميل الملف الشخصي"
+            onRetry={retry}
+          />
+        </View>
+      </Screen>
+    );
+  }
 
   return (
     <Screen
       footer={
-        <Button label="التالي" onPress={handleNext} showArrow disabled={!isValid} />
+        <Button
+          label="حفظ"
+          onPress={handleSave}
+          showArrow
+          loading={isSaving}
+          disabled={!isValid}
+        />
       }
     >
-      <WizardHeader step={3} onBack={() => navigation.goBack()} />
+      <BackHeader onBack={() => navigation.goBack()} />
 
       <View style={styles.form}>
         <View style={styles.intro}>
-          <Text variant="h3" align="center">
+          <Text variant="h3" color="textStrong" align="center">
             أين تقع أرضك؟
           </Text>
-          <Text variant="body14" color="textSecondary" align="center">
+          <Text variant="body14" color="textMuted" align="center">
             يساعدنا هذا في ربطك بالخبراء والبلاغات القريبة منك.
           </Text>
         </View>
@@ -71,6 +105,7 @@ export default function LocationScreen({ navigation }: ScreenProps<'Location'>) 
             label="المحافظة"
             placeholder="ابحث عن المحافظة"
             data={governorates}
+            initialValue={user?.region}
             onSelect={handleGovernorateSelect}
             isOpen={activeField === 'governorate'}
             onOpenChange={openHandlerFor('governorate')}
@@ -80,6 +115,7 @@ export default function LocationScreen({ navigation }: ScreenProps<'Location'>) 
             label="المنطقة"
             placeholder="ابحث عن المنطقة"
             data={areaOptions}
+            initialValue={user?.village}
             onSelect={item => {
               setArea(item);
               setActiveField(null);
@@ -90,12 +126,24 @@ export default function LocationScreen({ navigation }: ScreenProps<'Location'>) 
             disabledPlaceholder="اختر المحافظة أولاً"
           />
         </View>
+
+        {saveError ? (
+          <Text variant="label12Bold" color="errorText" align="right">
+            {saveError.message}
+          </Text>
+        ) : null}
       </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  fallback: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: screenPadding,
+  },
   form: {
     gap: spacing[40],
     paddingHorizontal: screenPadding,

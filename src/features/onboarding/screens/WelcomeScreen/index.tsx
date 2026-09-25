@@ -1,15 +1,12 @@
 import { LogIn, UserPlus } from 'lucide-react-native';
-import { Image, Linking, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { Screen, Text } from '@/components/ui';
 import type { ScreenProps } from '@/navigation/types';
-import { colors, fonts, screenPadding, spacing } from '@/theme';
-
-import palmTreeLogo from '@assets/images/palmTreeLogo.png';
+import { colors, screenPadding, spacing } from '@/theme';
 
 import { ActionCard } from '../../components/ActionCard';
-
-const TERMS_URL = 'https://your-website.com/terms';
+import { BrandLockup } from '../../components/BrandLockup';
 
 export default function WelcomeScreen({ navigation }: ScreenProps<'Welcome'>) {
   return (
@@ -20,26 +17,26 @@ export default function WelcomeScreen({ navigation }: ScreenProps<'Welcome'>) {
           <Text
             variant="body14"
             color="primary"
-            onPress={() => Linking.openURL(TERMS_URL)}
+            onPress={() => navigation.navigate('TermsOfUse')}
           >
-            شروط الاستخدام و سياسة الخصوصية
+            شروط الاستخدام
+          </Text>{' '}
+          و{'\n'}
+          <Text
+            variant="body14"
+            color="primary"
+            onPress={() => navigation.navigate('PrivacyPolicy')}
+          >
+            سياسة الخصوصية
           </Text>
         </Text>
       }
     >
-      <View style={styles.brand}>
-        <Image source={palmTreeLogo} style={styles.logo} />
-        <View style={styles.brandText}>
-          <Text style={styles.wordmark}>Waha KUN</Text>
-          <Text variant="h5" color="primary">
-            واحة كُن
-          </Text>
-        </View>
-      </View>
+      <BrandLockup />
 
       <View style={styles.content}>
         <View style={styles.intro}>
-          <Text variant="h3" align="right">
+          <Text variant="h3" color="textStrong" align="right">
             مرحباً بك
           </Text>
           <Text variant="body14" color="textMuted" align="right">
@@ -56,8 +53,8 @@ export default function WelcomeScreen({ navigation }: ScreenProps<'Welcome'>) {
           />
           <ActionCard
             icon={<LogIn size={32} color={colors.primary} />}
-            title="لدي حساب بالفعل"
-            subtitle="سجل الدخول بسرعة"
+            title="لديّ حساب بالفعل"
+            subtitle="سجّل الدخول بسرعة"
             onPress={() => navigation.navigate('PhoneLogin')}
           />
         </View>
@@ -67,28 +64,6 @@ export default function WelcomeScreen({ navigation }: ScreenProps<'Welcome'>) {
 }
 
 const styles = StyleSheet.create({
-  brand: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    gap: spacing[10],
-    paddingHorizontal: screenPadding,
-    paddingTop: spacing[32],
-  },
-  logo: {
-    width: 54,
-    height: 53,
-    resizeMode: 'contain',
-  },
-  brandText: {
-    alignItems: 'flex-end',
-  },
-  // The one piece of type with no Figma text style, so it is composed from tokens here.
-  wordmark: {
-    fontFamily: fonts.latin,
-    fontSize: 26,
-    lineHeight: 32,
-    color: colors.primary,
-  },
   content: {
     flex: 1,
     justifyContent: 'center',

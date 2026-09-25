@@ -20,6 +20,8 @@ export type SearchableDropdownProps = {
   /** Blocks opening/typing, e.g. area before a governorate is chosen. */
   disabled?: boolean;
   disabledPlaceholder?: string;
+  /** Seeds the field, for editing a value the farmer already has. Read once, at mount. */
+  initialValue?: string;
 };
 
 /** Delay before a blur closes the list, so a tap on a row registers first. */
@@ -34,8 +36,9 @@ export function SearchableDropdown({
   onOpenChange,
   disabled = false,
   disabledPlaceholder,
+  initialValue,
 }: SearchableDropdownProps) {
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(initialValue ?? '');
 
   const filtered = useMemo(
     () => data.filter(item => item.name.toLowerCase().includes(search.toLowerCase())),

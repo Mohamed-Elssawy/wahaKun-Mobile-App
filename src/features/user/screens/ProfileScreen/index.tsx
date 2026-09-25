@@ -9,6 +9,7 @@ import {
   MapPin,
   MessageCircle,
   Bell as NotificationBell,
+  Pencil,
   Phone,
   User,
 } from 'lucide-react-native';
@@ -24,16 +25,18 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/components/ui';
 import { ReportErrorView } from '@/features/reports/components/ReportErrorView';
-import { resolveAttachmentUrl } from '@/features/reports/services/reportService';
 import type { ScreenProps } from '@/navigation/types';
 import { colors, radii, screenPadding, shadows, spacing } from '@/theme';
 
 import { SettingsRow } from '../../components/SettingsRow';
 import { SettingsSection } from '../../components/SettingsSection';
 import { useProfile } from '../../hooks/useProfile';
+import { resolveProfilePictureUrl } from '../../services/userService';
 
 const AVATAR_SIZE = 76;
 const AVATAR_ICON = 32;
+const BADGE_SIZE = 20;
+const BADGE_ICON = 12;
 const BACK_ICON = 24;
 const PIN_ICON = 16;
 
@@ -84,16 +87,26 @@ export default function ProfileScreen({ navigation }: ScreenProps<'Profile'>) {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.identity}>
-            {user?.picture ? (
-              <Image
-                source={{ uri: resolveAttachmentUrl(user.picture) }}
-                style={styles.avatar}
-              />
-            ) : (
-              <View style={[styles.avatar, styles.avatarEmpty]}>
-                <User size={AVATAR_ICON} color={colors.textMuted} />
+            <TouchableOpacity
+              onPress={() => navigation.navigate('EditProfilePicture')}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="تغيير الصورة الشخصية"
+            >
+              {user?.picture ? (
+                <Image
+                  source={{ uri: resolveProfilePictureUrl(user.picture) }}
+                  style={styles.avatar}
+                />
+              ) : (
+                <View style={[styles.avatar, styles.avatarEmpty]}>
+                  <User size={AVATAR_ICON} color={colors.textMuted} />
+                </View>
+              )}
+              <View style={styles.avatarBadge}>
+                <Pencil size={BADGE_ICON} color={colors.textInverse} />
               </View>
-            )}
+            </TouchableOpacity>
 
             <View style={styles.identityText}>
               <Text variant="h4" align="right">
@@ -115,7 +128,7 @@ export default function ProfileScreen({ navigation }: ScreenProps<'Profile'>) {
               icon={MapPin}
               label="تغيير المنطقة"
               value={region || undefined}
-              onPress={() => navigation.navigate('Location')}
+              onPress={() => navigation.navigate('EditRegion')}
             />
             {/* No chevron: AuthService owns the number and offers no change endpoint. */}
             <SettingsRow icon={Phone} label="رقم الهاتف" value={user?.phoneNumber} />
@@ -237,6 +250,18 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceMuted,
   },
   avatarEmpty: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarBadge: {
+    position: 'absolute',
+    // RTL: the badge sits on the avatar's outer corner, which is the left one.
+    left: 0,
+    bottom: 0,
+    width: BADGE_SIZE,
+    height: BADGE_SIZE,
+    borderRadius: radii.pill,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },

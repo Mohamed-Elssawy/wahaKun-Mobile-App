@@ -128,7 +128,7 @@ repo.
 
 ## What is built
 
-- **Registration**, a seven-step wizard, plus phone login and email login against
+- **Registration**, a five-step wizard, plus phone login and email login against
   AuthService and UserService.
 - **Reports**, end to end: capture from camera or gallery, an offline delivery
   queue, AI analysis, the diagnosis screen, My Issues with filters, and issue
@@ -149,11 +149,10 @@ removed its own OTP endpoint. Registration posts the Firebase ID token to
 `/Auth/Register` with the wizard's fields and gets tokens back; login posts the
 token alone to `/Auth/firebase-login`.
 
-Six routes are themed placeholders because screens already navigate to them:
-`ForgotPassword`, `AccountRecovery`, `EmailOtpVerification`, `TermsOfUse`,
-`PrivacyPolicy`, `ConnectToExpert`. The Figma file has roughly 100 designed screens
-across Farmer, Expert and Admin. Notifications, the expert screens and the admin
-dashboard are still to build.
+Three routes are themed placeholders because screens already navigate to them:
+`TermsOfUse`, `PrivacyPolicy` and `ConnectToExpert`. The Figma file has roughly 100
+designed screens across Farmer, Expert and Admin. Notifications, the expert screens
+and the admin dashboard are still to build.
 
 ## Known follow-ups
 

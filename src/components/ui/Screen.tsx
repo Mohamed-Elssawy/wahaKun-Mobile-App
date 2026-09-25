@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors, screenPadding, spacing } from '@/theme';
@@ -27,8 +27,14 @@ export function Screen({
 }: ScreenProps) {
   return (
     <SafeAreaView style={[styles.container, style]} edges={edges}>
-      <View style={[styles.content, padded && styles.padded]}>{children}</View>
-      {footer ? <View style={styles.footer}>{footer}</View> : null}
+      {/* Without this, edge-to-edge keeps Android from resizing the window and the pinned footer sits behind the keyboard. */}
+      <KeyboardAvoidingView
+        style={styles.fill}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View style={[styles.content, padded && styles.padded]}>{children}</View>
+        {footer ? <View style={styles.footer}>{footer}</View> : null}
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -37,6 +43,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  fill: {
+    flex: 1,
   },
   content: {
     flex: 1,
@@ -48,6 +57,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: screenPadding,
     paddingBottom: spacing[32],
     paddingTop: spacing[16],
-    gap: spacing[16],
+    gap: spacing[12],
   },
 });

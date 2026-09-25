@@ -1,4 +1,4 @@
-import { ArrowRight } from 'lucide-react-native';
+import { ChevronRight } from 'lucide-react-native';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { colors, screenPadding, spacing } from '@/theme';
@@ -7,7 +7,7 @@ export type BackHeaderProps = {
   onBack: () => void;
 };
 
-/** The arrow points right because the layout is RTL. WizardHeader is the wizard's. */
+/** The chevron points right because the layout is RTL. WizardHeader is the wizard's. */
 export function BackHeader({ onBack }: BackHeaderProps) {
   return (
     <View style={styles.header}>
@@ -17,7 +17,7 @@ export function BackHeader({ onBack }: BackHeaderProps) {
         accessibilityRole="button"
         accessibilityLabel="رجوع"
       >
-        <ArrowRight size={24} color={colors.textPrimary} />
+        <ChevronRight size={24} color={colors.textStrong} />
       </TouchableOpacity>
     </View>
   );
@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     width: '100%',
     paddingHorizontal: screenPadding,
-    paddingTop: spacing[16],
+    paddingTop: spacing[56],
     paddingBottom: spacing[12],
   },
 });

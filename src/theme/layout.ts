@@ -12,11 +12,14 @@ export const spacing = {
   24: 24,
   32: 32,
   40: 40,
+  56: 56,
 } as const;
 
 export const radii = {
   4: 4,
   6: 6,
+  /** OTP input blocks, and nothing else so far. */
+  10: 10,
   12: 12,
   16: 16,
   20: 20,

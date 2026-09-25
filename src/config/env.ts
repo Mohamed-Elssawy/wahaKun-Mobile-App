@@ -35,6 +35,16 @@ export const API_BASE_URLS = {
   media: `http://${HOST}:${PORTS.media}/api`,
 } as const;
 
+/** Registered natively in AndroidManifest.xml and Info.plist; changing it needs a rebuild. */
+// A custom scheme, not https: there is no web client for the emailed link to land on.
+export const APP_URL_SCHEME = 'wahakun';
+
+/** The deep link's host. navigation/linking.ts maps it onto the ResetPassword route. */
+export const RESET_PASSWORD_PATH = 'reset-password';
+
+/** Sent to AuthService as ClinetUrl; it appends ?token=...&email=... to this. */
+export const RESET_PASSWORD_CLIENT_URL = `${APP_URL_SCHEME}://${RESET_PASSWORD_PATH}`;
+
 export const API_TIMEOUT_MS = 15000;
 
 /** 15s is right for JSON and wrong for multipart; aborting mid-write makes duplicates. */

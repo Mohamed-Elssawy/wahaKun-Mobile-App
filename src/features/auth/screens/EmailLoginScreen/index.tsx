@@ -44,8 +44,11 @@ export default function EmailLoginScreen({ navigation }: ScreenProps<'EmailLogin
             onPress={() => navigation.navigate('PhoneLogin')}
             activeOpacity={0.7}
           >
-            <Text variant="body14" color="primary" align="center">
-              أو الدخول برقم الهاتف
+            <Text variant="body14" color="textMuted" align="center">
+              أو{' '}
+              <Text variant="body14" color="primary">
+                الدخول برقم الهاتف
+              </Text>
             </Text>
           </TouchableOpacity>
         </>
@@ -55,10 +58,10 @@ export default function EmailLoginScreen({ navigation }: ScreenProps<'EmailLogin
 
       <View style={styles.content}>
         <View style={styles.intro}>
-          <Text variant="h3" align="center">
+          <Text variant="h3" color="textStrong" align="center">
             تسجيل الدخول
           </Text>
-          <Text variant="body14" color="textSecondary" align="center">
+          <Text variant="body14" color="textMuted" align="center">
             {'استخدم بريدك الإلكتروني إذا لم\nتتمكن من الوصول لرقم هاتفك.'}
           </Text>
         </View>
@@ -94,7 +97,7 @@ export default function EmailLoginScreen({ navigation }: ScreenProps<'EmailLogin
             onPress={() => navigation.navigate('ForgotPassword', { email })}
             activeOpacity={0.7}
           >
-            <Text variant="label14" color="primary" align="right">
+            <Text variant="body14" color="primary" align="center">
               نسيت كلمة المرور؟
             </Text>
           </TouchableOpacity>

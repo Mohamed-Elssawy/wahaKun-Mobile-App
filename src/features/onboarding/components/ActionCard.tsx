@@ -34,10 +34,18 @@ export function ActionCard({
     >
       {icon}
       <View style={styles.text}>
-        <Text variant="h4" align="right">
+        <Text
+          variant="h4"
+          color={selected ? 'primaryStrong' : 'textStrong'}
+          align="right"
+        >
           {title}
         </Text>
-        <Text variant="body12" color="textMuted" align="right">
+        <Text
+          variant="body12"
+          color={selected ? 'primaryStrong' : 'textMuted'}
+          align="right"
+        >
           {subtitle}
         </Text>
       </View>
@@ -55,12 +63,12 @@ const styles = StyleSheet.create({
     minHeight: 100,
     padding: spacing[24],
     borderWidth: 1,
-    borderColor: colors.borderStrong,
+    borderColor: colors.borderCard,
     borderRadius: radii[16],
     backgroundColor: colors.surface,
   },
   cardSelected: {
-    borderColor: colors.primary,
+    borderColor: colors.primaryStrong,
     backgroundColor: colors.primaryTint,
   },
   text: {

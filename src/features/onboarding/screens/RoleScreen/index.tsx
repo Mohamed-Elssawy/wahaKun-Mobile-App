@@ -14,13 +14,13 @@ import { WizardHeader } from '../../components/WizardHeader';
 import { useRegistrationDraft } from '../../context/RegistrationContext';
 
 const ROLES: { role: UserRole; title: string; subtitle: string }[] = [
-  { role: 'farmer', title: 'مزارع', subtitle: 'الإبلاغ عن المشاكل وتتبعها' },
-  { role: 'expert', title: 'خبير ميداني', subtitle: 'مراجعة وحل الحالات' },
+  { role: 'farmer', title: 'مزارع', subtitle: 'الإبلاغ عن المشاكل و تتبعها' },
+  { role: 'expert', title: 'خبير ميداني', subtitle: 'مراجعة و حل الحالات' },
 ];
 
 const ICON_SIZE = { width: 29, height: 32 };
 
-/** Step 4. No admin option: those accounts are provisioned, never self-registered. */
+/** Step 2. No admin option: those accounts are provisioned, never self-registered. */
 export default function RoleScreen({ navigation }: ScreenProps<'Role'>) {
   const { update } = useRegistrationDraft();
   // One value, not two booleans, so picking a card inherently unpicks the other.
@@ -43,23 +43,29 @@ export default function RoleScreen({ navigation }: ScreenProps<'Role'>) {
         <Button label="التالي" onPress={handleNext} showArrow disabled={!selectedRole} />
       }
     >
-      <WizardHeader step={4} onBack={() => navigation.goBack()} />
+      <WizardHeader step={2} onBack={() => navigation.goBack()} />
 
       <View style={styles.form}>
-        <Text variant="h3" align="center">
+        <Text variant="h3" color="textStrong" align="center">
           اختر دورك
         </Text>
 
         <View style={styles.cards}>
           {ROLES.map(({ role, title, subtitle }) => {
             const Icon = role === 'farmer' ? FarmerIcon : ExpertIcon;
+            const isSelected = selectedRole === role;
             return (
               <ActionCard
                 key={role}
-                icon={<Icon {...ICON_SIZE} color={palette.primary.G700} />}
+                icon={
+                  <Icon
+                    {...ICON_SIZE}
+                    color={isSelected ? palette.primary.G700 : palette.primary.G500}
+                  />
+                }
                 title={title}
                 subtitle={subtitle}
-                selected={selectedRole === role}
+                selected={isSelected}
                 showChevron={false}
                 onPress={() => {
                   setSelectedRole(role);

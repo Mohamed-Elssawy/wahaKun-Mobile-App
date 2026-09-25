@@ -6,7 +6,7 @@ import type { LocationItem } from '@/types/location';
 
 import type { ReactNode } from 'react';
 
-/** Everything the registration wizard collects across its seven steps. */
+/** Everything the registration wizard collects across its five steps. */
 export type RegistrationDraft = {
   fullName?: string;
   profileImage?: PickedImage | null;

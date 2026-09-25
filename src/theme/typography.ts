@@ -12,6 +12,8 @@ export const fonts = {
   semibold: 'NotoSansArabic-SemiBold',
   /** The Latin wordmark only. */
   latin: 'Lora-Regular',
+  /** The wordmark's weight everywhere it appears in the new Figma. */
+  latinStrong: 'Lora-SemiBold',
 } as const;
 
 export const fontSizes = {
@@ -31,7 +33,7 @@ export const textStyles = {
   h2: { fontFamily: fonts.heading, fontSize: 32, lineHeight: 40 },
   h3: { fontFamily: fonts.heading, fontSize: 24, lineHeight: 40 },
   h4: { fontFamily: fonts.heading, fontSize: 18, lineHeight: 30 },
-  h5: { fontFamily: fonts.heading, fontSize: 16, lineHeight: 20 },
+  h5: { fontFamily: fonts.heading, fontSize: 16, lineHeight: 24 },
   h6: { fontFamily: fonts.heading, fontSize: 14, lineHeight: 17.5 },
 
   body12: { fontFamily: fonts.regular, fontSize: 12, lineHeight: 21 },

@@ -7,24 +7,41 @@ import {
 } from '@gorhom/bottom-sheet';
 import { Camera, Image as ImageIcon, User } from 'lucide-react-native';
 import { useCallback, useRef } from 'react';
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
-import { Button, Screen, Text } from '@/components/ui';
-import { useImagePicker } from '@/hooks/useImagePicker';
+import { BackHeader, Button, Screen, Text } from '@/components/ui';
+import { ReportErrorView } from '@/features/reports/components/ReportErrorView';
 import type { ScreenProps } from '@/navigation/types';
 import { colors, radii, screenPadding, spacing } from '@/theme';
 
-import { WizardHeader } from '../../components/WizardHeader';
-import { useRegistrationDraft } from '../../context/RegistrationContext';
+import { useProfilePicture } from '../../hooks/useProfilePicture';
+import { resolveProfilePictureUrl } from '../../services/userService';
 
 type PendingAction = 'camera' | 'gallery' | null;
 
-/** Step 2 of the registration wizard, and skippable. */
-export default function ProfilePictureScreen({
+/** Signup stopped collecting a photo, so S-07's avatar badge is the way in. */
+export default function EditProfilePictureScreen({
   navigation,
-}: ScreenProps<'ProfilePicture'>) {
-  const { update } = useRegistrationDraft();
-  const { image, error, pickFromCamera, pickFromGallery } = useImagePicker();
+}: ScreenProps<'EditProfilePicture'>) {
+  const {
+    currentPicture,
+    image,
+    pickFromCamera,
+    pickFromGallery,
+    submit,
+    isSubmitting,
+    errorMessage,
+    isLoading,
+    loadError,
+    retry,
+  } = useProfilePicture();
+
   const sheetRef = useRef<BottomSheetModal>(null);
 
   // Which picker to open after the sheet closes, so the two never overlap.
@@ -49,9 +66,10 @@ export default function ProfilePictureScreen({
     }
   }, [pickFromCamera, pickFromGallery]);
 
-  const goNext = () => {
-    update({ profileImage: image });
-    navigation.navigate('Location');
+  const handleSave = async () => {
+    if (await submit()) {
+      navigation.goBack();
+    }
   };
 
   const renderBackdrop = useCallback(
@@ -67,45 +85,76 @@ export default function ProfilePictureScreen({
     [],
   );
 
+  if (isLoading) {
+    return (
+      <Screen>
+        <BackHeader onBack={() => navigation.goBack()} />
+        <View style={styles.fallback}>
+          <ActivityIndicator color={colors.primary} />
+        </View>
+      </Screen>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <Screen>
+        <BackHeader onBack={() => navigation.goBack()} />
+        <View style={styles.fallback}>
+          <ReportErrorView
+            error={loadError}
+            unknownTitle="تعذر تحميل الملف الشخصي"
+            onRetry={retry}
+          />
+        </View>
+      </Screen>
+    );
+  }
+
+  // The freshly picked one wins; otherwise show what the account already has.
+  const previewUri =
+    image?.uri ?? (currentPicture ? resolveProfilePictureUrl(currentPicture) : null);
+
   return (
     <BottomSheetModalProvider>
       <Screen
         footer={
           <>
             <Button
-              label={image ? 'التالي' : 'تحميل الصورة'}
-              onPress={image ? goNext : openSheet}
+              label={image ? 'حفظ' : 'تحميل الصورة'}
+              onPress={image ? handleSave : openSheet}
               showArrow={Boolean(image)}
+              loading={isSubmitting}
             />
-            <Button label="التخطي" variant="ghost" onPress={goNext} />
+            <Button label="إلغاء" variant="ghost" onPress={() => navigation.goBack()} />
           </>
         }
       >
-        <WizardHeader step={2} onBack={() => navigation.goBack()} />
+        <BackHeader onBack={() => navigation.goBack()} />
 
         <View style={styles.body}>
           <View style={styles.intro}>
-            <Text variant="h3" align="center">
+            <Text variant="h3" color="textStrong" align="center">
               اضف صورتك الشخصية
             </Text>
-            <Text variant="body14" color="textSecondary" align="center">
+            <Text variant="body14" color="textMuted" align="center">
               أضف صورتك حتى يتعرف عليك الأعضاء الآخرون.
             </Text>
           </View>
 
           <TouchableOpacity onPress={openSheet} activeOpacity={0.8}>
             <View style={styles.avatar}>
-              {image ? (
-                <Image source={{ uri: image.uri }} style={styles.avatarImage} />
+              {previewUri ? (
+                <Image source={{ uri: previewUri }} style={styles.avatarImage} />
               ) : (
                 <User size={40} color={colors.background} />
               )}
             </View>
           </TouchableOpacity>
 
-          {error ? (
-            <Text variant="label14Bold" color="errorText" align="center">
-              {error}
+          {errorMessage ? (
+            <Text variant="label12Bold" color="errorText" align="center">
+              {errorMessage}
             </Text>
           ) : null}
         </View>
@@ -160,6 +209,12 @@ export default function ProfilePictureScreen({
 const AVATAR_SIZE = 120;
 
 const styles = StyleSheet.create({
+  fallback: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: screenPadding,
+  },
   body: {
     alignItems: 'center',
     gap: spacing[40],

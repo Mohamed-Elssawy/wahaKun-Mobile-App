@@ -44,5 +44,7 @@ export const API_ENDPOINTS = {
     /** No [Authorize], which is what lets an <Image> src point straight at it. */
     download: (objectName: string) =>
       `/storage?objectName=${encodeURIComponent(objectName)}`,
+    /** Multipart under the field name `file`; the folder is a query param, not a part. */
+    upload: (folder: string) => `/storage/upload?folder=${encodeURIComponent(folder)}`,
   },
 } as const;

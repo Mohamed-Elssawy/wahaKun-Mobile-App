@@ -17,8 +17,9 @@ export type ButtonProps = {
   /** Shows a spinner and blocks presses. */
   loading?: boolean;
   disabled?: boolean;
-  /** Trailing arrow for next and submit. Points left because the UI is RTL. */
+  /** Directional icon, so it trails the label on the left. Points left because RTL. */
   showArrow?: boolean;
+  /** Descriptive icon, so it leads the label on the right. Directional ones use showArrow. */
   icon?: ReactNode;
   style?: StyleProp<ViewStyle>;
   testID?: string;
@@ -27,16 +28,16 @@ export type ButtonProps = {
 const VARIANT_STYLE: Record<ButtonVariant, ViewStyle> = {
   primary: { backgroundColor: colors.primary },
   secondary: {
-    backgroundColor: colors.surface,
+    backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.textSecondary,
   },
   ghost: { backgroundColor: 'transparent' },
 };
 
 const VARIANT_LABEL_COLOR = {
   primary: 'textInverse',
-  secondary: 'textPrimary',
+  secondary: 'textSecondary',
   ghost: 'primary',
 } as const;
 
@@ -76,10 +77,10 @@ export function Button({
         <ActivityIndicator color={colors[labelColor]} />
       ) : (
         <>
-          <Text variant="label16Bold" color={labelColor}>
+          {icon}
+          <Text variant="h5" color={labelColor}>
             {label}
           </Text>
-          {icon}
           {showArrow && <ArrowLeft size={24} color={colors[labelColor]} />}
         </>
       )}
@@ -98,8 +99,8 @@ const styles = StyleSheet.create({
     minHeight: controlHeight,
     borderRadius: radii[6],
     paddingHorizontal: spacing[12],
-    paddingVertical: spacing[8],
-    gap: spacing[10],
+    paddingVertical: spacing[12],
+    gap: spacing[8],
   },
   inactivePrimary: {
     // Pale fill over grey: white on N400 is 2.13:1, and this app is read in direct sun.
