@@ -1,16 +1,18 @@
 /** GetCommentsByIssueId is [Authorize]; the feed is composed from MapService, which is not. */
 
-// ShowIssueInMap is the only call returning everything, but it costs the author and counters, which is why USE_MOCK_COMMUNITY exists for demo work.
+// IssueService.FarmerService.GetAllIssuesAsync already returns everything F-01 draws, but no
+// controller exposes it, so the feed still falls back to ShowIssueInMap and loses the author
+// and the counters. That is what USE_MOCK_COMMUNITY exists for.
 
 import { API_ENDPOINTS, apiClient } from '@/api';
+import { ApiError } from '@/api/errors';
 import { API_BASE_URLS } from '@/config/env';
 import { getMapIssues } from '@/features/map/services/mapService';
 import type { MapIssue } from '@/features/map/types';
 import { toUtcTimestamp } from '@/features/reports/services/reportService';
-import { isResolvedStatus } from '@/features/reports/status';
 import { getUserDetails } from '@/features/user/services/userService';
 
-import { distanceKm } from '../distance';
+import { applyFeedQuery } from '../feedQuery';
 
 import type {
   Comment,
@@ -20,17 +22,31 @@ import type {
   FeedPage,
   FeedPost,
   FeedQuery,
+  VoteResult,
 } from '../types';
 
 const BASE = API_BASE_URLS.community;
 
 const UNKNOWN_AUTHOR = 'مزارع من الواحة';
 
+/** 501, not 0: the server is reachable and the feature is absent, so a retry cannot help. */
+const NOT_IMPLEMENTED = 501;
+
+// Thrown rather than resolved, so a screen shows the failure instead of a control that lied.
+function hubUnavailable(action: string): never {
+  throw new ApiError(
+    `${action} يحتاج اتصال CommunityHub، وهو غير متاح بعد`,
+    NOT_IMPLEMENTED,
+  );
+}
+
 function toPost(issue: MapIssue): FeedPost {
   return {
     issueId: issue.id,
     title: issue.title,
     photoUrl: issue.photoUrl,
+    // MapResponseDto lists no attachments, so a voice-only issue is indistinguishable here.
+    hasVoice: false,
     status: issue.status,
     tier: issue.tier,
     createdAt: issue.createdAt,
@@ -44,36 +60,11 @@ function toPost(issue: MapIssue): FeedPost {
   };
 }
 
-const MATCHES: Record<FeedQuery['filter'], (post: FeedPost) => boolean> = {
-  all: () => true,
-  critical: post => post.tier === 'critical',
-  nearby: () => true,
-  inProgress: post => !isResolvedStatus(post.status),
-  resolved: post => isResolvedStatus(post.status),
-};
-
 /** Paged client-side: ShowIssueInMap returns everything. The signature is what GetFeed would take. */
 export async function getFeed(query: FeedQuery): Promise<FeedPage> {
   const issues = await getMapIssues();
-  let posts = issues.map(toPost).filter(MATCHES[query.filter]);
 
-  if (query.filter === 'nearby' && query.origin) {
-    const origin = query.origin;
-    posts = posts
-      .filter(post => post.latitude !== undefined && post.longitude !== undefined)
-      .sort(
-        (a, b) =>
-          distanceKm(origin, { latitude: a.latitude!, longitude: a.longitude! }) -
-          distanceKm(origin, { latitude: b.latitude!, longitude: b.longitude! }),
-      );
-  } else {
-    posts.sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
-  }
-
-  const start = (query.page - 1) * query.pageSize;
-  const slice = posts.slice(start, start + query.pageSize);
-
-  return { posts: slice, hasMore: start + slice.length < posts.length };
+  return applyFeedQuery(issues.map(toPost), query);
 }
 
 /** One lookup per distinct author, not per comment: a thread repeats its participants. */
@@ -128,4 +119,24 @@ export async function getComments(
   };
 }
 
-export const communityApi: CommunityApi = { getFeed, getComments };
+// The three writes below exist on CommunityHub over SignalR at /hubs/community, not over REST,
+// and no SignalR client is installed. They throw so the seam is real and the failure is visible.
+export async function toggleConfirm(_issueId: string): Promise<VoteResult> {
+  return hubUnavailable('تأكيد المشكلة');
+}
+
+export async function shareIssue(_issueId: string): Promise<number> {
+  return hubUnavailable('مشاركة البلاغ');
+}
+
+export async function postComment(_issueId: string, _text: string): Promise<Comment> {
+  return hubUnavailable('إضافة تعليق');
+}
+
+export const communityApi: CommunityApi = {
+  getFeed,
+  getComments,
+  toggleConfirm,
+  shareIssue,
+  postComment,
+};

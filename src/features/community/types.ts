@@ -3,6 +3,10 @@
 import type { MapIssueTier } from '@/features/map/types';
 import type { ReportStatus } from '@/features/reports/types';
 
+import type { Coordinates } from './distance';
+
+export type { Coordinates };
+
 /** CommentResponseDto verbatim. The author is an id only; UserService resolves the name. */
 export type CommentWire = {
   id: string;
@@ -19,6 +23,49 @@ export type CommentsPageWire = {
   count: number;
 };
 
+/**
+ * GetIssuesREsponseDto verbatim, from IssueService/Issue.Shared/DTOS/FarmerDtos. The lowercase
+ * `userName` is the C# property name, not a rename; FarmerService fills it over gRPC.
+ */
+// No controller exposes it yet, so nothing constructs this at runtime. It is here so the shape
+// the client expects is the shape the backend already wrote, not one invented on this side.
+export type FeedItemWire = {
+  title: string;
+  description: string;
+  imageUrl?: string | null;
+  issueId: string;
+  userId: string;
+  /** IssuePriority: 0 Low, 1 Medium, 2 High, 3 Critical. */
+  priority: number;
+  /** IssueStatus: 0 Reported .. 6 completed. */
+  status: number;
+  userName: string;
+  createdAt: string;
+  userPhoto?: string | null;
+  commentCount: number;
+  voteCount: number;
+  shareCount: number;
+};
+
+/** PROPOSED. GetIssuesREsponseDto has no such fields, and F-01 draws all three. */
+export type FeedItemWireProposed = FeedItemWire & {
+  /** Flips the confirm button to its filled state. IIssueVoteRepo.ExistsAsync already knows. */
+  hasVoted?: boolean;
+  /** For the "0.8 كم" line. GetAllIssues already includes GPSLocation; the DTO drops it. */
+  latitude?: string | null;
+  longitude?: string | null;
+  /** Tells a voice-only issue from a text-only one, which decide different card media. */
+  hasVoice?: boolean;
+};
+
+/** PaginatedResult<T>. PROPOSED for the feed: GetAllIssuesAsync returns a bare list today. */
+export type PaginatedWire<T> = {
+  pageIndex: number;
+  pageCount: number;
+  totalCount: number;
+  results: T[];
+};
+
 export type Comment = {
   id: string;
   issueId: string;
@@ -26,7 +73,7 @@ export type Comment = {
   /** Resolved through UserService; falls back to a placeholder when that call fails. */
   authorName: string;
   authorPicture?: string;
-  /** Experts get a badge on F-04. No role reaches the client yet, so this is always false. */
+  /** Earns the خبير معتمد badge on F-04. No role reaches the client yet, so always false. */
   isExpert: boolean;
   text: string;
   voiceUrl?: string;
@@ -47,6 +94,8 @@ export type FeedPost = {
   /** The body text under the author row. */
   description?: string;
   photoUrl?: string;
+  /** Draws the mic placeholder where the photo goes, so a voice report is not a blank card. */
+  hasVoice: boolean;
   status: ReportStatus;
   tier: MapIssueTier;
   createdAt: string;
@@ -62,11 +111,18 @@ export type FeedPost = {
   confirmations: number;
   commentCount: number;
   shareCount: number;
-  /** Whether this farmer has already confirmed it, which flips the button's state. */
+  /** Whether this farmer has already confirmed it, which flips the button to filled. */
   hasConfirmed: boolean;
 };
 
-export type FeedFilter = 'all' | 'critical' | 'nearby' | 'inProgress' | 'resolved';
+/** The three underlined tabs. Single-select, and the only axis that filters on status. */
+export type FeedTab = 'all' | 'active' | 'resolved';
+
+/** The severity chips. Independent toggles; an empty set means no severity filter at all. */
+export type FeedSeverity = 'critical' | 'medium' | 'low';
+
+/** The ترتيب chip's menu. */
+export type FeedSort = 'severity' | 'newest' | 'nearest';
 
 export type FeedPage = {
   posts: FeedPost[];
@@ -76,13 +132,29 @@ export type FeedPage = {
 export type FeedQuery = {
   page: number;
   pageSize: number;
-  filter: FeedFilter;
-  /** Only used by the `nearby` filter, which sorts by distance from here. */
-  origin?: { latitude: number; longitude: number };
+  tab: FeedTab;
+  severities: readonly FeedSeverity[];
+  /** The قريب مني chip. A filter, not a sort: it can be on while sorting by severity. */
+  nearbyOnly: boolean;
+  sort: FeedSort;
+  /** Required by `nearest` and by nearbyOnly; without it both degrade to no-ops. */
+  origin?: Coordinates;
+};
+
+/** What a vote toggle settles on, so the card can correct an optimistic guess. */
+export type VoteResult = {
+  hasConfirmed: boolean;
+  confirmations: number;
 };
 
 /** Typing services/index.ts as this is what stops the mock promising data the server won't. */
 export type CommunityApi = {
   getFeed: (query: FeedQuery) => Promise<FeedPage>;
   getComments: (issueId: string, page: number, pageSize: number) => Promise<CommentsPage>;
+  /** CommunityHub.VoteIssue. Toggles: the hub deletes an existing vote rather than erroring. */
+  toggleConfirm: (issueId: string) => Promise<VoteResult>;
+  /** CommunityHub.ShareIssue. Resolves to the new share count. */
+  shareIssue: (issueId: string) => Promise<number>;
+  /** CommunityHub.SendComment. Rejects when moderation blocks the text. */
+  postComment: (issueId: string, text: string) => Promise<Comment>;
 };
