@@ -1,5 +1,12 @@
 import { CheckCircle2, ChevronLeft } from 'lucide-react-native';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/components/ui';
@@ -106,7 +113,12 @@ export default function IssueDetailsScreen({
   ) : null;
 
   return (
-    <View style={styles.screen}>
+    // Same pattern as the Screen primitive, which F-04 cannot use: its hero is full-bleed.
+    // Without it, edge-to-edge stops Android resizing and the composer sits behind the keyboard.
+    <KeyboardAvoidingView
+      style={styles.screen}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
@@ -204,7 +216,7 @@ export default function IssueDetailsScreen({
         </View>
       </ScrollView>
 
-      {/* Outside the ScrollView: the frame pins it above the tab bar, not under the thread. */}
+      {/* Outside the ScrollView: the frame pins it under the thread, not inside it. */}
       <View style={{ paddingBottom: insets.bottom }}>
         <CommentComposer
           canPost={comments.canPost}
@@ -213,7 +225,7 @@ export default function IssueDetailsScreen({
           errorMessage={comments.postError?.message}
         />
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
