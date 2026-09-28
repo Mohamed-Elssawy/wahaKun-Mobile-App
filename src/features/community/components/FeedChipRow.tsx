@@ -1,4 +1,5 @@
 import { ChevronDown } from 'lucide-react-native';
+import { useRef } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 
 import { describeTierDisplay } from '@/features/map/tier';
@@ -42,11 +43,18 @@ export function FeedChipRow({
   onToggleNearby,
   onToggleSeverity,
 }: FeedChipRowProps) {
+  const scroll = useRef<ScrollView>(null);
+
   return (
     <ScrollView
+      ref={scroll}
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.row}
+      // row-reverse puts the first chip at the right end of the content, but a horizontal
+      // ScrollView still opens at the left, so ترتيب scrolled off screen. Unanimated: an
+      // animation here reads as the row sliding away from the farmer as the screen appears.
+      onContentSizeChange={() => scroll.current?.scrollToEnd({ animated: false })}
     >
       <FeedChip
         label={`ترتيب: ${SORT_LABELS[sort]}`}
