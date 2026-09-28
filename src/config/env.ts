@@ -53,17 +53,28 @@ export const UPLOAD_TIMEOUT_MS = 60000;
 /** A storage budget, not a UX limit: each queued report holds a photo in AsyncStorage. */
 export const REPORT_QUEUE_MAX = 5;
 
+/** The master switch for a demo with no backend running. Forces every feature onto its mock. */
+// Deliberately above the per-feature flags: each ORs against it, so one edit moves the whole app.
+export const DEMO_MODE = false;
+
 /** Flip to true to work on the diagnosis screens with no backend running. */
-export const USE_MOCK_REPORTS = false;
+export const USE_MOCK_REPORTS = DEMO_MODE || false;
 
 /** Mirrors this device's reports locally. On because IssueController has no GetMyIssues/GetIssueById. */
 export const USE_LOCAL_REPORT_MIRROR = true;
 
 /** Seeded feed. CommunityService has no feed endpoint, and the MapService fallback has no author or counts. */
-export const USE_MOCK_COMMUNITY = true;
+export const USE_MOCK_COMMUNITY = DEMO_MODE || true;
 
 /** Posting a comment needs the moderation AI on :8000, which is not in the backend repo. */
-export const ENABLE_COMMENT_POSTING = false;
+// The mock moderates nothing, so a demo can post; the real path still needs :8000 up.
+export const ENABLE_COMMENT_POSTING = DEMO_MODE || false;
 
 /** Off by product decision: the farmer sees the diagnosis whatever the confidence. */
 export const ESCALATE_LOW_CONFIDENCE = false;
+
+/** Which state every mock serves, so loading, empty and error can be walked on a device. */
+export type MockScenario = 'content' | 'empty' | 'error' | 'slow';
+
+// A build-time constant rather than a dev menu: the mocks are module scope and have no UI.
+export const MOCK_SCENARIO: MockScenario = 'content';
