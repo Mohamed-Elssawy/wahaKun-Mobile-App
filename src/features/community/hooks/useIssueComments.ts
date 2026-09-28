@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { ENABLE_COMMENT_POSTING } from '@/config/env';
 import { describeError } from '@/features/reports/errors';
 import type { ReportError } from '@/features/reports/errors';
 
@@ -8,6 +9,7 @@ import { communityApi } from '../services';
 import type { Comment } from '../types';
 
 const LOAD_ERROR = 'تعذر تحميل التعليقات';
+const POST_ERROR = 'تعذر إرسال التعليق، حاول مرة أخرى';
 
 const PAGE_SIZE = 10;
 
@@ -19,6 +21,8 @@ export function useIssueComments(issueId: string) {
   const [error, setError] = useState<ReportError | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isPosting, setIsPosting] = useState(false);
+  const [postError, setPostError] = useState<ReportError | null>(null);
 
   const page = useRef(1);
   const isMounted = useRef(true);
@@ -88,6 +92,42 @@ export function useIssueComments(issueId: string) {
     }
   }, [issueId, hasMore, isLoadingMore, isLoading]);
 
+  /**
+   * Not optimistic, unlike a vote: the hub runs the text past moderation and can reject it,
+   * so showing the comment first would mean pulling it back out in front of the farmer.
+   */
+  const post = useCallback(
+    async (text: string): Promise<boolean> => {
+      const trimmed = text.trim();
+      if (!trimmed || isPosting) {
+        return false;
+      }
+
+      setIsPosting(true);
+      setPostError(null);
+
+      try {
+        const comment = await communityApi.postComment(issueId, trimmed);
+        if (isMounted.current) {
+          // Appended rather than reloaded: a reload would lose every page already scrolled.
+          setComments(current => [...current, comment]);
+          setTotal(current => current + 1);
+        }
+        return true;
+      } catch (err) {
+        if (isMounted.current) {
+          setPostError(describeError(err, POST_ERROR));
+        }
+        return false;
+      } finally {
+        if (isMounted.current) {
+          setIsPosting(false);
+        }
+      }
+    },
+    [issueId, isPosting],
+  );
+
   return {
     comments,
     total,
@@ -97,5 +137,11 @@ export function useIssueComments(issueId: string) {
     error,
     loadMore,
     retry: load,
+    post,
+    isPosting,
+    postError,
+    dismissPostError: () => setPostError(null),
+    /** Off until the moderation service on :8000 is reachable; the composer renders disabled. */
+    canPost: ENABLE_COMMENT_POSTING,
   };
 }
