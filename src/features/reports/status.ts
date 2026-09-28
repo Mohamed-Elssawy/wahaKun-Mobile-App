@@ -25,19 +25,21 @@ export function isResolvedStatus(status: ReportStatus): boolean {
 }
 
 export type StatusDisplay = {
-  /** The pill copy on F-01 and F-04. */
+  /** The status line on F-01. Feminine throughout, because the subject is مشكلة. */
   label: string;
-  /** Outlined pill: the hue carries the meaning, so it is the border and the text. */
+  /** F-01 V2 draws every status in primary and lets the glyph carry the difference, so
+   *  nothing reads this yet. It stays because the status genuinely has a hue, and F-07's
+   *  rework is the screen likely to want it. */
   color: ColorToken;
 };
 
-// Four pills for seven statuses, because the farmer acts on the stage, not the step.
+// Four labels for seven statuses, because the farmer acts on the stage, not the step.
 const STATUS_DISPLAY: Record<ReportStatus, StatusDisplay> = {
-  Reported: { label: 'جديد', color: 'error' },
-  Diagnosed: { label: 'قيد المراجعة', color: 'info' },
-  Verified: { label: 'قيد المراجعة', color: 'info' },
-  Assigned: { label: 'قيد المراجعة', color: 'info' },
-  Scheduled: { label: 'مجدول', color: 'warning' },
+  Reported: { label: 'جديدة', color: 'error' },
+  Diagnosed: { label: 'قيد المعالجة', color: 'info' },
+  Verified: { label: 'قيد المعالجة', color: 'info' },
+  Assigned: { label: 'قيد المعالجة', color: 'info' },
+  Scheduled: { label: 'مجدولة', color: 'warning' },
   Repaired: { label: 'تم الحل', color: 'success' },
   Completed: { label: 'تم الحل', color: 'success' },
 };

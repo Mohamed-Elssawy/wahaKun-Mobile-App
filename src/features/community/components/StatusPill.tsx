@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { Text } from '@/components/ui';
 import { describeStatusDisplay } from '@/features/reports/status';
 import type { ReportStatus } from '@/features/reports/types';
-import { colors, radii, spacing } from '@/theme';
+import { colors, spacing } from '@/theme';
 
 import type { LucideIcon } from 'lucide-react-native';
 
@@ -12,9 +12,9 @@ export type StatusPillProps = {
   status: ReportStatus;
 };
 
-const ICON_SIZE = 14;
+const ICON_SIZE = 16;
 
-// One glyph per pill, matching the four F-01 draws.
+// One glyph per stage, matching the four F-01 draws.
 const ICONS: Record<ReportStatus, LucideIcon> = {
   Reported: CircleAlert,
   Diagnosed: Clock3,
@@ -25,34 +25,32 @@ const ICONS: Record<ReportStatus, LucideIcon> = {
   Completed: CheckCircle2,
 };
 
-/** The outlined pill on a feed card. Outlined, not filled: severity owns the filled one. */
+/**
+ * The status line on a feed card. No border and no tint in V2, and green whatever the status:
+ * the frame samples 1A6B3C on all four, so the glyph is what carries the difference.
+ */
 export function StatusPill({ status }: StatusPillProps) {
-  const { label, color } = describeStatusDisplay(status);
+  const { label } = describeStatusDisplay(status);
   const Icon = ICONS[status] ?? CircleAlert;
 
   return (
     <View
-      style={[styles.pill, { borderColor: colors[color] }]}
+      style={styles.row}
       accessibilityRole="text"
       accessibilityLabel={`حالة البلاغ: ${label}`}
     >
-      <Text variant="label12Bold" color={color}>
+      <Text variant="label14" color="primary">
         {label}
       </Text>
-      <Icon size={ICON_SIZE} color={colors[color]} />
+      <Icon size={ICON_SIZE} color={colors.primary} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  pill: {
+  row: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
-    gap: spacing[4],
-    alignSelf: 'flex-start',
-    paddingHorizontal: spacing[10],
-    paddingVertical: spacing[4],
-    borderRadius: radii.pill,
-    borderWidth: 1,
+    gap: spacing[8],
   },
 });

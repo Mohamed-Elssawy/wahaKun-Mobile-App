@@ -1,12 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import { Users } from 'lucide-react-native';
-import {
-  ActivityIndicator,
-  FlatList,
-  RefreshControl,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 
 import { AppHeader } from '@/components/ui';
 import { ReportErrorView } from '@/features/reports/components/ReportErrorView';
@@ -14,11 +9,15 @@ import { ReportsEmptyState } from '@/features/reports/components/ReportsEmptySta
 import { useIdentity } from '@/features/user/hooks/useIdentity';
 import { colors, screenPadding, spacing } from '@/theme';
 
-import { FeedFilterTabs } from '../../components/FeedFilterTabs';
+import { FeedChipRow } from '../../components/FeedChipRow';
 import { FeedPostCard } from '../../components/FeedPostCard';
+import { FeedSortSheet } from '../../components/FeedSortSheet';
+import { FeedStatusTabs } from '../../components/FeedStatusTabs';
 import { useCommunityFeed } from '../../hooks/useCommunityFeed';
 
-import type { FeedPost } from '../../types';
+import type { FeedPost, FeedSort } from '../../types';
+
+const TITLE = 'المجتمع';
 
 const EMPTY = {
   all: {
@@ -27,18 +26,28 @@ const EMPTY = {
   },
   filtered: {
     title: 'لا توجد بلاغات مطابقة',
-    message: 'جرّب تصنيفًا آخر لعرض بلاغات الواحة.',
+    message: 'جرّب توسيع البحث أو تغيير الفلتر.',
   },
 } as const;
 
 /** F-01. */
 export default function CommunityFeedScreen() {
   const navigation = useNavigation();
-  const { displayName: _displayName, avatarUrl, location } = useIdentity();
+  const { avatarUrl, location } = useIdentity();
+  const [isSortOpen, setIsSortOpen] = useState(false);
+
   const {
     posts,
-    filter,
-    changeFilter,
+    tab,
+    severities,
+    nearbyOnly,
+    sort,
+    changeTab,
+    changeSort,
+    toggleNearby,
+    toggleSeverity,
+    confirm,
+    share,
     isLoading,
     isRefreshing,
     isLoadingMore,
@@ -47,19 +56,25 @@ export default function CommunityFeedScreen() {
     loadMore,
     retry,
     isEmpty,
+    isFiltered,
     origin,
   } = useCommunityFeed();
 
   const openIssue = (issueId: string) =>
     navigation.navigate('IssueDetails', { reportId: issueId });
 
+  const selectSort = (next: FeedSort) => {
+    setIsSortOpen(false);
+    changeSort(next);
+  };
+
   const renderItem = ({ item }: { item: FeedPost }) => (
     <FeedPostCard
       post={item}
       origin={origin}
       onPress={openIssue}
-      // Confirming is a hub call the backend cannot take yet; opening the issue is honest.
-      onConfirm={openIssue}
+      onConfirm={confirm}
+      onShare={share}
     />
   );
 
@@ -67,11 +82,7 @@ export default function CommunityFeedScreen() {
     if (error) {
       return (
         <View style={styles.fallback}>
-          <ReportErrorView
-            error={error}
-            unknownTitle="تعذر تحميل المجتمع"
-            onRetry={retry}
-          />
+          <ReportErrorView error={error} unknownTitle="تعذر تحميل المجتمع" onRetry={retry} />
         </View>
       );
     }
@@ -85,7 +96,7 @@ export default function CommunityFeedScreen() {
     }
 
     if (isEmpty) {
-      const copy = filter === 'all' ? EMPTY.all : EMPTY.filtered;
+      const copy = isFiltered ? EMPTY.filtered : EMPTY.all;
       return (
         <View style={styles.fallback}>
           <ReportsEmptyState icon={Users} title={copy.title} message={copy.message} />
@@ -123,15 +134,31 @@ export default function CommunityFeedScreen() {
   return (
     <View style={styles.screen}>
       <AppHeader
-        title="واحة كُن"
+        title={TITLE}
         avatarUrl={avatarUrl}
         location={location}
         onOpenProfile={() => navigation.navigate('Profile')}
       />
 
-      <FeedFilterTabs filter={filter} onChange={changeFilter} />
+      <FeedStatusTabs tab={tab} onChange={changeTab} />
+
+      <FeedChipRow
+        sort={sort}
+        severities={severities}
+        nearbyOnly={nearbyOnly}
+        onOpenSort={() => setIsSortOpen(true)}
+        onToggleNearby={toggleNearby}
+        onToggleSeverity={toggleSeverity}
+      />
 
       {renderBody()}
+
+      <FeedSortSheet
+        isVisible={isSortOpen}
+        sort={sort}
+        onSelect={selectSort}
+        onDismiss={() => setIsSortOpen(false)}
+      />
     </View>
   );
 }
@@ -142,7 +169,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   list: {
-    padding: screenPadding,
+    paddingHorizontal: screenPadding,
+    paddingBottom: spacing[24],
     gap: spacing[16],
   },
   fallback: {

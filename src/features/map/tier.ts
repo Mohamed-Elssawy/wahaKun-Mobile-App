@@ -58,15 +58,18 @@ export function describeTier(
 export type TierDisplay = {
   /** The pin fill and the legend swatch. */
   color: ColorToken;
+  /** F-05's legend, which has room for the whole sentence. */
   label: string;
+  /** F-01's card badge and its filter chips, where only the severity itself fits. */
+  shortLabel: string;
 };
 
 // The four hexes in F-05's legend are error, warning, info and success exactly.
 const TIER_DISPLAY: Record<MapIssueTier, TierDisplay> = {
-  critical: { color: 'error', label: 'مشكلة خطورتها حرجة' },
-  medium: { color: 'warning', label: 'مشكلة خطورتها متوسطة' },
-  low: { color: 'info', label: 'مشكلة خطورتها منخفضة' },
-  resolved: { color: 'success', label: 'مشكلة تم حلها' },
+  critical: { color: 'error', label: 'مشكلة خطورتها حرجة', shortLabel: 'حرجة' },
+  medium: { color: 'warning', label: 'مشكلة خطورتها متوسطة', shortLabel: 'متوسطة' },
+  low: { color: 'info', label: 'مشكلة خطورتها منخفضة', shortLabel: 'منخفضة' },
+  resolved: { color: 'success', label: 'مشكلة تم حلها', shortLabel: 'تم الحل' },
 };
 
 export function describeTierDisplay(tier: MapIssueTier): TierDisplay {
