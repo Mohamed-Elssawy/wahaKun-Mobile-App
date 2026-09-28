@@ -11,6 +11,7 @@ import { hasCoordinates } from '@/features/community/feedQuery';
 import { useIssueComments } from '@/features/community/hooks/useIssueComments';
 import { useIssueContext } from '@/features/community/hooks/useIssueContext';
 import { describeTierDisplay } from '@/features/map/tier';
+import { useIdentity } from '@/features/user/hooks/useIdentity';
 import type { ScreenProps } from '@/navigation/types';
 import { colors, screenPadding, spacing } from '@/theme';
 
@@ -42,6 +43,7 @@ export default function IssueDetailsScreen({
 }: ScreenProps<'IssueDetails'>) {
   const { reportId } = route.params;
   const insets = useSafeAreaInsets();
+  const { displayName } = useIdentity();
 
   // Three hooks, three services. A failure in any one leaves the other two on screen.
   const { report, isOwnReport, error, isLoading, retry } = useIssueDetails(reportId);
@@ -129,7 +131,10 @@ export default function IssueDetailsScreen({
 
         <IssueIdentityBar
           reportId={report.id}
-          authorName={issue?.reporterName}
+          // A report the feed does not list carries no author. When it is this farmer's own,
+          // we already know the name, and the placeholder would be telling them they are a
+          // stranger.
+          authorName={issue?.reporterName ?? (isOwnReport ? displayName : undefined)}
           authorPicture={issue?.reporterPicture}
           createdAt={issue?.createdAt ?? report.createdAt}
           distanceLabel={distanceLabel}

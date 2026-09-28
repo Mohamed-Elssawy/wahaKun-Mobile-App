@@ -50,6 +50,9 @@ export function FeedChipRow({
       ref={scroll}
       horizontal
       showsHorizontalScrollIndicator={false}
+      // flexGrow 0: a horizontal ScrollView in a flex column stretches to fill the cross axis,
+      // which left the chips floating at the bottom of a tall empty band.
+      style={styles.scroll}
       contentContainerStyle={styles.row}
       // row-reverse puts the first chip at the right end of the content, but a horizontal
       // ScrollView still opens at the left, so ترتيب scrolled off screen. Unanimated: an
@@ -78,6 +81,9 @@ export function FeedChipRow({
 }
 
 const styles = StyleSheet.create({
+  scroll: {
+    flexGrow: 0,
+  },
   row: {
     // row-reverse plus a right gutter: the sort chip is first and belongs at the right edge.
     flexDirection: 'row-reverse',
