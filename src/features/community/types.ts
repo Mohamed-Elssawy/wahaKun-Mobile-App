@@ -141,6 +141,18 @@ export type FeedQuery = {
   origin?: Coordinates;
 };
 
+/**
+ * F-04's community half: everything the card knows, plus the recording. The report itself -
+ * the diagnosis, the status track - still comes from reportApi, so a failure in either half
+ * leaves the other on screen.
+ */
+export type IssueDetails = FeedPost & {
+  /** The attached recording. No read endpoint returns one, so only the mock fills it. */
+  voiceUrl?: string;
+  /** PROPOSED. Nothing in the backend holds a transcript, and F-04 draws النص من التسجيل. */
+  transcript?: string;
+};
+
 /** What a vote toggle settles on, so the card can correct an optimistic guess. */
 export type VoteResult = {
   hasConfirmed: boolean;
@@ -150,6 +162,8 @@ export type VoteResult = {
 /** Typing services/index.ts as this is what stops the mock promising data the server won't. */
 export type CommunityApi = {
   getFeed: (query: FeedQuery) => Promise<FeedPage>;
+  /** Null rather than a throw when the feed does not list it: F-04 still draws the report. */
+  getIssue: (issueId: string) => Promise<IssueDetails | null>;
   getComments: (issueId: string, page: number, pageSize: number) => Promise<CommentsPage>;
   /** CommunityHub.VoteIssue. Toggles: the hub deletes an existing vote rather than erroring. */
   toggleConfirm: (issueId: string) => Promise<VoteResult>;

@@ -8,7 +8,7 @@ import {
 } from '@/api/mockScenario';
 
 import { applyFeedQuery } from '../feedQuery';
-import { SEED_COMMENTS, SEED_POSTS } from '../fixtures';
+import { SEED_COMMENTS, SEED_POSTS, SEED_VOICE } from '../fixtures';
 
 import type {
   Comment,
@@ -16,6 +16,7 @@ import type {
   CommunityApi,
   FeedPage,
   FeedQuery,
+  IssueDetails,
   VoteResult,
 } from '../types';
 
@@ -45,6 +46,20 @@ export async function getFeed(query: FeedQuery): Promise<FeedPage> {
   failOnErrorScenario(FEED_ERROR);
 
   return applyFeedQuery(emptyOnEmptyScenario(posts), query);
+}
+
+export async function getIssue(issueId: string): Promise<IssueDetails | null> {
+  await mockDelay(LATENCY.feed);
+  failOnErrorScenario(FEED_ERROR);
+
+  const post = posts.find(row => row.issueId === issueId);
+  if (!post) {
+    return null;
+  }
+
+  const voice = SEED_VOICE[issueId];
+
+  return { ...post, voiceUrl: voice?.url, transcript: voice?.transcript };
 }
 
 export async function getComments(
@@ -118,6 +133,7 @@ export async function postComment(issueId: string, text: string): Promise<Commen
 
 export const communityApi: CommunityApi = {
   getFeed,
+  getIssue,
   getComments,
   toggleConfirm,
   shareIssue,

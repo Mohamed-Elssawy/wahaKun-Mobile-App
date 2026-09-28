@@ -7,21 +7,34 @@ import type { LucideIcon } from 'lucide-react-native';
 
 export type DiagnosisNoteProps = {
   icon: LucideIcon;
+  /**
+   * F-04 labels each note - "الأعراض المطابقة", "الإجراء الموصى به" - because its card title
+   * names the diagnosis rather than the paragraph. F-03a's title already says it, so it omits
+   * this and the note reads as one block.
+   */
+  label?: string;
   children: string;
 };
 
 const ICON_SIZE = 24;
 
-/** No inline label: the card title already says what the paragraph is. */
-export function DiagnosisNote({ icon: Icon, children }: DiagnosisNoteProps) {
+export function DiagnosisNote({ icon: Icon, label, children }: DiagnosisNoteProps) {
   return (
     <View style={styles.row}>
       {/* row-reverse puts the glyph on the right, where the eye starts in Arabic. */}
       <Icon size={ICON_SIZE} color={colors.primary} />
 
-      <Text variant="body14" align="right" style={styles.text}>
-        {children}
-      </Text>
+      <View style={styles.body}>
+        {label ? (
+          <Text variant="label14" color="textMuted" align="right">
+            {label}
+          </Text>
+        ) : null}
+
+        <Text variant="body14" align="right">
+          {children}
+        </Text>
+      </View>
     </View>
   );
 }
@@ -33,7 +46,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: spacing[12],
   },
-  text: {
+  body: {
     flex: 1,
   },
 });

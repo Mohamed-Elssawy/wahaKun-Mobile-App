@@ -1,39 +1,51 @@
-import { CheckCircle2, ChevronLeft, Clock } from 'lucide-react-native';
+import { CheckCircle2, ChevronLeft } from 'lucide-react-native';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/components/ui';
+import { CommentComposer } from '@/features/community/components/CommentComposer';
 import { CommentThread } from '@/features/community/components/CommentThread';
+import { TierBadge } from '@/features/community/components/TierBadge';
+import { distanceKm } from '@/features/community/distance';
+import { hasCoordinates } from '@/features/community/feedQuery';
 import { useIssueComments } from '@/features/community/hooks/useIssueComments';
+import { useIssueContext } from '@/features/community/hooks/useIssueContext';
+import { describeTierDisplay } from '@/features/map/tier';
 import type { ScreenProps } from '@/navigation/types';
-import { colors, radii, screenPadding, spacing } from '@/theme';
+import { colors, screenPadding, spacing } from '@/theme';
 
-import { CaptureNotice } from '../../components/CaptureNotice';
 import { ConfidenceGauge } from '../../components/ConfidenceGauge';
-import { DiagnosisCard } from '../../components/DiagnosisCard';
 import { DiagnosisNote } from '../../components/DiagnosisNote';
+import { IssueIdentityBar } from '../../components/IssueIdentityBar';
+import { IssueTranscript } from '../../components/IssueTranscript';
 import { ProgressRing } from '../../components/ProgressRing';
 import { ReportErrorView } from '../../components/ReportErrorView';
 import { ReportHero } from '../../components/ReportHero';
 import { ReportStatusTrack } from '../../components/ReportStatusTrack';
-import { formatReportReference } from '../../format';
+import { VoicePlayerCard } from '../../components/VoicePlayerCard';
 import { useIssueDetails } from '../../hooks/useIssueDetails';
-import { formatRelativeTime } from '../../relativeTime';
 
-const DIAGNOSIS_TITLE = 'تشخيص الذكاء الاصطناعي';
+const DIAGNOSIS_LABEL = 'تشخيص الذكاء الاصطناعي';
 const STATUS_TITLE = 'حالة البلاغ';
-const FULL_DIAGNOSIS = 'تتبع كامل';
+const FULL_TRACKER = 'تتبع كامل';
 const UNTITLED = 'بلاغ بدون وصف';
-const META_ICON_SIZE = 14;
+const SYMPTOMS_LABEL = 'الأعراض المطابقة';
+const ACTION_LABEL = 'الإجراء الموصى به';
+const NO_DIAGNOSIS = 'لم يكتمل تحليل الذكاء الاصطناعي بعد.';
+
 const LINK_ICON_SIZE = 18;
 
 /** F-04. Reuses F-03a's leaves, not its screen: the two arrange them differently. */
-// The frame's voice player, reporter, distance and comments have no endpoint.
 export default function IssueDetailsScreen({
   route,
   navigation,
 }: ScreenProps<'IssueDetails'>) {
   const { reportId } = route.params;
+  const insets = useSafeAreaInsets();
+
+  // Three hooks, three services. A failure in any one leaves the other two on screen.
   const { report, isOwnReport, error, isLoading, retry } = useIssueDetails(reportId);
+  const { issue, origin, share } = useIssueContext(reportId);
   const comments = useIssueComments(reportId);
 
   if (isLoading) {
@@ -58,80 +70,121 @@ export default function IssueDetailsScreen({
 
   const analysis = report.analysis;
   const photo = report.attachments.find(attachment => attachment.type === 'Photo');
-  const title = analysis?.problemArabic || report.description || UNTITLED;
+  const voiceUrl =
+    issue?.voiceUrl ?? report.attachments.find(a => a.type === 'Voice')?.url;
+  const title = analysis?.problemArabic || issue?.title || report.description || UNTITLED;
+
+  const distanceLabel =
+    origin && issue && hasCoordinates(issue)
+      ? `${distanceKm(origin, issue).toFixed(1)} كم`
+      : undefined;
+
+  /**
+   * F-06 is the issue tracker, and it carries scheduling and expert detail that only the
+   * farmer who filed the report may read. isOwnReport compares the signed-in account against
+   * the reporter and fails closed, so this is hidden for everyone else - and hidden rather
+   * than disabled, because a disabled control still tells them the tracker exists.
+   */
+  // F-06 is not built yet, so the link opens the full diagnosis, which is the closest screen
+  // the farmer already owns. Point it at IssueTracker when that route lands.
+  const openTracker = () => navigation.navigate('ReportDiagnosis', { reportId });
+
+  const trackerLink = isOwnReport ? (
+    <TouchableOpacity
+      style={styles.link}
+      onPress={openTracker}
+      accessibilityRole="link"
+      accessibilityLabel={FULL_TRACKER}
+    >
+      <Text variant="label16Bold" color="primary">
+        {FULL_TRACKER}
+      </Text>
+      <ChevronLeft size={LINK_ICON_SIZE} color={colors.primary} />
+    </TouchableOpacity>
+  ) : null;
 
   return (
     <View style={styles.screen}>
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         <ReportHero
           photoUrl={photo?.url}
           title={title}
           severity={analysis?.severity}
+          hasVoice={Boolean(voiceUrl)}
           onBack={navigation.goBack}
+          onShare={() => share()}
+          badge={
+            issue && issue.tier !== 'resolved' ? (
+              <TierBadge
+                tier={issue.tier}
+                label={describeTierDisplay(issue.tier).shortLabel}
+              />
+            ) : undefined
+          }
         />
 
-        <View style={styles.meta}>
-          <View style={styles.chip}>
-            <Text variant="label12" color="textSecondary">
-              {formatReportReference(report.id)}
-            </Text>
-          </View>
-
-          <Clock size={META_ICON_SIZE} color={colors.textSecondary} />
-          <Text variant="label12" color="textSecondary">
-            {formatRelativeTime(report.createdAt)}
-          </Text>
-        </View>
+        <IssueIdentityBar
+          reportId={report.id}
+          authorName={issue?.reporterName}
+          authorPicture={issue?.reporterPicture}
+          createdAt={issue?.createdAt ?? report.createdAt}
+          distanceLabel={distanceLabel}
+        />
 
         <View style={styles.body}>
-          {analysis ? (
-            <DiagnosisCard title={DIAGNOSIS_TITLE}>
-              <View style={styles.summary}>
-                <Text variant="h4" align="right" style={styles.summaryTitle}>
-                  {title}
-                </Text>
-                <ConfidenceGauge confidence={analysis.confidence} compact />
-              </View>
+          {voiceUrl ? <VoicePlayerCard voiceUrl={voiceUrl} /> : null}
 
-              {/* A summary: all seven repair steps here buried the status track. */}
-              {analysis.explanation ? (
-                <DiagnosisNote icon={CheckCircle2}>{analysis.explanation}</DiagnosisNote>
-              ) : null}
+          {issue?.transcript ? <IssueTranscript transcript={issue.transcript} /> : null}
 
-              {analysis.recommendation ? (
-                <DiagnosisNote icon={CheckCircle2}>
-                  {analysis.recommendation}
-                </DiagnosisNote>
-              ) : null}
+          <View style={styles.section}>
+            <Text variant="label16" color="textMuted" align="right">
+              {DIAGNOSIS_LABEL}
+            </Text>
 
-              {/* Only this device's reports have a full diagnosis screen to open. */}
-              {isOwnReport ? (
-                <TouchableOpacity
-                  style={styles.link}
-                  onPress={() => navigation.navigate('ReportDiagnosis', { reportId })}
-                  accessibilityRole="link"
-                  accessibilityLabel={FULL_DIAGNOSIS}
-                >
-                  <Text variant="label14Bold" color="primary">
-                    {FULL_DIAGNOSIS}
+            {analysis ? (
+              <>
+                <View style={styles.summary}>
+                  <Text variant="h4" align="right" style={styles.summaryTitle}>
+                    {title}
                   </Text>
-                  <ChevronLeft size={LINK_ICON_SIZE} color={colors.primary} />
-                </TouchableOpacity>
-              ) : null}
-            </DiagnosisCard>
-          ) : (
-            <CaptureNotice
-              title="لا يوجد تشخيص لهذا البلاغ"
-              message="لم يكتمل تحليل الذكاء الاصطناعي بعد."
-            />
-          )}
+                  <ConfidenceGauge confidence={analysis.confidence} compact />
+                </View>
 
-          <DiagnosisCard title={STATUS_TITLE}>
+                {/* A summary: all seven repair steps here buried the status track. */}
+                {analysis.explanation ? (
+                  <DiagnosisNote icon={CheckCircle2} label={SYMPTOMS_LABEL}>
+                    {analysis.explanation}
+                  </DiagnosisNote>
+                ) : null}
+
+                {analysis.recommendation ? (
+                  <DiagnosisNote icon={CheckCircle2} label={ACTION_LABEL}>
+                    {analysis.recommendation}
+                  </DiagnosisNote>
+                ) : null}
+
+                {trackerLink}
+              </>
+            ) : (
+              <Text variant="body14" color="textSecondary" align="right">
+                {NO_DIAGNOSIS}
+              </Text>
+            )}
+          </View>
+
+          <View style={styles.section}>
+            <Text variant="label16" color="textMuted" align="right">
+              {STATUS_TITLE}
+            </Text>
+
             <ReportStatusTrack status={report.status} />
-          </DiagnosisCard>
+
+            {trackerLink}
+          </View>
 
           <CommentThread
             comments={comments.comments}
@@ -145,6 +198,16 @@ export default function IssueDetailsScreen({
           />
         </View>
       </ScrollView>
+
+      {/* Outside the ScrollView: the frame pins it above the tab bar, not under the thread. */}
+      <View style={{ paddingBottom: insets.bottom }}>
+        <CommentComposer
+          canPost={comments.canPost}
+          isPosting={comments.isPosting}
+          onSubmit={comments.post}
+          errorMessage={comments.postError?.message}
+        />
+      </View>
     </View>
   );
 }
@@ -152,21 +215,19 @@ export default function IssueDetailsScreen({
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.background,
+    // surface, not background: F-04's body is a full-bleed white sheet under the hero.
+    backgroundColor: colors.surface,
   },
   content: {
     paddingBottom: spacing[32],
   },
-  meta: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    gap: spacing[8],
-    paddingHorizontal: screenPadding,
-    paddingVertical: spacing[16],
-  },
   body: {
     paddingHorizontal: screenPadding,
-    gap: spacing[24],
+    paddingTop: spacing[24],
+    gap: spacing[32],
+  },
+  section: {
+    gap: spacing[12],
   },
   summary: {
     flexDirection: 'row-reverse',
@@ -182,14 +243,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'flex-start',
     gap: spacing[4],
-    // Its own 48dp target: it sits inside a card with no other padding to borrow.
+    // Its own 48dp target: it sits in a section with no other padding to borrow.
     minHeight: 48,
-  },
-  chip: {
-    backgroundColor: colors.surfaceMuted,
-    borderRadius: radii[4],
-    paddingHorizontal: spacing[8],
-    paddingVertical: spacing[2],
   },
   centred: {
     flex: 1,
@@ -197,6 +252,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing[24],
     paddingHorizontal: screenPadding,
-    backgroundColor: colors.background,
+    backgroundColor: colors.surface,
   },
 });

@@ -7,7 +7,7 @@
 import { API_ENDPOINTS, apiClient } from '@/api';
 import { ApiError } from '@/api/errors';
 import { API_BASE_URLS } from '@/config/env';
-import { getMapIssues } from '@/features/map/services/mapService';
+import { getMapIssueById, getMapIssues } from '@/features/map/services/mapService';
 import type { MapIssue } from '@/features/map/types';
 import { toUtcTimestamp } from '@/features/reports/services/reportService';
 import { getUserDetails } from '@/features/user/services/userService';
@@ -22,6 +22,7 @@ import type {
   FeedPage,
   FeedPost,
   FeedQuery,
+  IssueDetails,
   VoteResult,
 } from '../types';
 
@@ -65,6 +66,14 @@ export async function getFeed(query: FeedQuery): Promise<FeedPage> {
   const issues = await getMapIssues();
 
   return applyFeedQuery(issues.map(toPost), query);
+}
+
+/** SearchForIssueInMap is the only read endpoint for someone else's issue, and it is thin. */
+// No voice and no transcript: MapResponseDto lists neither, and nothing else returns an issue.
+export async function getIssue(issueId: string): Promise<IssueDetails | null> {
+  const issue = await getMapIssueById(issueId);
+
+  return issue ? toPost(issue) : null;
 }
 
 /** One lookup per distinct author, not per comment: a thread repeats its participants. */
@@ -135,6 +144,7 @@ export async function postComment(_issueId: string, _text: string): Promise<Comm
 
 export const communityApi: CommunityApi = {
   getFeed,
+  getIssue,
   getComments,
   toggleConfirm,
   shareIssue,
