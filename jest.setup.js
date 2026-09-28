@@ -72,6 +72,25 @@ jest.mock('react-native-nitro-image', () => {
   };
 });
 
+// Nitro HybridObject: importing it outside the app throws, and useAudioPlayer imports it at module scope.
+jest.mock('react-native-nitro-sound', () => {
+  const sound = {
+    startPlayer: jest.fn(() => Promise.resolve('/mock/voice.m4a')),
+    stopPlayer: jest.fn(() => Promise.resolve('stopped')),
+    pausePlayer: jest.fn(() => Promise.resolve('paused')),
+    resumePlayer: jest.fn(() => Promise.resolve('resumed')),
+    seekToPlayer: jest.fn(() => Promise.resolve('seeked')),
+    setSubscriptionDuration: jest.fn(),
+    addPlayBackListener: jest.fn(),
+    removePlayBackListener: jest.fn(),
+    addPlaybackEndListener: jest.fn(),
+    removePlaybackEndListener: jest.fn(),
+    mmss: jest.fn(secs => `00:${String(Math.floor(secs)).padStart(2, '0')}`),
+  };
+
+  return { __esModule: true, default: sound, Sound: sound };
+});
+
 // Native module with no JS fallback. Resolves a fix at once so useCurrentLocation has one.
 jest.mock('@react-native-community/geolocation', () => ({
   __esModule: true,
