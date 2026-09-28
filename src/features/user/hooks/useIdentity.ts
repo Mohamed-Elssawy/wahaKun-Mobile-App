@@ -28,6 +28,9 @@ export function useIdentity() {
   const region = [user?.region, user?.village].filter(Boolean).join('، ');
 
   return {
+    /** Who the signed-in farmer is. Undefined until UserService answers, and if it never does. */
+    // Consumers gating on ownership must fail closed on undefined: see useIssueDetails.
+    userId: user?.id || undefined,
     displayName: user?.fullName || '',
     // Same resolver the profile screen uses, so a profile-pictures/ key resolves the same way.
     avatarUrl: user?.picture ? resolveProfilePictureUrl(user.picture) : undefined,

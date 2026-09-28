@@ -2,8 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { getMapIssueById } from '@/features/map/services/mapService';
 import type { MapIssue } from '@/features/map/types';
+import { useIdentity } from '@/features/user/hooks/useIdentity';
 
 import { describeError } from '../errors';
+import { isReportOwner } from '../ownership';
 import { reportApi } from '../services';
 
 import type { ReportError } from '../errors';
@@ -42,9 +44,10 @@ export function useIssueDetails(issueId: string) {
   const [error, setError] = useState<ReportError | null>(null);
   // True from the start, so the first frame is the spinner and not an empty screen.
   const [isLoading, setIsLoading] = useState(true);
-  /** False when the row came from the map, which is what hides the full-diagnosis link. */
-  const [isOwnReport, setIsOwnReport] = useState(false);
+  /** True when the local mirror holds it, which only means this device filed it. */
+  const [isMirrored, setIsMirrored] = useState(false);
   const isMounted = useRef(true);
+  const { userId } = useIdentity();
 
   // Its own empty dependency list: lifetime is a separate question from which load is live.
   useEffect(() => {
@@ -61,13 +64,13 @@ export function useIssueDetails(issueId: string) {
       const own = await reportApi.getReportById(issueId);
       if (isMounted.current) {
         setReport(own);
-        setIsOwnReport(true);
+        setIsMirrored(true);
         // This return skips the fallback's finally, so a report the mirror holds spun forever.
         setIsLoading(false);
       }
       return;
     } catch {
-      // Not this device's report, which is the normal case from the feed.
+      // Not on this device, which is the normal case for anything opened from the feed.
     }
 
     try {
@@ -79,7 +82,7 @@ export function useIssueDetails(issueId: string) {
 
       if (issue) {
         setReport(fromMapIssue(issue));
-        setIsOwnReport(false);
+        setIsMirrored(false);
       } else {
         setError({ kind: 'unknown', message: LOAD_ERROR });
       }
@@ -98,5 +101,9 @@ export function useIssueDetails(issueId: string) {
     load();
   }, [load]);
 
-  return { report, isOwnReport, error, isLoading, retry: load };
+  // Identity, not the mirror - see ownership.ts. Hiding the control is not the protection:
+  // whatever F-06 calls must authorise the caller server-side too.
+  const isOwnReport = isReportOwner(userId, report?.reporterId);
+
+  return { report, isOwnReport, isMirrored, error, isLoading, retry: load };
 }
