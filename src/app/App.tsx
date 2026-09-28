@@ -5,6 +5,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { getAccessToken } from '@/api';
+import { DEMO_MODE } from '@/config/env';
 import { RegistrationProvider } from '@/features/onboarding/context/RegistrationContext';
 import { hasSeenIntro } from '@/features/onboarding/services/firstRunStore';
 import { startReportQueue } from '@/features/reports/services/reportQueue';
@@ -13,7 +14,10 @@ import type { BootRoute } from '@/navigation/types';
 
 /** A stored session boots straight to Home; otherwise first-run decides intro vs welcome. */
 async function resolveBootRoute(): Promise<BootRoute> {
-  if (await getAccessToken()) {
+  // Auth has no mock - AuthService and Firebase are the only ways to get a token - so without
+  // this the demo stops at the login screen and no flag downstream is ever reached. This is a
+  // committed flag defaulting to false, not the hardcoded initialRouteName boot shortcut.
+  if (DEMO_MODE || (await getAccessToken())) {
     return 'Home';
   }
   return (await hasSeenIntro()) ? 'Welcome' : 'IntroSlideshow';

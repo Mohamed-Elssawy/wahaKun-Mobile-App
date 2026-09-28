@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { getMapIssueById } from '@/features/map/services/mapService';
-import type { MapIssue } from '@/features/map/types';
+import { communityApi } from '@/features/community/services';
+import type { IssueDetails } from '@/features/community/types';
 import { useIdentity } from '@/features/user/hooks/useIdentity';
 
 import { describeError } from '../errors';
@@ -13,21 +13,23 @@ import type { Report } from '../types';
 
 const LOAD_ERROR = 'تعذر تحميل البلاغ، حاول مرة أخرى';
 
-/** Everything a map row can tell us. No analysis: MapResponseDto carries none. */
-function fromMapIssue(issue: MapIssue): Report {
+/** Everything the feed can tell us. No analysis: no read endpoint returns one. */
+function fromIssueDetails(issue: IssueDetails): Report {
   return {
-    id: issue.id,
+    id: issue.issueId,
     title: issue.title,
+    description: issue.description,
     status: issue.status,
     createdAt: issue.createdAt,
-    // The map does not say who filed it, and inventing an id would be worse than none.
-    reporterId: '',
+    // Empty on the real path, where MapResponseDto carries no reporterId. isReportOwner
+    // fails closed on that, which is the point.
+    reporterId: issue.reporterId ?? '',
     latitude: issue.latitude,
     longitude: issue.longitude,
     attachments: issue.photoUrl
       ? [
           {
-            id: `${issue.id}-photo`,
+            id: `${issue.issueId}-photo`,
             type: 'Photo',
             url: issue.photoUrl,
             createdAt: issue.createdAt,
@@ -37,8 +39,10 @@ function fromMapIssue(issue: MapIssue): Report {
   };
 }
 
-/** Resolves an issue whoever filed it: the mirror holds this device's, the map answers for the rest. */
-// A map row carries no diagnosis, which is why the screen treats a missing analysis as normal.
+/** Resolves an issue whoever filed it: the mirror holds this device's, the feed answers for the rest. */
+// Through communityApi rather than mapService directly, so both halves of F-04 read the same
+// source and the one flag switches both. The real implementation still calls the map.
+// A feed row carries no diagnosis, which is why the screen treats a missing analysis as normal.
 export function useIssueDetails(issueId: string) {
   const [report, setReport] = useState<Report | null>(null);
   const [error, setError] = useState<ReportError | null>(null);
@@ -74,14 +78,14 @@ export function useIssueDetails(issueId: string) {
     }
 
     try {
-      const issue = await getMapIssueById(issueId);
+      const issue = await communityApi.getIssue(issueId);
 
       if (!isMounted.current) {
         return;
       }
 
       if (issue) {
-        setReport(fromMapIssue(issue));
+        setReport(fromIssueDetails(issue));
         setIsMirrored(false);
       } else {
         setError({ kind: 'unknown', message: LOAD_ERROR });
