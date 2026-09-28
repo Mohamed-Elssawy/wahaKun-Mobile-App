@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { getUserDetails, resolveProfilePictureUrl } from '../services/userService';
+import { resolveProfilePictureUrl, userApi } from '../services';
 
 import type { UserDetails } from '../types';
 
@@ -11,7 +11,7 @@ export function useIdentity() {
   useEffect(() => {
     let cancelled = false;
 
-    getUserDetails()
+    userApi.getUserDetails()
       .then(details => {
         if (!cancelled) {
           setUser(details);

@@ -10,7 +10,7 @@ import { API_BASE_URLS } from '@/config/env';
 import { getMapIssueById, getMapIssues } from '@/features/map/services/mapService';
 import type { MapIssue } from '@/features/map/types';
 import { toUtcTimestamp } from '@/features/reports/services/reportService';
-import { getUserDetails } from '@/features/user/services/userService';
+import { userApi } from '@/features/user/services';
 
 import { applyFeedQuery } from '../feedQuery';
 
@@ -83,7 +83,7 @@ async function resolveAuthors(userIds: readonly string[]): Promise<Map<string, s
   const entries = await Promise.all(
     unique.map(async userId => {
       try {
-        const user = await getUserDetails(userId);
+        const user = await userApi.getUserDetails(userId);
         return [userId, user.fullName || UNKNOWN_AUTHOR] as const;
       } catch {
         // A missing name must not empty the thread; the comment still has its text.

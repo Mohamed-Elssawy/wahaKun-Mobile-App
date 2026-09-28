@@ -1,5 +1,7 @@
 // camelCase, not the C# casing: AddControllers() renames every property, so PascalCase reads undefined.
 
+import type { PickedImage } from '@/types/image';
+
 /** UserUpdateRequest. Every field optional; only what changed should be sent. */
 // Binding is case-insensitive server-side, but the response is not, so both stay camelCase.
 export type UserUpdateRequest = {
@@ -29,4 +31,12 @@ export type UploadFileResponse = {
   fileName: string;
   filePath: string;
   fileUrl: string;
+};
+
+/** Typing services/index.ts as this is what stops the mock promising data the server won't. */
+export type UserApi = {
+  /** No argument reads the signed-in farmer; an id reads anyone, which the feed needs. */
+  getUserDetails: (userId?: string) => Promise<UserDetails>;
+  updateUserDetails: (payload: UserUpdateRequest) => Promise<void>;
+  uploadProfilePicture: (image: PickedImage) => Promise<string>;
 };

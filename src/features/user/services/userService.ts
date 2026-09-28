@@ -4,7 +4,12 @@ import { API_BASE_URLS, UPLOAD_TIMEOUT_MS } from '@/config/env';
 import { resolveAttachmentUrl } from '@/features/reports/services/reportService';
 import type { PickedImage } from '@/types/image';
 
-import type { UploadFileResponse, UserDetails, UserUpdateRequest } from '../types';
+import type {
+  UploadFileResponse,
+  UserApi,
+  UserDetails,
+  UserUpdateRequest,
+} from '../types';
 
 const BASE = API_BASE_URLS.user;
 
@@ -52,3 +57,9 @@ export function resolveProfilePictureUrl(value: string): string {
 
   return `${API_BASE_URLS.media}${API_ENDPOINTS.storage.download(value)}`;
 }
+
+export const userApi: UserApi = {
+  getUserDetails,
+  updateUserDetails,
+  uploadProfilePicture,
+};

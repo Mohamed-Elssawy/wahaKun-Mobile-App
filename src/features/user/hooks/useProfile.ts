@@ -4,8 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { describeError } from '@/features/reports/errors';
 import type { ReportError } from '@/features/reports/errors';
 
+import { userApi } from '../services';
 import { loadPreferences, savePreference } from '../services/preferencesStore';
-import { getUserDetails, updateUserDetails } from '../services/userService';
 
 import type { NotificationPreferences } from '../services/preferencesStore';
 import type { UserDetails, UserUpdateRequest } from '../types';
@@ -35,7 +35,7 @@ export function useProfile() {
 
     try {
       // Preferences are device-local, so they must not fail with the network call.
-      const [details, stored] = await Promise.all([getUserDetails(), loadPreferences()]);
+      const [details, stored] = await Promise.all([userApi.getUserDetails(), loadPreferences()]);
       if (isMounted.current) {
         setUser(details);
         setPreferences(stored);
@@ -81,7 +81,7 @@ export function useProfile() {
       setSaveError(null);
 
       try {
-        await updateUserDetails(payload);
+        await userApi.updateUserDetails(payload);
         if (isMounted.current) {
           setUser(current => (current ? { ...current, ...changes } : current));
         }
