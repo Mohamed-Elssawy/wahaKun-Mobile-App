@@ -17,10 +17,18 @@ One switch puts the **whole app** on mocks, for a demo with no backend running:
 export const DEMO_MODE = true;
 ```
 
-Every per-feature flag ORs against it, so nothing else needs touching and nothing
-needs putting back afterwards. It also boots straight to `Home`, because auth has
-no mock — `AuthService` and Firebase are the only ways to get a token, so without
-that the demo would stop at the login screen and never reach a flag.
+Every per-feature flag ORs against it (`USE_MOCK_REPORTS`, `USE_MOCK_COMMUNITY`,
+`USE_MOCK_USER`, `ENABLE_COMMENT_POSTING`), so nothing else needs touching and
+nothing needs putting back afterwards.
+
+Two things it does beyond flipping flags, both found by running it on a device:
+
+- **It boots straight to `Home`.** Auth has no mock — `AuthService` and Firebase
+  are the only ways to get a token — so otherwise the demo stops at the login
+  screen and never reaches a flag.
+- **It mocks UserService.** That service is the only thing that answers "who am
+  I", so without it the header has no name, the profile is empty, every comment
+  falls back to the placeholder author, and F-04's tracker link can never show.
 
 It is a committed constant defaulting to `false`, not the hardcoded
 `initialRouteName` boot shortcut that must never be committed.
