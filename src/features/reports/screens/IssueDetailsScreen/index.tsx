@@ -153,9 +153,14 @@ export default function IssueDetailsScreen({
         />
 
         <View style={styles.body}>
-          {voiceUrl ? <VoicePlayerCard voiceUrl={voiceUrl} /> : null}
-
-          {issue?.transcript ? <IssueTranscript transcript={issue.transcript} /> : null}
+          {/* One section in the frame: the waveform and its transcript sit 16 apart, where
+              the gap to the next section is 40. */}
+          {voiceUrl || issue?.transcript ? (
+            <View style={styles.voiceGroup}>
+              {voiceUrl ? <VoicePlayerCard voiceUrl={voiceUrl} /> : null}
+              {issue?.transcript ? <IssueTranscript transcript={issue.transcript} /> : null}
+            </View>
+          ) : null}
 
           <View style={styles.section}>
             <Text variant="label16" color="textMuted" align="right">
@@ -241,7 +246,10 @@ const styles = StyleSheet.create({
   body: {
     paddingHorizontal: screenPadding,
     paddingTop: spacing[24],
-    gap: spacing[32],
+    gap: spacing[40],
+  },
+  voiceGroup: {
+    gap: spacing[16],
   },
   section: {
     gap: spacing[12],

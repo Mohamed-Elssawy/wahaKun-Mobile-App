@@ -1,6 +1,7 @@
 import { ChevronRight, Mic, Share2 } from 'lucide-react-native';
 import { ImageBackground, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Defs, LinearGradient, Rect, Stop, Svg } from 'react-native-svg';
 
 import { Text } from '@/components/ui';
 import { colors, radii, screenPadding, spacing } from '@/theme';
@@ -23,12 +24,14 @@ export type ReportHeroProps = {
   hasVoice?: boolean;
 };
 
-const HEIGHT = 215;
+const HEIGHT = 204;
 const CONTROL_SIZE = 40;
-const CONTROL_ICON = 24;
+const CONTROL_ICON = 22;
 const PLACEHOLDER_ICON = 48;
 
-/** Flat scrim, not a gradient: one header does not justify a native module for it. */
+/** The title needs this much cover; above it the photo stays at full brightness. */
+const SCRIM_HEIGHT = 110;
+
 export function ReportHero({
   photoUrl,
   title,
@@ -47,14 +50,24 @@ export function ReportHero({
       // Must be the prop: inside imageStyle it is ignored, leaving a band under a photo.
       resizeMode="cover"
     >
-      {/* Under the scrim, so the title keeps its contrast over the placeholder too. */}
       {!photoUrl && hasVoice ? (
         <View style={styles.placeholder}>
           <Mic size={PLACEHOLDER_ICON} color={colors.primary} />
         </View>
       ) : null}
 
-      <View style={styles.scrim} />
+      {/* A gradient over the lower third, not a flat wash over the whole photo: the frame
+          keeps the image at full brightness behind the controls and darkens only the title.
+          Drawn with react-native-svg, which is already here for the progress rings. */}
+      <Svg style={styles.scrim} width="100%" height={SCRIM_HEIGHT}>
+        <Defs>
+          <LinearGradient id="heroScrim" x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0" stopColor={colors.shadow} stopOpacity="0" />
+            <Stop offset="1" stopColor={colors.shadow} stopOpacity="0.65" />
+          </LinearGradient>
+        </Defs>
+        <Rect x="0" y="0" width="100%" height={SCRIM_HEIGHT} fill="url(#heroScrim)" />
+      </Svg>
 
       <View style={styles.top}>
         <TouchableOpacity
@@ -63,7 +76,7 @@ export function ReportHero({
           accessibilityRole="button"
           accessibilityLabel="رجوع"
         >
-          <ChevronRight size={CONTROL_ICON} color={colors.textInverse} />
+          <ChevronRight size={CONTROL_ICON} color={colors.textPrimary} />
         </TouchableOpacity>
 
         {onShare ? (
@@ -73,17 +86,25 @@ export function ReportHero({
             accessibilityRole="button"
             accessibilityLabel="مشاركة البلاغ"
           >
-            <Share2 size={CONTROL_ICON} color={colors.textInverse} />
+            <Share2 size={CONTROL_ICON} color={colors.textPrimary} />
           </TouchableOpacity>
         ) : null}
       </View>
 
+      {/* Badge beside the title, not above it: the frame puts it on the opposite edge of the
+          same row, so a two-line title wraps past it rather than pushing it down. */}
       <View style={styles.bottom}>
-        {badge ?? (severity ? <SeverityBadge severity={severity} /> : null)}
-
-        <Text variant="h4" color="textInverse" align="right" numberOfLines={2}>
+        <Text
+          variant="h4"
+          color="textInverse"
+          align="right"
+          numberOfLines={2}
+          style={styles.title}
+        >
           {title}
         </Text>
+
+        {badge ?? (severity ? <SeverityBadge severity={severity} /> : null)}
       </View>
     </ImageBackground>
   );
@@ -99,11 +120,9 @@ const styles = StyleSheet.create({
   },
   scrim: {
     position: 'absolute',
-    top: 0,
     right: 0,
     bottom: 0,
     left: 0,
-    backgroundColor: colors.overlay,
   },
   placeholder: {
     position: 'absolute',
@@ -124,12 +143,17 @@ const styles = StyleSheet.create({
     width: CONTROL_SIZE,
     height: CONTROL_SIZE,
     borderRadius: radii.pill,
-    backgroundColor: colors.overlay,
+    // Solid white with a dark glyph, as the frame draws it - not a translucent scrim disc.
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
   bottom: {
-    alignItems: 'flex-end',
-    gap: spacing[8],
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: spacing[12],
+  },
+  title: {
+    flex: 1,
   },
 });

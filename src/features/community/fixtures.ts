@@ -10,7 +10,7 @@ const photo = (seed: string) => `https://picsum.photos/seed/${seed}/900/600`;
 
 export const SEED_POSTS: readonly FeedPost[] = [
   {
-    issueId: 'i-1043',
+    issueId: '1043',
     title: 'تسريب كبير في القناة الرئيسية',
     description:
       'تسريب كبير في القناة الرئيسية قرب مزرعة النخيل — المياه تفقد بشكل ملحوظ',
@@ -30,7 +30,7 @@ export const SEED_POSTS: readonly FeedPost[] = [
   },
   {
     // Already confirmed by this farmer: the frame's filled button state.
-    issueId: 'i-1044',
+    issueId: '1044',
     title: 'انخفاض في ضغط المياه',
     description: 'انخفاض ملحوظ في ضغط المياه في القطاع الشرقي، يؤثر على الري الصباحي',
     photoUrl: photo('wahakun-pump'),
@@ -49,7 +49,7 @@ export const SEED_POSTS: readonly FeedPost[] = [
   },
   {
     // No photo and no voice: the card falls back to its description alone.
-    issueId: 'i-1045',
+    issueId: '1045',
     title: 'تلف في بوابة التحكم الرئيسية',
     description: 'تلف في بوابة التحكم الرئيسية — المدخل الغربي',
     hasVoice: false,
@@ -67,7 +67,7 @@ export const SEED_POSTS: readonly FeedPost[] = [
   },
   {
     // Resolved: no severity badge and no confirm row.
-    issueId: 'i-1046',
+    issueId: '1046',
     title: 'تشقق في جدار القناة الرئيسية',
     description: 'تشقق في جدار القناة الرئيسية — قرب نقطة التحويل',
     photoUrl: photo('wahakun-crack'),
@@ -86,7 +86,7 @@ export const SEED_POSTS: readonly FeedPost[] = [
   },
   {
     // Voice-only, and every counter at zero: a report filed a minute ago.
-    issueId: 'i-1047',
+    issueId: '1047',
     title: 'صوت غريب من مضخة الغرب',
     hasVoice: true,
     status: 'Reported',
@@ -103,7 +103,7 @@ export const SEED_POSTS: readonly FeedPost[] = [
   },
   {
     // Long title and long description with no photo: the overflow case.
-    issueId: 'i-1048',
+    issueId: '1048',
     title:
       'انسداد كامل في المصرف الفرعي الممتد بين مزرعة النخيل الشرقية وحدود أراضي عائلة الشيخ ناصر',
     description:
@@ -123,7 +123,7 @@ export const SEED_POSTS: readonly FeedPost[] = [
   },
   {
     // No coordinates at all: the distance line has to disappear, not read "NaN كم".
-    issueId: 'i-1049',
+    issueId: '1049',
     title: 'ملوحة مرتفعة في مياه الري',
     description: 'المياه طعمها مالح من أول أمس والزرع بدأ يصفرّ.',
     photoUrl: photo('wahakun-salinity'),
@@ -140,7 +140,7 @@ export const SEED_POSTS: readonly FeedPost[] = [
   },
   {
     // No reporter name either, so the card falls back to the placeholder author.
-    issueId: 'i-1050',
+    issueId: '1050',
     title: 'كسر في خط التغذية الفرعي',
     description: 'كسر في خط التغذية الفرعي خلف محطة الرفع.',
     photoUrl: photo('wahakun-pipe'),
@@ -163,7 +163,7 @@ const minutesAgo = (minutes: number) =>
 export const SEED_COMMENTS: readonly Comment[] = [
   {
     id: 'c-1',
-    issueId: 'i-1043',
+    issueId: '1043',
     authorId: 'u-2',
     authorName: 'سيد حسن',
     isExpert: false,
@@ -172,7 +172,7 @@ export const SEED_COMMENTS: readonly Comment[] = [
   },
   {
     id: 'c-2',
-    issueId: 'i-1043',
+    issueId: '1043',
     authorId: 'u-4',
     authorName: 'أحمد حسين',
     isExpert: false,
@@ -181,7 +181,7 @@ export const SEED_COMMENTS: readonly Comment[] = [
   },
   {
     id: 'c-3',
-    issueId: 'i-1043',
+    issueId: '1043',
     authorId: 'u-9',
     authorName: 'سارة محمود',
     isExpert: true,
@@ -190,7 +190,7 @@ export const SEED_COMMENTS: readonly Comment[] = [
   },
   {
     id: 'c-4',
-    issueId: 'i-1043',
+    issueId: '1043',
     authorId: 'u-3',
     authorName: 'فاطمة سالم',
     isExpert: false,
@@ -200,7 +200,7 @@ export const SEED_COMMENTS: readonly Comment[] = [
   {
     // Long enough to wrap several lines, which is what stretches the bubble.
     id: 'c-5',
-    issueId: 'i-1043',
+    issueId: '1043',
     authorId: 'u-6',
     authorName: 'ناصر عبد العظيم',
     isExpert: false,
@@ -209,7 +209,7 @@ export const SEED_COMMENTS: readonly Comment[] = [
   },
   {
     id: 'c-6',
-    issueId: 'i-1043',
+    issueId: '1043',
     authorId: 'u-5',
     authorName: 'عبد الرحمن الشيخ',
     isExpert: false,
@@ -218,7 +218,7 @@ export const SEED_COMMENTS: readonly Comment[] = [
   },
   {
     id: 'c-7',
-    issueId: 'i-1043',
+    issueId: '1043',
     authorId: 'u-7',
     authorName: 'سعاد المرسي',
     isExpert: false,
@@ -227,7 +227,7 @@ export const SEED_COMMENTS: readonly Comment[] = [
   },
   {
     id: 'c-8',
-    issueId: 'i-1044',
+    issueId: '1044',
     authorId: 'u-1',
     authorName: 'محمود مصطفى',
     isExpert: false,
@@ -236,7 +236,7 @@ export const SEED_COMMENTS: readonly Comment[] = [
   },
   {
     id: 'c-9',
-    issueId: 'i-1046',
+    issueId: '1046',
     authorId: 'u-9',
     authorName: 'سارة محمود',
     isExpert: true,
@@ -247,12 +247,12 @@ export const SEED_COMMENTS: readonly Comment[] = [
 
 /** F-04's voice player and transcript, keyed by issue: only some issues carry a recording. */
 export const SEED_VOICE: Readonly<Record<string, { url: string; transcript: string }>> = {
-  'i-1043': {
+  '1043': {
     url: 'https://download.samplelib.com/mp3/sample-6s.mp3',
     transcript:
       'عندي مشكلة في قناة الميه، باين إنها بتسرب. المياه مش بتوصل لآخر الأرض، والمحصول هناك بدأ يعطش.',
   },
-  'i-1047': {
+  '1047': {
     url: 'https://download.samplelib.com/mp3/sample-9s.mp3',
     transcript:
       'المضخة بتطلع صوت عالي وغريب من الصبح، وكل شوية بتقف لوحدها وترجع تشتغل.',

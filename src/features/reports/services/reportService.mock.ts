@@ -44,7 +44,7 @@ const CANAL_BLOCKAGE: AiAnalysis = {
 // Seeded so every My Issues state is reachable without filing a report first.
 const SEED: Report[] = [
   {
-    id: 'r-1001',
+    id: '1001',
     title: 'انسداد في القناة',
     description: 'الماء لا يصل إلى الأرض الشمالية منذ يومين.',
     status: 'Diagnosed',
@@ -64,7 +64,7 @@ const SEED: Report[] = [
     analysis: CANAL_BLOCKAGE,
   },
   {
-    id: 'r-1002',
+    id: '1002',
     title: 'تسريب محتمل في الأنبوب',
     description: 'تسريب حول الأنبوب الرئيسي.',
     status: 'Scheduled',
@@ -99,7 +99,7 @@ const SEED: Report[] = [
     },
   },
   {
-    id: 'r-1003',
+    id: '1003',
     title: 'تسريب في القناة الفرعية',
     status: 'Completed',
     createdAt: '2026-07-20T05:48:00Z',

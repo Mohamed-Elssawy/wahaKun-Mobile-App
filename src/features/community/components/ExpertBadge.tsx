@@ -15,10 +15,11 @@ const ICON_SIZE = 16;
 export function ExpertBadge() {
   return (
     <View style={styles.badge} accessibilityRole="text" accessibilityLabel={LABEL}>
+      <BadgeCheck size={ICON_SIZE} color={colors.primaryStrong} />
+
       <Text variant="label14Bold" color="primaryStrong">
         {LABEL}
       </Text>
-      <BadgeCheck size={ICON_SIZE} color={colors.primaryStrong} />
     </View>
   );
 }

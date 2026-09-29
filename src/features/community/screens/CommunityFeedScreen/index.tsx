@@ -33,7 +33,7 @@ const EMPTY = {
 /** F-01. */
 export default function CommunityFeedScreen() {
   const navigation = useNavigation();
-  const { avatarUrl, location } = useIdentity();
+  const { avatarUrl } = useIdentity();
   const [isSortOpen, setIsSortOpen] = useState(false);
 
   const {
@@ -133,10 +133,10 @@ export default function CommunityFeedScreen() {
 
   return (
     <View style={styles.screen}>
+      {/* No location prop: F-01 has no region line under the bar, unlike F-05 and F-07. */}
       <AppHeader
         title={TITLE}
         avatarUrl={avatarUrl}
-        location={location}
         onOpenProfile={() => navigation.navigate('Profile')}
       />
 
@@ -170,6 +170,9 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingHorizontal: screenPadding,
+    // 12 to clear the chip row's divider, which the frame measures separately from the 16
+    // between cards.
+    paddingTop: spacing[12],
     paddingBottom: spacing[24],
     gap: spacing[16],
   },

@@ -58,8 +58,10 @@ export function FeedPostCard({
       <View style={styles.body}>
         <FeedCardHeader post={post} distanceLabel={distanceLabel} />
 
+        {/* body14, not body16: the frame's two lines sit 25.5 apart and its glyphs measure
+            the same as the name's, so it is 14 with the looser body leading. */}
         {post.description ? (
-          <Text variant="body16" align="right" numberOfLines={DESCRIPTION_LINES}>
+          <Text variant="body14" align="right" numberOfLines={DESCRIPTION_LINES}>
             {post.description}
           </Text>
         ) : null}
@@ -102,7 +104,9 @@ const styles = StyleSheet.create({
   },
   body: {
     padding: spacing[16],
-    gap: spacing[12],
+    // 8: with a 42 header and two body14 lines that puts the photo 123 below the strip,
+    // against the frame's 125.
+    gap: spacing[8],
   },
   divider: {
     height: StyleSheet.hairlineWidth,

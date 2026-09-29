@@ -42,10 +42,12 @@ export function ConfirmButton({
         accessibilityState={{ selected: hasConfirmed }}
         accessibilityLabel={LABEL}
       >
-        <Text variant="label16Bold" color={hasConfirmed ? 'textInverse' : 'primary'}>
+        {/* Leading, so row-reverse puts it to the right of the label. */}
+        <Icon size={ICON_SIZE} color={tint} />
+
+        <Text variant="h6" color={hasConfirmed ? 'textInverse' : 'primary'}>
           {LABEL}
         </Text>
-        <Icon size={ICON_SIZE} color={tint} />
       </TouchableOpacity>
 
       {/* Stacked, and stays at zero rather than hiding: the row's height must not jump on the

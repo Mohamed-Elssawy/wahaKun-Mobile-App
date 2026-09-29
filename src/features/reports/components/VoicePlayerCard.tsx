@@ -14,8 +14,9 @@ export type VoicePlayerCardProps = {
 const TITLE = 'التسجيل الصوتي';
 const FAILED = 'تعذر تشغيل التسجيل';
 
-const BUTTON_SIZE = 72;
-const ICON_SIZE = 32;
+/** 48 in the frame, sitting on the screen's left gutter with the waveform filling the rest. */
+const BUTTON_SIZE = 48;
+const ICON_SIZE = 22;
 
 /** F-04's player over the recording attached to an issue. */
 export function VoicePlayerCard({ voiceUrl }: VoicePlayerCardProps) {
@@ -27,7 +28,15 @@ export function VoicePlayerCard({ voiceUrl }: VoicePlayerCardProps) {
         {TITLE}
       </Text>
 
+      {/* Waveform leading at the right, button on the trailing edge: the frame puts the
+          control at the left gutter, opposite the heading. */}
       <View style={styles.row}>
+        {/* The waveform is the graphic from the frame, not the real envelope: nothing decodes
+            the audio, so the played part is filled in rather than drawn from samples. */}
+        <View style={styles.waveform}>
+          <VoiceWaveform progress={progress} />
+        </View>
+
         <TouchableOpacity
           style={styles.button}
           onPress={toggle}
@@ -35,22 +44,13 @@ export function VoicePlayerCard({ voiceUrl }: VoicePlayerCardProps) {
           accessibilityLabel={isPlaying ? 'إيقاف التشغيل' : 'تشغيل التسجيل'}
           accessibilityState={{ selected: isPlaying }}
         >
+          {/* Outlined, not filled: the frame draws a stroked triangle on the green disc. */}
           {isPlaying ? (
-            <Pause
-              size={ICON_SIZE}
-              color={colors.textInverse}
-              fill={colors.textInverse}
-            />
+            <Pause size={ICON_SIZE} color={colors.textInverse} />
           ) : (
-            <Play size={ICON_SIZE} color={colors.textInverse} fill={colors.textInverse} />
+            <Play size={ICON_SIZE} color={colors.textInverse} />
           )}
         </TouchableOpacity>
-
-        {/* The waveform is the graphic from the frame, not the real envelope: nothing decodes
-            the audio, so the played part is filled in rather than drawn from samples. */}
-        <View style={styles.waveform}>
-          <VoiceWaveform progress={progress} />
-        </View>
       </View>
 
       {hasFailed ? (

@@ -35,15 +35,17 @@ export function FeedStatusTabs({ tab, onChange }: FeedStatusTabsProps) {
             accessibilityRole="tab"
             accessibilityState={{ selected: isActive }}
           >
-            <Text
-              variant={isActive ? 'label16Bold' : 'label16'}
-              color={isActive ? 'primary' : 'textMuted'}
-            >
-              {entry.label}
-            </Text>
+            {/* Wraps the label so the underline can stretch to the word rather than to the
+                third of the row the tab occupies, which is what the frame draws. */}
+            <View style={styles.inner}>
+              {/* h5 both ways: the frame changes the colour between states, not the type. */}
+              <Text variant="h5" color={isActive ? 'primary' : 'textMuted'}>
+                {entry.label}
+              </Text>
 
-            {/* Always rendered so selecting a tab cannot change the row's height. */}
-            <View style={[styles.underline, isActive && styles.underlineActive]} />
+              {/* Always rendered so selecting a tab cannot change the row's height. */}
+              <View style={[styles.underline, isActive && styles.underlineActive]} />
+            </View>
           </TouchableOpacity>
         );
       })}
@@ -60,17 +62,20 @@ const styles = StyleSheet.create({
     paddingTop: spacing[16],
   },
   tab: {
-    // Equal thirds rather than intrinsic width, which is what keeps the underline centred
-    // under labels of very different lengths.
+    // Equal thirds rather than intrinsic width, which is what spreads them across the row.
     flex: 1,
     alignItems: 'center',
-    gap: spacing[8],
     minHeight: 44,
+  },
+  inner: {
+    alignItems: 'center',
+    gap: spacing[8],
+    // The underline overhangs the word by this much on each side in the frame.
+    paddingHorizontal: spacing[4],
   },
   underline: {
     height: UNDERLINE_HEIGHT,
-    // Narrower than the tab, so it underlines the word rather than the whole third.
-    width: '60%',
+    alignSelf: 'stretch',
     backgroundColor: 'transparent',
   },
   underlineActive: {

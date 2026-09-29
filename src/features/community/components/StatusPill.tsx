@@ -39,10 +39,12 @@ export function StatusPill({ status }: StatusPillProps) {
       accessibilityRole="text"
       accessibilityLabel={`حالة البلاغ: ${label}`}
     >
+      {/* Leading, so row-reverse puts it to the right of the label as the frame draws it. */}
+      <Icon size={ICON_SIZE} color={colors.primary} />
+
       <Text variant="label14" color="primary">
         {label}
       </Text>
-      <Icon size={ICON_SIZE} color={colors.primary} />
     </View>
   );
 }

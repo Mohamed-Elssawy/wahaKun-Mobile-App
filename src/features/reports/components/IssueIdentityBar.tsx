@@ -2,6 +2,7 @@ import { Clock, MapPin, User } from 'lucide-react-native';
 import { Image, StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/ui';
+import { IssueMetaLine } from '@/features/community/components/IssueMetaLine';
 import { colors, radii, screenPadding, shadows, spacing } from '@/theme';
 
 import { formatReportReference } from '../format';
@@ -17,7 +18,6 @@ export type IssueIdentityBarProps = {
 };
 
 const AVATAR_SIZE = 42;
-const META_ICON_SIZE = 14;
 
 const UNKNOWN_AUTHOR = 'مزارع من الواحة';
 
@@ -40,25 +40,15 @@ export function IssueIdentityBar({
       )}
 
       <View style={styles.identity}>
-        <Text variant="label16Bold" align="right" numberOfLines={1}>
+        {/* Regular at 14, matching the feed card: the frame gives the two the same weight. */}
+        <Text variant="label14" align="right" numberOfLines={1}>
           {authorName || UNKNOWN_AUTHOR}
         </Text>
 
-        <View style={styles.meta}>
-          <Clock size={META_ICON_SIZE} color={colors.textMuted} />
-          <Text variant="label12" color="textMuted">
-            {formatRelativeTime(createdAt)}
-          </Text>
-
-          {distanceLabel ? (
-            <>
-              <MapPin size={META_ICON_SIZE} color={colors.textMuted} />
-              <Text variant="label12" color="textMuted">
-                {distanceLabel}
-              </Text>
-            </>
-          ) : null}
-        </View>
+        <IssueMetaLine
+          icons={[Clock, MapPin]}
+          labels={[formatRelativeTime(createdAt), distanceLabel]}
+        />
       </View>
 
       <View style={styles.reference}>
@@ -97,15 +87,11 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     gap: spacing[2],
   },
-  meta: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    gap: spacing[4],
-  },
   reference: {
     backgroundColor: colors.surfaceMuted,
-    borderRadius: radii[12],
-    paddingHorizontal: spacing[12],
-    paddingVertical: spacing[4],
+    // Fully rounded in the frame, not a 12 corner.
+    borderRadius: radii.pill,
+    paddingHorizontal: spacing[16],
+    paddingVertical: spacing[8],
   },
 });

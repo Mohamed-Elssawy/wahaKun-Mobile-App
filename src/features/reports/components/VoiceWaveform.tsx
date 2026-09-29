@@ -10,12 +10,17 @@ export type VoiceWaveformProps = {
   progress?: number;
 };
 
-/** Measured from the Figma graphic. Decorative: nothing here reads real audio. */
+/**
+ * Measured off F-04: thirty bars in six rising-and-falling groups of five, 3.5 wide on a 9.5
+ * pitch. Decorative - nothing here reads real audio - but the shape is the frame's, not a
+ * guess, because a sparser bar set reads as a different component.
+ */
 const BAR_HEIGHTS = [
-  32, 40, 52, 40, 32, 43, 46, 32, 53, 40, 36, 38, 42, 34, 50, 52, 40, 32,
+  11, 25, 38, 25, 11, 15, 32, 50, 32, 15, 11, 25, 38, 25, 11, 9, 20, 30, 20, 9, 12, 27,
+  41, 27, 12, 13, 28, 44, 28, 13,
 ];
 
-const BAR_WIDTH = 6;
+const BAR_WIDTH = 3.5;
 
 /** The waveform on the voice capture card and on F-04's player. */
 export function VoiceWaveform({ progress = 0 }: VoiceWaveformProps) {

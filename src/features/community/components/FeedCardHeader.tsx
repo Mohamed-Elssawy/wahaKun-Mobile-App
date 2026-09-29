@@ -7,6 +7,7 @@ import type { MapIssueTier } from '@/features/map/types';
 import { formatRelativeTime } from '@/features/reports/relativeTime';
 import { colors, radii, spacing } from '@/theme';
 
+import { IssueMetaLine } from './IssueMetaLine';
 import { TierBadge } from './TierBadge';
 
 import type { FeedPost } from '../types';
@@ -18,7 +19,6 @@ export type FeedCardHeaderProps = {
 };
 
 const AVATAR_SIZE = 42;
-const META_ICON_SIZE = 14;
 
 const UNKNOWN_AUTHOR = 'مزارع من الواحة';
 
@@ -42,26 +42,15 @@ export function FeedCardHeader({ post, distanceLabel }: FeedCardHeaderProps) {
       )}
 
       <View style={styles.identity}>
-        <Text variant="label16Bold" align="right" numberOfLines={1}>
+        {/* Regular at 14, not bold: the frame gives the name no more weight than the body. */}
+        <Text variant="label14" align="right" numberOfLines={1}>
           {post.reporterName || UNKNOWN_AUTHOR}
         </Text>
 
-        <View style={styles.meta}>
-          <Clock size={META_ICON_SIZE} color={colors.textMuted} />
-          <Text variant="label12" color="textMuted">
-            {formatRelativeTime(post.createdAt)}
-          </Text>
-
-          {/* Hidden rather than zeroed: an issue with no fix must not read "0 كم". */}
-          {distanceLabel ? (
-            <>
-              <MapPin size={META_ICON_SIZE} color={colors.textMuted} />
-              <Text variant="label12" color="textMuted">
-                {distanceLabel}
-              </Text>
-            </>
-          ) : null}
-        </View>
+        <IssueMetaLine
+          icons={[Clock, MapPin]}
+          labels={[formatRelativeTime(post.createdAt), distanceLabel]}
+        />
       </View>
 
       {tier ? <TierBadge tier={tier} label={describeTierDisplay(tier).shortLabel} /> : null}
@@ -90,10 +79,5 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'flex-end',
     gap: spacing[2],
-  },
-  meta: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    gap: spacing[4],
   },
 });

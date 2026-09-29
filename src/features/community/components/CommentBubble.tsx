@@ -34,11 +34,12 @@ export function CommentBubble({ comment }: CommentBubbleProps) {
       <View style={styles.body}>
         <View style={[styles.bubble, comment.isExpert && styles.bubbleExpert]}>
           <View style={styles.header}>
-            {comment.isExpert ? <ExpertBadge /> : null}
-
+            {/* Name leads at the right, badge takes the opposite edge, as the frame draws it. */}
             <Text variant="label16Bold" align="right">
               {comment.authorName}
             </Text>
+
+            {comment.isExpert ? <ExpertBadge /> : null}
           </View>
 
           <Text

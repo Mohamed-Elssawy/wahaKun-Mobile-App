@@ -120,7 +120,7 @@ describe('sorting and proximity', () => {
       const { posts } = await getFeed(query({ sort: 'nearest', pageSize: 20, origin }));
 
       // The seed's closest post is the canal leak a few hundred metres away.
-      expect(posts[0].issueId).toBe('i-1043');
+      expect(posts[0].issueId).toBe('1043');
     },
     TIMEOUT,
   );
@@ -142,8 +142,8 @@ describe('sorting and proximity', () => {
       const everything = await getFeed(query({ pageSize: 20 }));
 
       // i-1049 carries no coordinates at all.
-      expect(everything.posts.some(post => post.issueId === 'i-1049')).toBe(true);
-      expect(near.posts.some(post => post.issueId === 'i-1049')).toBe(false);
+      expect(everything.posts.some(post => post.issueId === '1049')).toBe(true);
+      expect(near.posts.some(post => post.issueId === '1049')).toBe(false);
     },
     TIMEOUT,
   );
@@ -163,7 +163,7 @@ describe('comments', () => {
   it(
     'pages a thread and keeps the total across pages',
     async () => {
-      const first = await getComments('i-1043', 1, 2);
+      const first = await getComments('1043', 1, 2);
 
       expect(first.comments).toHaveLength(2);
       // total is every comment, not this page's length, or the header count is wrong.
@@ -176,7 +176,7 @@ describe('comments', () => {
   it(
     'has an expert reply, which is what earns the badge on F-04',
     async () => {
-      const { comments } = await getComments('i-1043', 1, 20);
+      const { comments } = await getComments('1043', 1, 20);
 
       expect(comments.some(comment => comment.isExpert)).toBe(true);
     },
@@ -200,10 +200,10 @@ describe('writes', () => {
   it(
     'toggles a vote off again rather than counting it twice',
     async () => {
-      const on = await toggleConfirm('i-1045');
+      const on = await toggleConfirm('1045');
       expect(on.hasConfirmed).toBe(true);
 
-      const off = await toggleConfirm('i-1045');
+      const off = await toggleConfirm('1045');
       expect(off.hasConfirmed).toBe(false);
       expect(off.confirmations).toBe(on.confirmations - 1);
     },
@@ -214,10 +214,10 @@ describe('writes', () => {
     'removes the vote the seed already holds instead of adding another',
     async () => {
       // i-1044 starts confirmed, which is the frame's filled button.
-      const first = await toggleConfirm('i-1044');
+      const first = await toggleConfirm('1044');
 
       expect(first.hasConfirmed).toBe(false);
-      await toggleConfirm('i-1044');
+      await toggleConfirm('1044');
     },
     TIMEOUT,
   );
@@ -225,8 +225,8 @@ describe('writes', () => {
   it(
     'only ever increments a share, because the hub has no un-share',
     async () => {
-      const before = await shareIssue('i-1046');
-      const after = await shareIssue('i-1046');
+      const before = await shareIssue('1046');
+      const after = await shareIssue('1046');
 
       expect(after).toBe(before + 1);
     },
@@ -236,8 +236,8 @@ describe('writes', () => {
   it(
     'appends a posted comment to the thread it belongs to',
     async () => {
-      const posted = await postComment('i-1050', 'شكراً على المتابعة.');
-      const { comments } = await getComments('i-1050', 1, 20);
+      const posted = await postComment('1050', 'شكراً على المتابعة.');
+      const { comments } = await getComments('1050', 1, 20);
 
       expect(posted.isExpert).toBe(false);
       expect(comments.map(comment => comment.id)).toContain(posted.id);

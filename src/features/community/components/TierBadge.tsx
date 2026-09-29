@@ -1,4 +1,3 @@
-import { Droplet } from 'lucide-react-native';
 import { StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/ui';
@@ -6,12 +5,17 @@ import { describeTierDisplay } from '@/features/map/tier';
 import type { MapIssueTier } from '@/features/map/types';
 import { colors, radii, spacing } from '@/theme';
 
+import { SeverityDroplet } from './SeverityDroplet';
+
 export type TierBadgeProps = {
   tier: MapIssueTier;
   label: string;
 };
 
-const ICON_SIZE = 14;
+const ICON_SIZE = 12;
+
+/** Measured off the frame: 26 tall, and the label's ink sits 15 in from each rounded end. */
+const HEIGHT = 26;
 
 /**
  * The filled severity pill on a feed card and over F-04's hero. Distinct from
@@ -27,10 +31,13 @@ export function TierBadge({ tier, label }: TierBadgeProps) {
       accessibilityRole="text"
       accessibilityLabel={`الخطورة: ${label}`}
     >
-      <Text variant="label14Bold" color="textInverse">
+      {/* First child, so row-reverse puts the glyph on the leading edge - to the right of
+          the label, which is where the frame draws every icon on these two screens. */}
+      <SeverityDroplet tier={tier} color={colors.textInverse} size={ICON_SIZE} />
+
+      <Text variant="h6" color="textInverse">
         {label}
       </Text>
-      <Droplet size={ICON_SIZE} color={colors.textInverse} fill={colors.textInverse} />
     </View>
   );
 }
@@ -41,7 +48,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing[4],
     alignSelf: 'flex-start',
-    minHeight: 32,
+    minHeight: HEIGHT,
     paddingHorizontal: spacing[12],
     borderRadius: radii.pill,
   },
