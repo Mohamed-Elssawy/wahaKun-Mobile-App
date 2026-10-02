@@ -1,9 +1,10 @@
-import { AlertCircle, Eye, EyeOff } from 'lucide-react-native';
+import { Eye, EyeOff } from 'lucide-react-native';
 import { useState } from 'react';
 import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { colors, controlHeight, radii, spacing, textStyles } from '@/theme';
 
+import { InlineFieldError } from './InlineFieldError';
 import { Text } from './Text';
 
 import type { StyleProp, TextInputProps, TextStyle, ViewStyle } from 'react-native';
@@ -69,20 +70,7 @@ export function TextField({
         ) : null}
       </View>
 
-      {hasError ? (
-        // row-reverse: Figma draws this row LTR, but the message it carries is Arabic.
-        <View style={styles.errorRow}>
-          <AlertCircle size={16} color={colors.error} />
-          <Text
-            variant="label12Bold"
-            color="errorText"
-            align="right"
-            style={styles.errorText}
-          >
-            {error}
-          </Text>
-        </View>
-      ) : null}
+      {hasError && error ? <InlineFieldError message={error} /> : null}
     </View>
   );
 }
@@ -93,14 +81,6 @@ const styles = StyleSheet.create({
   group: {
     width: '100%',
     gap: spacing[4],
-  },
-  errorRow: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    gap: spacing[4],
-  },
-  errorText: {
-    flex: 1,
   },
   box: {
     flexDirection: 'row',

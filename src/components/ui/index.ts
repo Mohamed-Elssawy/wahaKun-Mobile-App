@@ -10,6 +10,9 @@ export type { BackHeaderProps } from './BackHeader';
 export { Button } from './Button';
 export type { ButtonProps, ButtonVariant } from './Button';
 
+export { ButtonSpinner } from './ButtonSpinner';
+export type { ButtonSpinnerProps } from './ButtonSpinner';
+
 export { ConfidencePill } from './ConfidencePill';
 export type { ConfidencePillProps } from './ConfidencePill';
 
@@ -27,6 +30,9 @@ export type { FilterChipProps } from './FilterChip';
 
 export { FilterChipRow } from './FilterChipRow';
 export type { FilterChipRowProps } from './FilterChipRow';
+
+export { InlineFieldError } from './InlineFieldError';
+export type { InlineFieldErrorProps } from './InlineFieldError';
 
 export { OtpInput } from './OtpInput';
 export type { OtpInputProps } from './OtpInput';

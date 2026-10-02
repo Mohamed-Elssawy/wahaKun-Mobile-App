@@ -1,8 +1,9 @@
 import { ArrowLeft } from 'lucide-react-native';
-import { ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 
 import { colors, controlHeight, radii, spacing } from '@/theme';
 
+import { ButtonSpinner } from './ButtonSpinner';
 import { Text } from './Text';
 
 import type { ReactNode } from 'react';
@@ -72,7 +73,7 @@ export function Button({
     >
       {loading ? (
         // The inactive primary fill is pale now, so a white spinner would vanish.
-        <ActivityIndicator color={colors[labelColor]} />
+        <ButtonSpinner color={labelColor} />
       ) : (
         <>
           {icon}
