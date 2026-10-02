@@ -11,7 +11,8 @@ export function useIdentity() {
   useEffect(() => {
     let cancelled = false;
 
-    userApi.getUserDetails()
+    userApi
+      .getUserDetails()
       .then(details => {
         if (!cancelled) {
           setUser(details);

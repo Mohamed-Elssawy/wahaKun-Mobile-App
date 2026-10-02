@@ -31,7 +31,11 @@ export function FeedCardMedia({ photoUrl, hasVoice }: FeedCardMediaProps) {
   }
 
   return (
-    <View style={[styles.media, styles.placeholder]} accessible accessibilityLabel={VOICE_LABEL}>
+    <View
+      style={[styles.media, styles.placeholder]}
+      accessible
+      accessibilityLabel={VOICE_LABEL}
+    >
       <Mic size={ICON_SIZE} color={colors.primary} />
       <Text variant="label14" color="textSecondary">
         {VOICE_LABEL}

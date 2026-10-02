@@ -103,7 +103,9 @@ describe('severity chips', () => {
     async () => {
       const critical = await getFeed(query({ severities: ['critical'], pageSize: 20 }));
       const medium = await getFeed(query({ severities: ['medium'], pageSize: 20 }));
-      const both = await getFeed(query({ severities: ['critical', 'medium'], pageSize: 20 }));
+      const both = await getFeed(
+        query({ severities: ['critical', 'medium'], pageSize: 20 }),
+      );
 
       expect(both.posts).toHaveLength(critical.posts.length + medium.posts.length);
     },

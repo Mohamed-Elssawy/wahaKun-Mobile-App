@@ -35,7 +35,10 @@ export function useProfile() {
 
     try {
       // Preferences are device-local, so they must not fail with the network call.
-      const [details, stored] = await Promise.all([userApi.getUserDetails(), loadPreferences()]);
+      const [details, stored] = await Promise.all([
+        userApi.getUserDetails(),
+        loadPreferences(),
+      ]);
       if (isMounted.current) {
         setUser(details);
         setPreferences(stored);

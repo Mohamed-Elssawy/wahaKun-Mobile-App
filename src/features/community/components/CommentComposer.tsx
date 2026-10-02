@@ -1,6 +1,12 @@
 import { Send } from 'lucide-react-native';
 import { useState } from 'react';
-import { ActivityIndicator, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 import { Text } from '@/components/ui';
 import { colors, maxFontScale, radii, screenPadding, spacing, textStyles } from '@/theme';

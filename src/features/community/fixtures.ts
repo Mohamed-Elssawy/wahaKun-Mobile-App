@@ -254,7 +254,6 @@ export const SEED_VOICE: Readonly<Record<string, { url: string; transcript: stri
   },
   '1047': {
     url: 'https://download.samplelib.com/mp3/sample-9s.mp3',
-    transcript:
-      'المضخة بتطلع صوت عالي وغريب من الصبح، وكل شوية بتقف لوحدها وترجع تشتغل.',
+    transcript: 'المضخة بتطلع صوت عالي وغريب من الصبح، وكل شوية بتقف لوحدها وترجع تشتغل.',
   },
 };

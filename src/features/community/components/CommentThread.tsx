@@ -41,7 +41,11 @@ export function CommentThread({
     // A failed thread must not take the diagnosis with it, so this is inline, not a screen.
     if (hasError) {
       return (
-        <TouchableOpacity style={styles.centred} onPress={onRetry} accessibilityRole="button">
+        <TouchableOpacity
+          style={styles.centred}
+          onPress={onRetry}
+          accessibilityRole="button"
+        >
           <Text variant="label14" color="primary" align="center">
             {RETRY}
           </Text>

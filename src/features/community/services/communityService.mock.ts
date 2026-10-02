@@ -1,11 +1,7 @@
 // Seeded feed for when no endpoint exposes GetAllIssuesAsync, so F-01 can show the author,
 // the counters and the confirm state the real path cannot yet. ./index.ts picks one.
 
-import {
-  emptyOnEmptyScenario,
-  failOnErrorScenario,
-  mockDelay,
-} from '@/api/mockScenario';
+import { emptyOnEmptyScenario, failOnErrorScenario, mockDelay } from '@/api/mockScenario';
 
 import { applyFeedQuery } from '../feedQuery';
 import { SEED_COMMENTS, SEED_POSTS, SEED_VOICE } from '../fixtures';

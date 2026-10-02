@@ -1,7 +1,13 @@
 import { useNavigation } from '@react-navigation/native';
 import { Users } from 'lucide-react-native';
 import { useState } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  View,
+} from 'react-native';
 
 import { AppHeader } from '@/components/ui';
 import { ReportErrorView } from '@/features/reports/components/ReportErrorView';
@@ -82,7 +88,11 @@ export default function CommunityFeedScreen() {
     if (error) {
       return (
         <View style={styles.fallback}>
-          <ReportErrorView error={error} unknownTitle="تعذر تحميل المجتمع" onRetry={retry} />
+          <ReportErrorView
+            error={error}
+            unknownTitle="تعذر تحميل المجتمع"
+            onRetry={retry}
+          />
         </View>
       );
     }
