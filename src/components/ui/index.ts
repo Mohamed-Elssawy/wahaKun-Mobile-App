@@ -19,6 +19,12 @@ export type { ConfidenceRingProps } from './ConfidenceRing';
 export { ContextChip } from './ContextChip';
 export type { ContextChipProps, ContextChipTint } from './ContextChip';
 
+export { FilterChip } from './FilterChip';
+export type { FilterChipProps } from './FilterChip';
+
+export { FilterChipRow } from './FilterChipRow';
+export type { FilterChipRowProps } from './FilterChipRow';
+
 export { OtpInput } from './OtpInput';
 export type { OtpInputProps } from './OtpInput';
 

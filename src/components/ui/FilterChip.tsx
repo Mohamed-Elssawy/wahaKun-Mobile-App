@@ -1,11 +1,12 @@
 import { StyleSheet, TouchableOpacity } from 'react-native';
 
-import { Text } from '@/components/ui';
 import { colors, radii, spacing } from '@/theme';
+
+import { Text } from './Text';
 
 import type { ReactNode } from 'react';
 
-export type FeedChipProps = {
+export type FilterChipProps = {
   label: string;
   isActive?: boolean;
   onPress: () => void;
@@ -18,14 +19,14 @@ export type FeedChipProps = {
 const HEIGHT = 36;
 const TOUCH_PADDING = 6;
 
-/** One pill in the row under the tabs. Toggles for the filters, a menu for the sort. */
-export function FeedChip({
+/** One pill in the row under the tabs. A toggle for a filter, a menu for a sort. */
+export function FilterChip({
   label,
   isActive = false,
   onPress,
   trailing,
   accessibilityLabel,
-}: FeedChipProps) {
+}: FilterChipProps) {
   return (
     <TouchableOpacity
       style={[styles.chip, isActive && styles.chipActive]}

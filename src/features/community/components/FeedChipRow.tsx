@@ -1,11 +1,8 @@
 import { ChevronDown } from 'lucide-react-native';
-import { useRef } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
 
+import { FilterChip, FilterChipRow } from '@/components/ui';
 import { describeTierDisplay } from '@/features/map/tier';
-import { colors, screenPadding, shadows, spacing } from '@/theme';
-
-import { FeedChip } from './FeedChip';
+import { colors } from '@/theme';
 
 import type { FeedSeverity, FeedSort } from '../types';
 
@@ -32,8 +29,8 @@ const SEVERITIES: readonly FeedSeverity[] = ['critical', 'medium', 'low'];
 const CHEVRON_SIZE = 18;
 
 /**
- * The scrolling pill row under the tabs: a sort menu, then independent filter toggles. The
- * severity chips union rather than replace, so more than one can be on at a time.
+ * F-01's chips: a sort menu, then independent filter toggles. The severity chips union rather
+ * than replace, so more than one can be on at a time.
  */
 export function FeedChipRow({
   sort,
@@ -43,65 +40,25 @@ export function FeedChipRow({
   onToggleNearby,
   onToggleSeverity,
 }: FeedChipRowProps) {
-  const scroll = useRef<ScrollView>(null);
-
   return (
-    // The row, then 16 of padding, then a hairline and the shadow it casts over the feed.
-    // Measured off the frame; without it the first card floats and the header reads unanchored.
-    <View style={styles.container}>
-      <ScrollView
-        ref={scroll}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        // flexGrow 0: a horizontal ScrollView in a flex column stretches to fill the cross axis,
-        // which left the chips floating at the bottom of a tall empty band.
-        style={styles.scroll}
-        contentContainerStyle={styles.row}
-        // row-reverse puts the first chip at the right end of the content, but a horizontal
-        // ScrollView still opens at the left, so ترتيب scrolled off screen. Unanimated: an
-        // animation here reads as the row sliding away from the farmer as the screen appears.
-        onContentSizeChange={() => scroll.current?.scrollToEnd({ animated: false })}
-      >
-        <FeedChip
-          label={`ترتيب: ${SORT_LABELS[sort]}`}
-          onPress={onOpenSort}
-          accessibilityLabel={`ترتيب البلاغات حسب ${SORT_LABELS[sort]}`}
-          trailing={<ChevronDown size={CHEVRON_SIZE} color={colors.textStrong} />}
+    <FilterChipRow>
+      <FilterChip
+        label={`ترتيب: ${SORT_LABELS[sort]}`}
+        onPress={onOpenSort}
+        accessibilityLabel={`ترتيب البلاغات حسب ${SORT_LABELS[sort]}`}
+        trailing={<ChevronDown size={CHEVRON_SIZE} color={colors.textStrong} />}
+      />
+
+      <FilterChip label={NEARBY_LABEL} isActive={nearbyOnly} onPress={onToggleNearby} />
+
+      {SEVERITIES.map(severity => (
+        <FilterChip
+          key={severity}
+          label={describeTierDisplay(severity).shortLabel}
+          isActive={severities.includes(severity)}
+          onPress={() => onToggleSeverity(severity)}
         />
-
-        <FeedChip label={NEARBY_LABEL} isActive={nearbyOnly} onPress={onToggleNearby} />
-
-        {SEVERITIES.map(severity => (
-          <FeedChip
-            key={severity}
-            label={describeTierDisplay(severity).shortLabel}
-            isActive={severities.includes(severity)}
-            onPress={() => onToggleSeverity(severity)}
-          />
-        ))}
-      </ScrollView>
-    </View>
+      ))}
+    </FilterChipRow>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: colors.background,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderCard,
-    ...shadows.card,
-    // Over the list, so the shadow falls on the cards rather than under them.
-    zIndex: 1,
-  },
-  scroll: {
-    flexGrow: 0,
-  },
-  row: {
-    // row-reverse plus a right gutter: the sort chip is first and belongs at the right edge.
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    gap: spacing[8],
-    paddingHorizontal: screenPadding,
-    paddingVertical: spacing[16],
-  },
-});
