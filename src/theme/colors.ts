@@ -86,6 +86,12 @@ export const colors = {
   infoTint: palette.accent.blue.B100,
   successTint: palette.accent.green.LG100,
 
+  /** The 300 stops, as edges on their own tint. primaryMuted is the green one. */
+  errorMuted: palette.accent.red.R300,
+  warningMuted: palette.accent.amber.A300,
+  infoMuted: palette.accent.blue.B300,
+  successMuted: palette.accent.green.LG300,
+
   /** Status as text. The 700 stops clear 4.5:1 on white and on their own tint. */
   errorText: palette.accent.red.R700,
   warningText: palette.accent.amber.A700,

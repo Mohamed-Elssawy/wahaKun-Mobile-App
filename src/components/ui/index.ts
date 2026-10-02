@@ -16,6 +16,9 @@ export type { ConfidencePillProps } from './ConfidencePill';
 export { ConfidenceRing } from './ConfidenceRing';
 export type { ConfidenceRingProps } from './ConfidenceRing';
 
+export { ContextChip } from './ContextChip';
+export type { ContextChipProps, ContextChipTint } from './ContextChip';
+
 export { OtpInput } from './OtpInput';
 export type { OtpInputProps } from './OtpInput';
 
