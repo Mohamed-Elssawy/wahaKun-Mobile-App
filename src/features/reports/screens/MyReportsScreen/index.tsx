@@ -3,11 +3,10 @@ import { FileSearch, FileText } from 'lucide-react-native';
 import { useCallback } from 'react';
 import { SectionList, StyleSheet, View } from 'react-native';
 
-import { AppHeader, Text } from '@/components/ui';
+import { AppHeader, ProgressRing, Text } from '@/components/ui';
 import { useIdentity } from '@/features/user/hooks/useIdentity';
 import { colors, screenPadding, spacing } from '@/theme';
 
-import { ProgressRing } from '../../components/ProgressRing';
 import { QueueBanner } from '../../components/QueueBanner';
 import { QueuedReportRow } from '../../components/QueuedReportRow';
 import { ReportCtaCard } from '../../components/ReportCtaCard';

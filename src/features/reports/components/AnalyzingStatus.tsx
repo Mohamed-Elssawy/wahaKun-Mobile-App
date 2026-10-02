@@ -1,9 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
-import { Text } from '@/components/ui';
+import { ProgressRing, Text } from '@/components/ui';
 import { screenPadding, spacing } from '@/theme';
-
-import { ProgressRing } from './ProgressRing';
 
 const TITLE = 'يحلل الذكاء الاصطناعي الصورة';
 const SUBTITLE = 'قد يستغرق هذا بضع ثوانٍ';

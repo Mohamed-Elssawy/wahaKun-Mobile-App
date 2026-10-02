@@ -1,8 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
-import { Text } from '@/components/ui';
-
-import { ProgressRing } from './ProgressRing';
+import { ProgressRing, Text } from '@/components/ui';
 
 export type ConfidenceGaugeProps = {
   /** 0 to 1, as normalized by the service layer. */

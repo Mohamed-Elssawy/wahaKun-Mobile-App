@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Text } from '@/components/ui';
+import { ProgressRing, Text } from '@/components/ui';
 import { CommentComposer } from '@/features/community/components/CommentComposer';
 import { CommentThread } from '@/features/community/components/CommentThread';
 import { TierBadge } from '@/features/community/components/TierBadge';
@@ -26,7 +26,6 @@ import { ConfidenceGauge } from '../../components/ConfidenceGauge';
 import { DiagnosisNote } from '../../components/DiagnosisNote';
 import { IssueIdentityBar } from '../../components/IssueIdentityBar';
 import { IssueTranscript } from '../../components/IssueTranscript';
-import { ProgressRing } from '../../components/ProgressRing';
 import { ReportErrorView } from '../../components/ReportErrorView';
 import { ReportHero } from '../../components/ReportHero';
 import { ReportStatusTrack } from '../../components/ReportStatusTrack';
@@ -158,7 +157,9 @@ export default function IssueDetailsScreen({
           {voiceUrl || issue?.transcript ? (
             <View style={styles.voiceGroup}>
               {voiceUrl ? <VoicePlayerCard voiceUrl={voiceUrl} /> : null}
-              {issue?.transcript ? <IssueTranscript transcript={issue.transcript} /> : null}
+              {issue?.transcript ? (
+                <IssueTranscript transcript={issue.transcript} />
+              ) : null}
             </View>
           ) : null}
 

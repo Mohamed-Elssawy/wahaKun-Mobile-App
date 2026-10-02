@@ -16,6 +16,9 @@ export type { PhoneFieldProps } from './PhoneField';
 export { ProgressBar } from './ProgressBar';
 export type { ProgressBarProps } from './ProgressBar';
 
+export { ProgressRing } from './ProgressRing';
+export type { ProgressRingProps } from './ProgressRing';
+
 export { Screen } from './Screen';
 export type { ScreenProps } from './Screen';
 
