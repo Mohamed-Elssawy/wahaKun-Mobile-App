@@ -1,6 +1,6 @@
 import { MicOff } from 'lucide-react-native';
 
-import { ReportFailureState } from './ReportFailureState';
+import { StateScreen } from '@/components/ui';
 
 export type MicrophonePermissionDeniedProps = {
   onOpenSettings: () => void;
@@ -14,7 +14,7 @@ export function MicrophonePermissionDenied({
   onUsePhoto,
 }: MicrophonePermissionDeniedProps) {
   return (
-    <ReportFailureState
+    <StateScreen
       icon={MicOff}
       title="لا يمكن الوصول إلى الميكروفون"
       message="فعّل إذن الميكروفون من الإعدادات لتسجيل وصف المشكلة."

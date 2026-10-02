@@ -2,13 +2,13 @@ import { Sprout } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { StateScreen } from '@/components/ui';
 import type { ScreenProps } from '@/navigation/types';
 import { colors } from '@/theme';
 
 import { AnalyzingStatus } from '../../components/AnalyzingStatus';
 import { QueuedConfirmationSheet } from '../../components/QueuedConfirmationSheet';
 import { ReportErrorView } from '../../components/ReportErrorView';
-import { ReportFailureState } from '../../components/ReportFailureState';
 import { ReportHeader } from '../../components/ReportHeader';
 import { UnrecognizedPhotoState } from '../../components/UnrecognizedPhotoState';
 import { useReportSubmission } from '../../hooks/useReportSubmission';
@@ -88,7 +88,7 @@ export default function ReportAnalyzingScreen({
     // ReportService refuses anything below Medium, so retrying the same photo cannot help.
     if (failureKind === 'tooMinor') {
       return (
-        <ReportFailureState
+        <StateScreen
           icon={Sprout}
           title="لا حاجة لبلاغ"
           message="حلّل الذكاء الاصطناعي الصورة ووجد أن المشكلة بسيطة ولا تستدعي بلاغًا. صوّر مشكلة أخرى إن احتجت."

@@ -55,6 +55,9 @@ export type { SegmentedTabsProps, SegmentedTabsVariant } from './SegmentedTabs';
 export { SeverityBadge } from './SeverityBadge';
 export type { SeverityBadgeProps, SeverityLevel } from './SeverityBadge';
 
+export { StateScreen } from './StateScreen';
+export type { StateRegister, StateScreenProps } from './StateScreen';
+
 export { StatusChip } from './StatusChip';
 export type { StatusChipProps } from './StatusChip';
 

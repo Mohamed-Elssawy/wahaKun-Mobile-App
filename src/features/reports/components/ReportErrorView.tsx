@@ -1,6 +1,6 @@
 import { CloudOff, ShieldAlert, WifiOff } from 'lucide-react-native';
 
-import { ReportFailureState } from './ReportFailureState';
+import { StateScreen } from '@/components/ui';
 
 import type { ReportError } from '../errors';
 import type { LucideIcon } from 'lucide-react-native';
@@ -28,7 +28,7 @@ export function ReportErrorView({
 }: ReportErrorViewProps) {
   if (error.kind === 'offline') {
     return (
-      <ReportFailureState
+      <StateScreen
         icon={offline?.icon ?? WifiOff}
         title={offline?.title ?? OFFLINE_TITLE}
         message={offline?.message ?? error.message}
@@ -40,7 +40,7 @@ export function ReportErrorView({
   if (error.kind === 'unauthorized') {
     // No retry: the call fails the same way until the session is renewed elsewhere.
     return (
-      <ReportFailureState
+      <StateScreen
         icon={ShieldAlert}
         title={UNAUTHORIZED_TITLE}
         message={error.message}
@@ -49,7 +49,7 @@ export function ReportErrorView({
   }
 
   return (
-    <ReportFailureState
+    <StateScreen
       icon={CloudOff}
       title={unknownTitle}
       message={error.message}

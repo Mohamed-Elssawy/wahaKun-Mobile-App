@@ -1,40 +1,49 @@
 import { StyleSheet, View } from 'react-native';
 
-import { Button, Text } from '@/components/ui';
 import { colors, radii, screenPadding, spacing } from '@/theme';
+
+import { Button } from './Button';
+import { Text } from './Text';
 
 import type { LucideIcon } from 'lucide-react-native';
 
-export type ReportFailureStateProps = {
+/**
+ * SYSTEM-SPEC §5.4's two registers. 'blocking' is a red circle and one action, for when the
+ * user cannot proceed; 'warm' is a green circle and guidance, for when the system failed
+ * rather than the user.
+ */
+export type StateRegister = 'blocking' | 'warm';
+
+export type StateScreenProps = {
   icon: LucideIcon;
   title: string;
   message: string;
   action?: { label: string; onPress: () => void };
   /** The non-obvious way out, e.g. voice instead of the camera on X-03. Ghost styling. */
   secondaryAction?: { label: string; onPress: () => void };
-  /** Queueing a report succeeds, and it uses this drawing to say so. */
-  tone?: 'error' | 'success';
+  register?: StateRegister;
 };
 
 const CIRCLE_SIZE = 100;
 const ICON_SIZE = 44;
 
 /** X-05, X-01 and the camera wall are one drawing with a different glyph and copy. */
-// The 700 stops, not the 500s: R500 and LG500 both fail 4.5:1 on their own tint.
-const TONES = {
-  error: { fill: colors.errorTint, glyph: colors.errorText },
-  success: { fill: colors.successTint, glyph: colors.successText },
+// The 700 stops, not the 500s: R500 and G500 both fail 4.5:1 on their own tint.
+const REGISTERS = {
+  blocking: { fill: colors.errorTint, glyph: colors.errorText },
+  // F-03c's greens, the only warm redirect the design actually draws.
+  warm: { fill: colors.primaryTint, glyph: colors.primaryPressed },
 } as const;
 
-export function ReportFailureState({
+export function StateScreen({
   icon: Icon,
   title,
   message,
   action,
   secondaryAction,
-  tone = 'error',
-}: ReportFailureStateProps) {
-  const { fill, glyph } = TONES[tone];
+  register = 'blocking',
+}: StateScreenProps) {
+  const { fill, glyph } = REGISTERS[register];
 
   return (
     <View style={styles.container}>

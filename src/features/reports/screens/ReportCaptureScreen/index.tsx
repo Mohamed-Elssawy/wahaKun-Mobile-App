@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Linking, StyleSheet, View } from 'react-native';
 import { Camera } from 'react-native-vision-camera';
 
+import { StateScreen } from '@/components/ui';
 import type { ScreenProps } from '@/navigation/types';
 import { colors } from '@/theme';
 
@@ -13,7 +14,6 @@ import { CaptureNotice } from '../../components/CaptureNotice';
 import { MicrophonePermissionDenied } from '../../components/MicrophonePermissionDenied';
 import { PhotoReview } from '../../components/PhotoReview';
 import { ReportErrorView } from '../../components/ReportErrorView';
-import { ReportFailureState } from '../../components/ReportFailureState';
 import { VoiceCapture } from '../../components/VoiceCapture';
 import { useReportCapture } from '../../hooks/useReportCapture';
 
@@ -77,7 +77,7 @@ export default function ReportCaptureScreen({
     // X-02a moved to ReportAnalyzing: offline is only known once the drain has tried.
     if (outcome === 'full') {
       return (
-        <ReportFailureState
+        <StateScreen
           icon={CloudOff}
           title="لديك بلاغات في انتظار الإرسال"
           message="انتظر حتى يعود الاتصال وتُرسل بلاغاتك السابقة، ثم أرسل هذا البلاغ."
