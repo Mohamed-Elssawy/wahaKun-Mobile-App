@@ -28,6 +28,9 @@ export type { ProgressBarProps } from './ProgressBar';
 export { ProgressRing } from './ProgressRing';
 export type { ProgressRingProps } from './ProgressRing';
 
+export { REPORT_SUMMARY_CARD_HEIGHT, ReportSummaryCard } from './ReportSummaryCard';
+export type { ReportSummaryCardProps } from './ReportSummaryCard';
+
 export { Screen } from './Screen';
 export type { ScreenProps } from './Screen';
 

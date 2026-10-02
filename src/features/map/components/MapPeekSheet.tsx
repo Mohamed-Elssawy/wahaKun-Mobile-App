@@ -1,9 +1,9 @@
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
-import { Button } from '@/components/ui';
+import { Button, REPORT_SUMMARY_CARD_HEIGHT } from '@/components/ui';
 import { colors, radii, shadows, spacing } from '@/theme';
 
-import { MapPeekCard, PEEK_CARD_HEIGHT } from './MapPeekCard';
+import { MapPeekCard } from './MapPeekCard';
 
 import type { MapIssue } from '../types';
 
@@ -23,7 +23,8 @@ const VISIBLE_CARDS = 3;
 const OVERFLOW_PEEK = spacing[16];
 
 // Three cards and the gaps around them, then enough of a fourth to show the list scrolls.
-const LIST_MAX_HEIGHT = VISIBLE_CARDS * (PEEK_CARD_HEIGHT + spacing[16]) + OVERFLOW_PEEK;
+const LIST_MAX_HEIGHT =
+  VISIBLE_CARDS * (REPORT_SUMMARY_CARD_HEIGHT + spacing[16]) + OVERFLOW_PEEK;
 
 /** F-05 and X-11: the sheet that rises over the tab bar when a pin is tapped. */
 export function MapPeekSheet({ issues, onOpen, onDismiss }: MapPeekSheetProps) {
