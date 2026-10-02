@@ -28,6 +28,9 @@ export type { SearchableDropdownProps } from './SearchableDropdown';
 export { SeverityBadge } from './SeverityBadge';
 export type { SeverityBadgeProps, SeverityLevel } from './SeverityBadge';
 
+export { StatusChip } from './StatusChip';
+export type { StatusChipProps } from './StatusChip';
+
 export { Text } from './Text';
 export type { TextProps } from './Text';
 

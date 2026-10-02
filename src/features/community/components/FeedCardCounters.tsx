@@ -1,11 +1,19 @@
-import { MessageCircle, Share2 } from 'lucide-react-native';
+import {
+  CalendarClock,
+  CheckCircle2,
+  CircleAlert,
+  Clock3,
+  MessageCircle,
+  Share2,
+} from 'lucide-react-native';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
-import { Text } from '@/components/ui';
+import { StatusChip, Text } from '@/components/ui';
+import { describeStatusDisplay } from '@/features/reports/status';
 import type { ReportStatus } from '@/features/reports/types';
 import { colors, spacing } from '@/theme';
 
-import { StatusPill } from './StatusPill';
+import type { LucideIcon } from 'lucide-react-native';
 
 export type FeedCardCountersProps = {
   status: ReportStatus;
@@ -16,6 +24,17 @@ export type FeedCardCountersProps = {
 };
 
 const ICON_SIZE = 22;
+
+// One glyph per stage, matching the four F-01 draws.
+const STATUS_ICONS: Record<ReportStatus, LucideIcon> = {
+  Reported: CircleAlert,
+  Diagnosed: Clock3,
+  Verified: Clock3,
+  Assigned: Clock3,
+  Scheduled: CalendarClock,
+  Repaired: CheckCircle2,
+  Completed: CheckCircle2,
+};
 
 // The frame's row is 47 tall including its gaps, so the 48dp target comes from hitSlop rather
 // than from a minHeight that would push the divider and the CTA down by half a row.
@@ -34,9 +53,15 @@ export function FeedCardCounters({
   onOpenComments,
   onShare,
 }: FeedCardCountersProps) {
+  const { label } = describeStatusDisplay(status);
+
   return (
     <View style={styles.row}>
-      <StatusPill status={status} />
+      <StatusChip
+        icon={STATUS_ICONS[status] ?? CircleAlert}
+        label={label}
+        accessibilityLabel={`حالة البلاغ: ${label}`}
+      />
 
       <View style={styles.counters}>
         {/* Opens the issue rather than scrolling in place: the thread lives on F-04. */}
