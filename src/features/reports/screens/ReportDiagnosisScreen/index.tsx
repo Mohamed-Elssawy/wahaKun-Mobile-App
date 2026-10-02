@@ -1,7 +1,7 @@
 import { CheckCircle2, Sparkles } from 'lucide-react-native';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
-import { ProgressRing, Text } from '@/components/ui';
+import { ProgressRing, SeverityBadge, Text } from '@/components/ui';
 import type { ScreenProps } from '@/navigation/types';
 import { colors, screenPadding, spacing } from '@/theme';
 
@@ -13,8 +13,8 @@ import { DiagnosisNote } from '../../components/DiagnosisNote';
 import { RepairStepsList } from '../../components/RepairStepsList';
 import { ReportErrorView } from '../../components/ReportErrorView';
 import { ReportHeader } from '../../components/ReportHeader';
-import { SeverityBadge } from '../../components/SeverityBadge';
 import { useReportDiagnosis } from '../../hooks/useReportDiagnosis';
+import { describeSeverity } from '../../severity';
 
 const RECOMMENDATION_TITLE = 'الإجراء الموصى به';
 const STEPS_TITLE = 'ما يمكنك فعله الآن';
@@ -62,6 +62,8 @@ export default function ReportDiagnosisScreen({
       );
     }
 
+    const severityTone = describeSeverity(analysis.severity);
+
     return (
       <ScrollView
         contentContainerStyle={styles.content}
@@ -77,7 +79,11 @@ export default function ReportDiagnosisScreen({
             <Text variant="body14" color="textSecondary">
               {SEVERITY_LABEL}
             </Text>
-            <SeverityBadge severity={analysis.severity} />
+            <SeverityBadge
+              level={severityTone.tier}
+              label={severityTone.label}
+              color={severityTone.color}
+            />
             <ConfidencePill confidence={analysis.confidence} />
           </View>
         </View>

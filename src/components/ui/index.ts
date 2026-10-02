@@ -25,6 +25,9 @@ export type { ScreenProps } from './Screen';
 export { SearchableDropdown } from './SearchableDropdown';
 export type { SearchableDropdownProps } from './SearchableDropdown';
 
+export { SeverityBadge } from './SeverityBadge';
+export type { SeverityBadgeProps, SeverityLevel } from './SeverityBadge';
+
 export { Text } from './Text';
 export type { TextProps } from './Text';
 

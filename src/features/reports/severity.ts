@@ -39,6 +39,8 @@ const SEVERITY_TIERS: Record<Severity, SeverityTier> = {
 };
 
 export type SeverityDisplay = {
+  /** Which droplet SeverityBadge draws; the ten backend steps collapse to these four. */
+  tier: SeverityTier;
   /** Feminine, agreeing with الخطورة in "مستوى الخطورة". */
   label: string;
   /** The filled badge and the row's severity stripe. */
@@ -48,10 +50,15 @@ export type SeverityDisplay = {
 };
 
 const TIER_DISPLAY: Record<SeverityTier, SeverityDisplay> = {
-  critical: { label: 'حرجة', color: 'error', textColor: 'errorText' },
-  medium: { label: 'متوسطة', color: 'warning', textColor: 'warningText' },
-  low: { label: 'منخفضة', color: 'info', textColor: 'infoText' },
-  unknown: { label: 'غير معروفة', color: 'disabled', textColor: 'textMuted' },
+  critical: { tier: 'critical', label: 'حرجة', color: 'error', textColor: 'errorText' },
+  medium: { tier: 'medium', label: 'متوسطة', color: 'warning', textColor: 'warningText' },
+  low: { tier: 'low', label: 'منخفضة', color: 'info', textColor: 'infoText' },
+  unknown: {
+    tier: 'unknown',
+    label: 'غير معروفة',
+    color: 'disabled',
+    textColor: 'textMuted',
+  },
 };
 
 /** Takes a bare string: `severity` is a C# string, so the server can send a step this file lacks. */

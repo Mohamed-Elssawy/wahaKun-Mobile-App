@@ -3,10 +3,10 @@ import { ImageBackground, StyleSheet, TouchableOpacity, View } from 'react-nativ
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Defs, LinearGradient, Rect, Stop, Svg } from 'react-native-svg';
 
-import { Text } from '@/components/ui';
+import { SeverityBadge, Text } from '@/components/ui';
 import { colors, radii, screenPadding, spacing } from '@/theme';
 
-import { SeverityBadge } from './SeverityBadge';
+import { describeSeverity } from '../severity';
 
 import type { Severity } from '../types';
 import type { ReactNode } from 'react';
@@ -42,6 +42,7 @@ export function ReportHero({
   hasVoice = false,
 }: ReportHeroProps) {
   const insets = useSafeAreaInsets();
+  const tone = severity ? describeSeverity(severity) : undefined;
 
   return (
     <ImageBackground
@@ -104,7 +105,10 @@ export function ReportHero({
           {title}
         </Text>
 
-        {badge ?? (severity ? <SeverityBadge severity={severity} /> : null)}
+        {badge ??
+          (tone ? (
+            <SeverityBadge level={tone.tier} label={tone.label} color={tone.color} />
+          ) : null)}
       </View>
     </ImageBackground>
   );

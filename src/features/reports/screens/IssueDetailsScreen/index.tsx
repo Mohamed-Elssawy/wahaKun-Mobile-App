@@ -9,10 +9,9 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ProgressRing, Text } from '@/components/ui';
+import { ProgressRing, SeverityBadge, Text } from '@/components/ui';
 import { CommentComposer } from '@/features/community/components/CommentComposer';
 import { CommentThread } from '@/features/community/components/CommentThread';
-import { TierBadge } from '@/features/community/components/TierBadge';
 import { distanceKm } from '@/features/community/distance';
 import { hasCoordinates } from '@/features/community/feedQuery';
 import { useIssueComments } from '@/features/community/hooks/useIssueComments';
@@ -132,9 +131,11 @@ export default function IssueDetailsScreen({
           onShare={() => share()}
           badge={
             issue && issue.tier !== 'resolved' ? (
-              <TierBadge
-                tier={issue.tier}
+              <SeverityBadge
+                level={issue.tier}
                 label={describeTierDisplay(issue.tier).shortLabel}
+                color={describeTierDisplay(issue.tier).color}
+                style={styles.heroBadge}
               />
             ) : undefined
           }
@@ -243,6 +244,10 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingBottom: spacing[32],
+  },
+  // Top, not centred, which is where the hero has drawn this badge since the V2 rework.
+  heroBadge: {
+    alignSelf: 'flex-start',
   },
   body: {
     paddingHorizontal: screenPadding,
