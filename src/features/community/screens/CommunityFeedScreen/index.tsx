@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 
-import { AppHeader } from '@/components/ui';
+import { AppHeader, SegmentedTabs } from '@/components/ui';
 import { ReportErrorView } from '@/features/reports/components/ReportErrorView';
 import { ReportsEmptyState } from '@/features/reports/components/ReportsEmptyState';
 import { useIdentity } from '@/features/user/hooks/useIdentity';
@@ -18,12 +18,19 @@ import { colors, screenPadding, spacing } from '@/theme';
 import { FeedChipRow } from '../../components/FeedChipRow';
 import { FeedPostCard } from '../../components/FeedPostCard';
 import { FeedSortSheet } from '../../components/FeedSortSheet';
-import { FeedStatusTabs } from '../../components/FeedStatusTabs';
 import { useCommunityFeed } from '../../hooks/useCommunityFeed';
 
-import type { FeedPost, FeedSort } from '../../types';
+import type { FeedPost, FeedSort, FeedTab } from '../../types';
 
 const TITLE = 'المجتمع';
+
+// Three, and all three fit at the widest Arabic label, so this row does not scroll. The
+// severity chips underneath are the ones that do.
+const TABS: { key: FeedTab; label: string }[] = [
+  { key: 'all', label: 'الكل' },
+  { key: 'active', label: 'نشطة' },
+  { key: 'resolved', label: 'تم الحل' },
+];
 
 const EMPTY = {
   all: {
@@ -150,7 +157,7 @@ export default function CommunityFeedScreen() {
         onOpenProfile={() => navigation.navigate('Profile')}
       />
 
-      <FeedStatusTabs tab={tab} onChange={changeTab} />
+      <SegmentedTabs items={TABS} value={tab} onChange={changeTab} variant="floating" />
 
       <FeedChipRow
         sort={sort}

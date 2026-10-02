@@ -40,6 +40,9 @@ export type { ScreenProps } from './Screen';
 export { SearchableDropdown } from './SearchableDropdown';
 export type { SearchableDropdownProps } from './SearchableDropdown';
 
+export { SegmentedTabs } from './SegmentedTabs';
+export type { SegmentedTabsProps, SegmentedTabsVariant } from './SegmentedTabs';
+
 export { SeverityBadge } from './SeverityBadge';
 export type { SeverityBadgeProps, SeverityLevel } from './SeverityBadge';
 

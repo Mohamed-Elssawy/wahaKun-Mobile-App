@@ -3,7 +3,7 @@ import { FileSearch, FileText } from 'lucide-react-native';
 import { useCallback } from 'react';
 import { SectionList, StyleSheet, View } from 'react-native';
 
-import { AppHeader, ProgressRing, Text } from '@/components/ui';
+import { AppHeader, ProgressRing, SegmentedTabs, Text } from '@/components/ui';
 import { useIdentity } from '@/features/user/hooks/useIdentity';
 import { colors, screenPadding, spacing } from '@/theme';
 
@@ -11,14 +11,22 @@ import { QueueBanner } from '../../components/QueueBanner';
 import { QueuedReportRow } from '../../components/QueuedReportRow';
 import { ReportCtaCard } from '../../components/ReportCtaCard';
 import { ReportErrorView } from '../../components/ReportErrorView';
-import { ReportFilterTabs } from '../../components/ReportFilterTabs';
 import { ReportRow } from '../../components/ReportRow';
 import { ReportsEmptyState } from '../../components/ReportsEmptyState';
 import { useMyReports } from '../../hooks/useMyReports';
 
+import type { ReportFilter } from '../../hooks/useMyReports';
 import type { ReportListItem } from '../../types';
 
 const TITLE = 'بلاغاتي';
+
+// Only two tabs carry a count in the frame, and a count on all four reads as a dashboard.
+const TABS: { key: ReportFilter; label: string; showCount: boolean }[] = [
+  { key: 'all', label: 'الكل', showCount: false },
+  { key: 'active', label: 'نشط', showCount: true },
+  { key: 'resolved', label: 'تم الحل', showCount: true },
+  { key: 'critical', label: 'حرج', showCount: false },
+];
 
 /** F-07. The empty state splits: never filed one (X-07) reads differently to no match (X-06). */
 // The frame's tracker, expert and appointment data has no endpoint, so it is left out.
@@ -137,7 +145,14 @@ export default function MyReportsScreen() {
 
       <QueueBanner />
 
-      <ReportFilterTabs filter={filter} counts={counts} onChange={setFilter} />
+      <SegmentedTabs
+        items={TABS.map(tab => ({
+          key: tab.key,
+          label: tab.showCount ? `${tab.label} (${counts[tab.key]})` : tab.label,
+        }))}
+        value={filter}
+        onChange={setFilter}
+      />
 
       <View style={styles.body}>{renderBody()}</View>
     </View>
