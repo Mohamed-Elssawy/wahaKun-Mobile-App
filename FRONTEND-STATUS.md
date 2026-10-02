@@ -144,3 +144,69 @@ Nothing in steps 1–6 touches a screen or a component.
   `textMuted`; the chip border uses `borderControl` rather than the decorative
   `N400` the frame samples, since a chip is a control; the composer placeholder
   uses `textPlaceholder` rather than `N500`.
+
+---
+
+## Shared UI
+
+**Branch:** `refactor-shared-ui-extraction`
+**Screens:** none. This unit changed no screen's behaviour and, with two recorded
+exceptions, no screen's pixels.
+
+`src/components/ui/` is now the design system. Nineteen components moved in or
+were created; every duplicate they replaced is deleted, not re-exported.
+
+| In `components/ui/` | Replaced                                                                      |
+| ------------------- | ----------------------------------------------------------------------------- |
+| `SeverityBadge`     | `reports/SeverityBadge` + `community/TierBadge` + `community/SeverityDroplet` |
+| `StatusChip`        | `community/StatusPill`                                                        |
+| `ProgressRing`      | `reports/ProgressRing`                                                        |
+| `ConfidenceRing`    | `reports/ConfidenceGauge`                                                     |
+| `ConfidencePill`    | `reports/ConfidencePill`                                                      |
+| `AiDiagnosisCard`   | `reports/DiagnosisCard`                                                       |
+| `VoicePlayer`       | `reports/VoicePlayerCard`                                                     |
+| `VoiceWaveform`     | `reports/VoiceWaveform`                                                       |
+| `ReportSummaryCard` | the card inlined in `reports/ReportRow` and `map/MapPeekCard`                 |
+| `SegmentedTabs`     | `reports/ReportFilterTabs` + `community/FeedStatusTabs`                       |
+| `FilterChip`        | `community/FeedChip`                                                          |
+| `FilterChipRow`     | the scrolling shell inlined in `community/FeedChipRow`                        |
+| `EmptyState`        | `reports/ReportsEmptyState`                                                   |
+| `StateScreen`       | `reports/ReportFailureState`                                                  |
+| `InlineFieldError`  | the error row inlined in `ui/TextField`                                       |
+| `ButtonSpinner`     | the `ActivityIndicator` inlined in `ui/Button`                                |
+| `ContextChip`       | nothing - new, SYSTEM-SPEC §6.4                                               |
+| `StaleBanner`       | nothing - new, API only ahead of U15                                          |
+| `ListSkeleton`      | nothing - new, API only ahead of U15                                          |
+
+**The seam.** No file in `components/ui/` imports from `features/`, `api/`,
+`navigation/` or `hooks/`. Primitives take presentation props - a `ColorToken`, a
+formatted label - and each feature keeps the mapping from its own domain. That is
+what let `IssueDetailsScreen` stop reaching into `features/community` for a badge.
+
+**What stayed in its feature, and why.** `ReportErrorView` branches on
+`ReportError.kind` from the reports error taxonomy, so it fails ARCHITECTURE rule
+2; all ten of its callers are untouched. `FeedChipRow` owns Arabic sort copy and
+reads `describeTierDisplay`. `QueuedReportRow` is a different card from
+`ReportSummaryCard`. `CollapsibleCard` shares `AiDiagnosisCard`'s chrome but owns
+a `LayoutAnimation` and a touchable header.
+
+**The flag guard.** `src/config/__tests__/env.test.ts` fails `npm run verify` if
+`DEMO_MODE` or `MOCK_SCENARIO` is ever committed in a demo state. `main` is the
+public build against the real backend, and every other mock flag is
+`DEMO_MODE || ...`, so pinning those two holds the rest down.
+
+### The two deliberate pixel changes
+
+Both were approved before the build, and both are the frame being obeyed:
+
+1. **F-03a and F-04's severity badge gains the droplet glyph** and steps from
+   24/`label12Bold` to 26/`h6`. `reports/SeverityBadge` rendered a label-only
+   pill; F-01's badge and F-03a's are the same pill in the V2 exports, and
+   SYSTEM-SPEC §6.2 requires severity to carry shape as well as colour.
+2. **`ReportFailureState`'s dead `tone="success"` is gone.** Nothing passed it.
+   Its replacement, `register="warm"`, uses F-03c's greens rather than the
+   `LG100/LG700` the dead branch had.
+
+### Wiring it to the real backend
+
+Nothing. This unit touched no service, type, endpoint or flag default.
