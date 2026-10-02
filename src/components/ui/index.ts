@@ -45,3 +45,9 @@ export type { TextProps } from './Text';
 
 export { TextField } from './TextField';
 export type { TextFieldProps } from './TextField';
+
+export { VoicePlayer } from './VoicePlayer';
+export type { VoicePlayerProps } from './VoicePlayer';
+
+export { VoiceWaveform } from './VoiceWaveform';
+export type { VoiceWaveformProps } from './VoiceWaveform';

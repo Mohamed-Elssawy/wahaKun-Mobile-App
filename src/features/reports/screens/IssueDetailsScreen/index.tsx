@@ -9,7 +9,13 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ConfidenceRing, ProgressRing, SeverityBadge, Text } from '@/components/ui';
+import {
+  ConfidenceRing,
+  ProgressRing,
+  SeverityBadge,
+  Text,
+  VoicePlayer,
+} from '@/components/ui';
 import { CommentComposer } from '@/features/community/components/CommentComposer';
 import { CommentThread } from '@/features/community/components/CommentThread';
 import { distanceKm } from '@/features/community/distance';
@@ -18,6 +24,7 @@ import { useIssueComments } from '@/features/community/hooks/useIssueComments';
 import { useIssueContext } from '@/features/community/hooks/useIssueContext';
 import { describeTierDisplay } from '@/features/map/tier';
 import { useIdentity } from '@/features/user/hooks/useIdentity';
+import { useAudioPlayer } from '@/hooks/useAudioPlayer';
 import type { ScreenProps } from '@/navigation/types';
 import { colors, screenPadding, spacing } from '@/theme';
 
@@ -27,7 +34,6 @@ import { IssueTranscript } from '../../components/IssueTranscript';
 import { ReportErrorView } from '../../components/ReportErrorView';
 import { ReportHero } from '../../components/ReportHero';
 import { ReportStatusTrack } from '../../components/ReportStatusTrack';
-import { VoicePlayerCard } from '../../components/VoicePlayerCard';
 import { useIssueDetails } from '../../hooks/useIssueDetails';
 
 const DIAGNOSIS_LABEL = 'تشخيص الذكاء الاصطناعي';
@@ -54,6 +60,12 @@ export default function IssueDetailsScreen({
   const { issue, origin, share } = useIssueContext(reportId);
   const comments = useIssueComments(reportId);
 
+  // Above the early returns, because a hook cannot be called conditionally. The url is
+  // optional and the player no-ops without one.
+  const voiceUrl =
+    issue?.voiceUrl ?? report?.attachments.find(a => a.type === 'Voice')?.url;
+  const voice = useAudioPlayer(voiceUrl);
+
   if (isLoading) {
     return (
       <View style={styles.centred}>
@@ -76,8 +88,6 @@ export default function IssueDetailsScreen({
 
   const analysis = report.analysis;
   const photo = report.attachments.find(attachment => attachment.type === 'Photo');
-  const voiceUrl =
-    issue?.voiceUrl ?? report.attachments.find(a => a.type === 'Voice')?.url;
   const title = analysis?.problemArabic || issue?.title || report.description || UNTITLED;
 
   const distanceLabel =
@@ -156,7 +166,15 @@ export default function IssueDetailsScreen({
               the gap to the next section is 40. */}
           {voiceUrl || issue?.transcript ? (
             <View style={styles.voiceGroup}>
-              {voiceUrl ? <VoicePlayerCard voiceUrl={voiceUrl} /> : null}
+              {voiceUrl ? (
+                <VoicePlayer
+                  title="التسجيل الصوتي"
+                  isPlaying={voice.isPlaying}
+                  progress={voice.progress}
+                  onToggle={voice.toggle}
+                  errorMessage={voice.hasFailed ? 'تعذر تشغيل التسجيل' : undefined}
+                />
+              ) : null}
               {issue?.transcript ? (
                 <IssueTranscript transcript={issue.transcript} />
               ) : null}
