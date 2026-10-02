@@ -1,11 +1,13 @@
 import { StyleSheet, View } from 'react-native';
 
-import { Button, Text } from '@/components/ui';
 import { colors, radii, screenPadding, spacing } from '@/theme';
+
+import { Button } from './Button';
+import { Text } from './Text';
 
 import type { LucideIcon } from 'lucide-react-native';
 
-export type ReportsEmptyStateProps = {
+export type EmptyStateProps = {
   icon: LucideIcon;
   title: string;
   message: string;
@@ -16,13 +18,12 @@ export type ReportsEmptyStateProps = {
 const CIRCLE_SIZE = 100;
 const ICON_SIZE = 44;
 
-/** X-07 and X-06 are one drawing; the call site keeps them apart because only one invites. */
-export function ReportsEmptyState({
-  icon: Icon,
-  title,
-  message,
-  action,
-}: ReportsEmptyStateProps) {
+/**
+ * SYSTEM-SPEC §5.5's one pattern: green-tinted circle and glyph, a headline naming what
+ * is absent, a line saying what would fill it. X-06 and X-07 are this drawing twice;
+ * only the call site tells them apart, because only one of them invites.
+ */
+export function EmptyState({ icon: Icon, title, message, action }: EmptyStateProps) {
   return (
     <View style={styles.container}>
       <View style={styles.group}>

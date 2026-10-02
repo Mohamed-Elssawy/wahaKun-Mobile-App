@@ -19,6 +19,9 @@ export type { ConfidenceRingProps } from './ConfidenceRing';
 export { ContextChip } from './ContextChip';
 export type { ContextChipProps, ContextChipTint } from './ContextChip';
 
+export { EmptyState } from './EmptyState';
+export type { EmptyStateProps } from './EmptyState';
+
 export { FilterChip } from './FilterChip';
 export type { FilterChipProps } from './FilterChip';
 

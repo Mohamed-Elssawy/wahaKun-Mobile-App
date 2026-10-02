@@ -9,9 +9,8 @@ import {
   View,
 } from 'react-native';
 
-import { AppHeader, SegmentedTabs } from '@/components/ui';
+import { AppHeader, EmptyState, SegmentedTabs } from '@/components/ui';
 import { ReportErrorView } from '@/features/reports/components/ReportErrorView';
-import { ReportsEmptyState } from '@/features/reports/components/ReportsEmptyState';
 import { useIdentity } from '@/features/user/hooks/useIdentity';
 import { colors, screenPadding, spacing } from '@/theme';
 
@@ -116,7 +115,7 @@ export default function CommunityFeedScreen() {
       const copy = isFiltered ? EMPTY.filtered : EMPTY.all;
       return (
         <View style={styles.fallback}>
-          <ReportsEmptyState icon={Users} title={copy.title} message={copy.message} />
+          <EmptyState icon={Users} title={copy.title} message={copy.message} />
         </View>
       );
     }

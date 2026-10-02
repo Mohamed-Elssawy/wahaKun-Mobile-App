@@ -3,7 +3,13 @@ import { FileSearch, FileText } from 'lucide-react-native';
 import { useCallback } from 'react';
 import { SectionList, StyleSheet, View } from 'react-native';
 
-import { AppHeader, ProgressRing, SegmentedTabs, Text } from '@/components/ui';
+import {
+  AppHeader,
+  EmptyState,
+  ProgressRing,
+  SegmentedTabs,
+  Text,
+} from '@/components/ui';
 import { useIdentity } from '@/features/user/hooks/useIdentity';
 import { colors, screenPadding, spacing } from '@/theme';
 
@@ -12,7 +18,6 @@ import { QueuedReportRow } from '../../components/QueuedReportRow';
 import { ReportCtaCard } from '../../components/ReportCtaCard';
 import { ReportErrorView } from '../../components/ReportErrorView';
 import { ReportRow } from '../../components/ReportRow';
-import { ReportsEmptyState } from '../../components/ReportsEmptyState';
 import { useMyReports } from '../../hooks/useMyReports';
 
 import type { ReportFilter } from '../../hooks/useMyReports';
@@ -98,13 +103,13 @@ export default function MyReportsScreen() {
 
           {/* The card above is the way out, so neither empty state carries a button. */}
           {hasAnyReports ? (
-            <ReportsEmptyState
+            <EmptyState
               icon={FileSearch}
               title="لا توجد بلاغات مطابقة"
               message="جرّب توسيع البحث أو تغيير الفلتر."
             />
           ) : (
-            <ReportsEmptyState
+            <EmptyState
               icon={FileText}
               title="لم تُبلّغ عن أي مشكلة بعد"
               message="عندما تبلغ عن مشكلة، ستظهر هنا حتى تتمكن من تتبع حالتها."
