@@ -7,6 +7,12 @@ export type { BackHeaderProps } from './BackHeader';
 export { Button } from './Button';
 export type { ButtonProps, ButtonVariant } from './Button';
 
+export { ConfidencePill } from './ConfidencePill';
+export type { ConfidencePillProps } from './ConfidencePill';
+
+export { ConfidenceRing } from './ConfidenceRing';
+export type { ConfidenceRingProps } from './ConfidenceRing';
+
 export { OtpInput } from './OtpInput';
 export type { OtpInputProps } from './OtpInput';
 

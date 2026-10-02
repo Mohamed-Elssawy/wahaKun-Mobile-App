@@ -1,13 +1,12 @@
 import { CheckCircle2, Sparkles } from 'lucide-react-native';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
-import { ProgressRing, SeverityBadge, Text } from '@/components/ui';
+import { ConfidencePill, ProgressRing, SeverityBadge, Text } from '@/components/ui';
 import type { ScreenProps } from '@/navigation/types';
 import { colors, screenPadding, spacing } from '@/theme';
 
 import { CaptureNotice } from '../../components/CaptureNotice';
 import { CollapsibleCard } from '../../components/CollapsibleCard';
-import { ConfidencePill } from '../../components/ConfidencePill';
 import { DiagnosisCard } from '../../components/DiagnosisCard';
 import { DiagnosisNote } from '../../components/DiagnosisNote';
 import { RepairStepsList } from '../../components/RepairStepsList';

@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ProgressRing, SeverityBadge, Text } from '@/components/ui';
+import { ConfidenceRing, ProgressRing, SeverityBadge, Text } from '@/components/ui';
 import { CommentComposer } from '@/features/community/components/CommentComposer';
 import { CommentThread } from '@/features/community/components/CommentThread';
 import { distanceKm } from '@/features/community/distance';
@@ -21,7 +21,6 @@ import { useIdentity } from '@/features/user/hooks/useIdentity';
 import type { ScreenProps } from '@/navigation/types';
 import { colors, screenPadding, spacing } from '@/theme';
 
-import { ConfidenceGauge } from '../../components/ConfidenceGauge';
 import { DiagnosisNote } from '../../components/DiagnosisNote';
 import { IssueIdentityBar } from '../../components/IssueIdentityBar';
 import { IssueTranscript } from '../../components/IssueTranscript';
@@ -175,7 +174,7 @@ export default function IssueDetailsScreen({
                   <Text variant="h4" align="right" style={styles.summaryTitle}>
                     {title}
                   </Text>
-                  <ConfidenceGauge confidence={analysis.confidence} compact />
+                  <ConfidenceRing confidence={analysis.confidence} compact />
                 </View>
 
                 {/* A summary: all seven repair steps here buried the status track. */}

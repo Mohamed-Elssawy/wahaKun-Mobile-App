@@ -1,7 +1,9 @@
 import { StyleSheet, View } from 'react-native';
 
-import { ProgressRing, Text } from '@/components/ui';
 import { colors, radii, shadows, spacing } from '@/theme';
+
+import { ProgressRing } from './ProgressRing';
+import { Text } from './Text';
 
 export type ConfidencePillProps = {
   /** 0 to 1, as normalized by the service layer. */

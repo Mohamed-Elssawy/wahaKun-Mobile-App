@@ -1,8 +1,9 @@
 import { StyleSheet, View } from 'react-native';
 
-import { ProgressRing, Text } from '@/components/ui';
+import { ProgressRing } from './ProgressRing';
+import { Text } from './Text';
 
-export type ConfidenceGaugeProps = {
+export type ConfidenceRingProps = {
   /** 0 to 1, as normalized by the service layer. */
   confidence: number;
   /** A boolean, not a size: the design has exactly two presentations. */
@@ -13,12 +14,12 @@ const CAPTION = 'ثقة';
 const COMPACT_SIZE = 56;
 
 /** Label sits over the ring, not inside the Svg: svg text takes no typography tokens. */
-export function ConfidenceGauge({ confidence, compact = false }: ConfidenceGaugeProps) {
+export function ConfidenceRing({ confidence, compact = false }: ConfidenceRingProps) {
   const percent = Math.round(confidence * 100);
 
   return (
     <View
-      style={styles.gauge}
+      style={styles.ring}
       accessible
       accessibilityRole="progressbar"
       accessibilityLabel={`${CAPTION} ${percent}%`}
@@ -41,7 +42,7 @@ export function ConfidenceGauge({ confidence, compact = false }: ConfidenceGauge
 }
 
 const styles = StyleSheet.create({
-  gauge: {
+  ring: {
     alignItems: 'center',
     justifyContent: 'center',
   },
