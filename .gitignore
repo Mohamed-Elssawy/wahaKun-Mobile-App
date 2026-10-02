@@ -111,3 +111,7 @@ scripts/demo-photos/
 # Design exports. Regenerated from Figma on demand; ~36 MB of binaries that
 # would bloat every clone and can't be diffed.
 docs/*.pdf
+
+# Local planning docs — not part of the codebase
+FRONTEND-BUILD-PLAN.md
+PROMPT-RULEBOOK.md
