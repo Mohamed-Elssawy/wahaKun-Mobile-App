@@ -1,17 +1,18 @@
 import { StyleSheet, View } from 'react-native';
 
-import { Text } from '@/components/ui';
 import { colors, radii, shadows, spacing } from '@/theme';
+
+import { Text } from './Text';
 
 import type { ReactNode } from 'react';
 
-export type DiagnosisCardProps = {
+export type AiDiagnosisCardProps = {
   title: string;
   children: ReactNode;
 };
 
 /** Chrome only. The contents are passed in, which is what keeps a variant prop away. */
-export function DiagnosisCard({ title, children }: DiagnosisCardProps) {
+export function AiDiagnosisCard({ title, children }: AiDiagnosisCardProps) {
   return (
     <View style={styles.card}>
       <Text variant="h4" align="right">

@@ -28,7 +28,9 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-/** A DiagnosisCard whose body folds away. Used by "لماذا هذا التشخيص؟". */
+/** An AiDiagnosisCard whose body folds away. Used by "لماذا هذا التشخيص؟". */
+// Not composed from it: this one owns a touchable header and a LayoutAnimation, so it only
+// shares the chrome. Worth merging the moment a third card wants the same surface.
 export function CollapsibleCard({
   title,
   defaultOpen = true,

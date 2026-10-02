@@ -1,3 +1,6 @@
+export { AiDiagnosisCard } from './AiDiagnosisCard';
+export type { AiDiagnosisCardProps } from './AiDiagnosisCard';
+
 export { AppHeader } from './AppHeader';
 export type { AppHeaderProps } from './AppHeader';
 

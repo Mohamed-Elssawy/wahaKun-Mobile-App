@@ -1,13 +1,18 @@
 import { CheckCircle2, Sparkles } from 'lucide-react-native';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
-import { ConfidencePill, ProgressRing, SeverityBadge, Text } from '@/components/ui';
+import {
+  AiDiagnosisCard,
+  ConfidencePill,
+  ProgressRing,
+  SeverityBadge,
+  Text,
+} from '@/components/ui';
 import type { ScreenProps } from '@/navigation/types';
 import { colors, screenPadding, spacing } from '@/theme';
 
 import { CaptureNotice } from '../../components/CaptureNotice';
 import { CollapsibleCard } from '../../components/CollapsibleCard';
-import { DiagnosisCard } from '../../components/DiagnosisCard';
 import { DiagnosisNote } from '../../components/DiagnosisNote';
 import { RepairStepsList } from '../../components/RepairStepsList';
 import { ReportErrorView } from '../../components/ReportErrorView';
@@ -88,15 +93,15 @@ export default function ReportDiagnosisScreen({
         </View>
 
         {analysis.recommendation ? (
-          <DiagnosisCard title={RECOMMENDATION_TITLE}>
+          <AiDiagnosisCard title={RECOMMENDATION_TITLE}>
             <DiagnosisNote icon={CheckCircle2}>{analysis.recommendation}</DiagnosisNote>
-          </DiagnosisCard>
+          </AiDiagnosisCard>
         ) : null}
 
         {analysis.repairSteps.length > 0 ? (
-          <DiagnosisCard title={STEPS_TITLE}>
+          <AiDiagnosisCard title={STEPS_TITLE}>
             <RepairStepsList steps={analysis.repairSteps} />
-          </DiagnosisCard>
+          </AiDiagnosisCard>
         ) : null}
 
         {/* Last and foldable: worth offering, not worth pushing the repair steps down. */}
