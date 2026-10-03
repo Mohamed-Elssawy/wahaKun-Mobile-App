@@ -32,7 +32,7 @@ const BASE = API_BASE_URLS.community;
 const UNKNOWN_AUTHOR = 'مزارع من الواحة';
 
 /** "Nearby" has no server-side distance sort (coordinates are strings in SQL), so it pulls a wide page. */
-const NEARBY_PAGE_SIZE = 100;
+const NEARBY_PAGE_SIZE = 200;
 
 type Author = { name: string; picture?: string };
 
