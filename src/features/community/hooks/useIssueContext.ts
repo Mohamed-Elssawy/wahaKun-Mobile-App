@@ -22,7 +22,7 @@ export function useIssueContext(issueId: string) {
   const [error, setError] = useState<ReportError | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const isMounted = useRef(true);
-  const origin = useCurrentLocation();
+  const { location: origin } = useCurrentLocation();
 
   useEffect(() => {
     return () => {

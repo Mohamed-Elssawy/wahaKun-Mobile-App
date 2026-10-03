@@ -11,6 +11,7 @@ import { CameraControlsBar } from '../../components/CameraControlsBar';
 import { CameraPermissionDenied } from '../../components/CameraPermissionDenied';
 import { CaptureHeader } from '../../components/CaptureHeader';
 import { CaptureNotice } from '../../components/CaptureNotice';
+import { LocationPermissionDenied } from '../../components/LocationPermissionDenied';
 import { MicrophonePermissionDenied } from '../../components/MicrophonePermissionDenied';
 import { PhotoReview } from '../../components/PhotoReview';
 import { ReportErrorView } from '../../components/ReportErrorView';
@@ -48,6 +49,7 @@ export default function ReportCaptureScreen({
     isSubmitting,
     submitError,
     error,
+    isLocationDenied,
     // F-03c routes here asking for صوت when the model could not read a photo.
   } = useReportCapture(route.params?.mode);
 
@@ -86,7 +88,13 @@ export default function ReportCaptureScreen({
       );
     }
 
-    // X-05. No draft option alongside it, because saving is exactly what just failed.
+    // X-05/D-HARD-BLOCK. No tertiary way out - location is mandatory, so the whole capture
+    // surface is blocked, same precedence as the camera/mic walls below.
+    if (isLocationDenied) {
+      return <LocationPermissionDenied onOpenSettings={Linking.openSettings} />;
+    }
+
+    // No draft option alongside this one either, because saving is exactly what just failed.
     if (submitError) {
       return (
         <ReportErrorView

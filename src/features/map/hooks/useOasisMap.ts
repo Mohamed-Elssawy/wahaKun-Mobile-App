@@ -71,7 +71,7 @@ export function useOasisMap() {
   const markerPressedAt = useRef(0);
   /** The query the camera was last framed for, so a refetch does not re-frame it. */
   const fittedQuery = useRef('');
-  const location = useCurrentLocation();
+  const { location } = useCurrentLocation();
 
   const load = useCallback(async (): Promise<void> => {
     setError(null);
