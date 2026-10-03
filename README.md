@@ -108,21 +108,18 @@ review:
 
 ## Feature flags
 
-Five booleans in `src/config/env.ts`. Each is the only place its decision is made.
+Four booleans in `src/config/env.ts`. Each is the only place its decision is made.
 
 | Flag                      | Default | Meaning                                                               |
 | ------------------------- | ------- | --------------------------------------------------------------------- |
 | `USE_MOCK_REPORTS`        | `false` | serve reports from the in-memory mock instead of ReportService        |
 | `USE_LOCAL_REPORT_MIRROR` | `true`  | read My Issues and Issue Details from this device's own mirror        |
-| `USE_MOCK_COMMUNITY`      | `true`  | serve the feed from seeded posts instead of composing it from the map |
 | `ENABLE_COMMENT_POSTING`  | `false` | allow posting a comment                                               |
 | `ESCALATE_LOW_CONFIDENCE` | `false` | escalate a low-confidence diagnosis rather than showing it            |
 
-The three that default on or block a feature are all waiting on the backend, not
+The two that default on or block a feature are all waiting on the backend, not
 on product decisions. `USE_LOCAL_REPORT_MIRROR` is on because IssueController
-exposes no `GetMyIssues` or `GetIssueById`. `USE_MOCK_COMMUNITY` is on because
-CommunityService has no feed endpoint and `MapResponseDto` carries no reporter, so
-the real path shows no author and no counts. `ENABLE_COMMENT_POSTING` is off
+exposes no `GetMyIssues` or `GetIssueById`. `ENABLE_COMMENT_POSTING` is off
 because posting needs a moderation service on `:8000` that is not in the backend
 repo.
 
@@ -137,8 +134,13 @@ repo.
 - **The oasis map**, on MapLibre over satellite imagery: one pin per issue when
   zoomed in, counted clusters when zoomed out, a peek sheet per pin, Arabic search
   that folds spelling, and a legend.
-- **The community feed** and the comment thread on issue details.
+- **The comment thread on issue details**, against the real CommunityService endpoint.
 - **Profile and settings.**
+
+The community feed tab is a placeholder (`المجتمع`). It was built against a mock
+feed; CommunityService has no feed endpoint and MapResponseDto carries no
+reporter or counts, so there is nothing real to build it against yet. See
+"Known follow-ups".
 
 Filing a report never blocks on the network. The photo is re-encoded into
 AsyncStorage first, then uploaded when a connection allows, so composing a report
@@ -173,6 +175,9 @@ Left alone deliberately, with the reason:
 - **Voice capture is a text box.** `CreateReportRequest` has no audio field and no
   recording library is installed, so the record control says so rather than
   failing silently. The typed description is real and uploads with the photo.
+- **The community feed is a placeholder.** It was built against a seeded mock
+  (`communityService.mock.ts`, now removed) rather than CommunityService, which
+  has no feed endpoint. Rebuild it for real once that endpoint exists.
 - **The community hub is not wired.** CommunityService exposes a SignalR hub for
   live counters. Nothing connects to it.
 - **Font bundle.** 56 `.ttf` files are linked natively and 5 are used. Trimming

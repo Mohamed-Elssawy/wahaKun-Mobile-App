@@ -1,8 +1,5 @@
 // camelCase on the wire from the Web defaults.
 
-import type { MapIssueTier } from '@/features/map/types';
-import type { ReportStatus } from '@/features/reports/types';
-
 /** CommentResponseDto verbatim. The author is an id only; UserService resolves the name. */
 export type CommentWire = {
   id: string;
