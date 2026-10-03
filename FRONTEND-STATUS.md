@@ -210,3 +210,116 @@ Both were approved before the build, and both are the frame being obeyed:
 ### Wiring it to the real backend
 
 Nothing. This unit touched no service, type, endpoint or flag default.
+
+---
+
+## S1 — the lifecycle model, the account role, and the expert shell
+
+The report state machine of SYSTEM-SPEC §3 as a pure module, role on the
+identity, §4.1's routing table, and the expert shell with three empty tabs.
+
+### What the model owns
+
+`src/features/reports/lifecycle/` is the single answer to every question a
+screen asks about a case. It imports nothing from another feature, nothing from
+`api/`, and no React, so it is tested directly: 108 tests over the six files.
+
+| File             | Owns                                                         |
+| ---------------- | ------------------------------------------------------------ |
+| `statuses.ts`    | §3.2's six statuses, the `IssueStatus` map, the 80% constant |
+| `nodes.ts`       | §3.3's six nodes and `LifecycleFacts`                        |
+| `transitions.ts` | §3.5's T1–T15 with guards                                    |
+| `refusals.ts`    | §3.6 as codes                                                |
+| `permissions.ts` | §10.7's write matrix                                         |
+| `selectors.ts`   | the seven selectors every screen reads                       |
+| `display.ts`     | status and severity to labels, glyphs and tokens             |
+
+Status alone cannot place a case: `جديدة`, `قيد المراجعة` and `مجدولة` each span
+two nodes. So the model takes `LifecycleFacts` — the status plus four booleans —
+and `currentNode` is the only thing that resolves it. Nothing downstream
+re-derives a status or a node.
+
+A refusal is a returned code, never a throw, because a model that throws cannot
+be called from a render path and none of §3.6's clauses are errors a farmer
+should read. `attempt()` returns `{ ok: false, refusal }` and the screen decides
+whether that means hiding a control or saying something.
+
+**The bug it found.** `status.ts` mapped `Repaired` onto `تم الحل`, so a case the
+expert had repaired and the farmer had not yet confirmed read as solved on My
+Reports, in the community filters and on the map. T6 leaves the status at
+`مجدولة`; only the farmer's tick at T7 closes a case. `status.ts` is deleted and
+its seven consumers read the model.
+
+### What is PROPOSED
+
+| Field             | Where                   | Why it does not exist                                                |
+| ----------------- | ----------------------- | -------------------------------------------------------------------- |
+| `role`            | `UserDetails`           | `UserDetailsResponse` has no role; Identity has it, the DTO does not |
+| `status`          | `UserDetails`           | `AppUser.Status` is set on register and reaches no response          |
+| `hasExpertReview` | `LifecycleFacts`        | no `IssueStatus` value separates node 3 from node 4                  |
+| `useUnreadChats`  | `features/expert/hooks` | no service answers it, so the dot is wired and false                 |
+
+`Reopened` and `AdminClosed` have no wire value at all, so nothing reads them
+off the server. All of it is filed in BACKEND-CONTRACT-REQUESTS.md, items 8–11.
+
+### The flags
+
+| Flag                      | Default  | Effect                                   |
+| ------------------------- | -------- | ---------------------------------------- |
+| `USE_MOCK_ROLE`           | `true`   | serve the account role from `MOCK_ROLE`  |
+| `MOCK_ROLE`               | farmer   | which role the mock serves               |
+| `MOCK_EXPERT_APPROVAL`    | approved | which §4.1 row an expert takes           |
+| `ESCALATE_LOW_CONFIDENCE` | `true`   | hide a sub-80% diagnosis from the farmer |
+
+`USE_MOCK_ROLE` is on by backend gap, the way `USE_MOCK_COMMUNITY` is, so the
+committed build boots the farmer shell exactly as it did before. Set `MOCK_ROLE`
+to `'expert'` to walk the expert shell on a device. `env.test.ts` asserts all
+four, because an expert default would send every account to a shell of empty
+placeholders and turning the escalation off would put uncertainty language back
+in front of farmers without failing anything.
+
+### The escalation, reinstated
+
+`ESCALATE_LOW_CONFIDENCE` was read in zero places, so flipping it did nothing.
+It is now on, and `features/reports/aiVisibility.ts` is the only place outside
+`config/env` that reads it. Below 80%, or on a transcription failure, the farmer
+gets §8.3's canonical escalation line and no AI output: F-03a's whole card,
+F-04's hero severity, confidence ring, both diagnosis notes and its
+`IssuePriority` badge, and My Reports' severity stripe and AI title. The expert
+still sees the amber chip, which §8.3 calls the only sub-threshold view in the
+product. The gate lifts once an expert has reviewed, per §10.2.
+
+The farmer's own description survives an escalation and the AI-written title
+does not, so the fallback runs description first and then T13's `بلاغ بدون وصف`.
+
+**One surface is deliberately left.** F-01's feed cards still draw a tier badge
+for other farmers' reports off `IssuePriority`. It is the same source as F-04's
+hero badge, which this unit gates, but F-01 is a public feed of other people's
+reports rather than the reader's own, and §10.2's row is about the reader's
+diagnosis. Worth settling when F-01 is next touched.
+
+### Routing and the shell
+
+`navigation/routeForIdentity.ts` is §4.1 as a pure function, and boot and both
+login screens go through it, since §4.1 is taken at S-01 and after every
+authentication. Two routes it needed are new: S-08 as a root route, because an
+unapproved expert must reach no shell, and X-01 as the cold-start guard, with a
+retry that re-runs the decision. Two rows §4.1 does not have are decided in
+that file and commented: an unreadable role goes to X-01 rather than defaulting
+to farmer, and a failed first-run read still boots Welcome.
+
+`BootRoute` is still an `Extract` over the route table, so the `initialRouteName`
+shortcut cannot be committed through that prop. It is now a `BootDecision`, so
+S-08 arrives with the state it has to draw.
+
+The expert shell is `ExpertTabs` plus three chrome-only screens, not
+placeholders, so a later unit replaces a body and never the shell. The unread
+dot is drawn into the `المحادثات` glyph because `tabBarBadge` draws a red
+numeric pill where §8.3 asks for a green dot.
+
+### Wiring it to the real backend
+
+Deleting one branch in `features/user/role.ts` and setting `USE_MOCK_ROLE` to
+`false`, once `UserDetailsResponse` carries the two fields. `roleFromDetails`
+is already written and tested against both the names and the ints, since
+`UserStatus` would arrive as a number the way `IssueStatus` does.

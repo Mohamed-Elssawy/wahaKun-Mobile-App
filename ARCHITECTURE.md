@@ -82,7 +82,9 @@ src/
       format.ts            the short report reference shown to the farmer
       relativeTime.ts      Arabic durations
       severity.ts          severity to colour and Arabic label
-      status.ts            IssueStatus's seven values onto three display stages
+      aiVisibility.ts      binds ESCALATE_LOW_CONFIDENCE for the farmer's AI gate
+      lifecycle/           SYSTEM-SPEC 3's state machine: statuses, nodes, T1-T15,
+                           refusals, the write matrix, selectors and display
       components/          capture, diagnosis, queue and failure-state pieces
       hooks/               useReportCapture, useReportDiagnosis, useMyReports, ...
       screens/             ReportCapture, ReportAnalyzing, ReportDiagnosis, ...
@@ -107,12 +109,19 @@ src/
       hooks/               useCommunityFeed, useIssueComments
       services/            communityService.ts, its mock, and the index that picks
     user/                profile, settings and the header identity
+      role.ts              account role and expert approval, behind USE_MOCK_ROLE
       hooks/               useIdentity, useProfile
       services/            userService.ts, preferencesStore.ts
+    expert/              the expert shell
+      hooks/useUnreadChats the المحادثات tab dot
+      screens/             ExpertInbox, ExpertMap, ExpertChats, chrome only
   hooks/               useCountdown, useImagePicker, useCurrentLocation
   navigation/
     RootNavigator.tsx    the single stack
     HomeTabs.tsx         the four bottom tabs behind Home
+    ExpertTabs.tsx       the three bottom tabs behind ExpertHome
+    routeForIdentity.ts  SYSTEM-SPEC 4.1's role routing table, pure
+    bootRoute.ts         the boot decision: token, first run, then role
     types.ts             RootStackParamList, the source of routing truth
   theme/               colors, typography, layout, taken from Figma
   types/               shared domain types (location, image)
@@ -312,15 +321,19 @@ so rather than implying the setting follows the farmer to a new device.
 
 ## Feature flags
 
-Five booleans in `config/env.ts`, each the single switch for one decision:
+Six booleans in `config/env.ts`, each the single switch for one decision:
 
 | Flag                      | Default | Effect                                            |
 | ------------------------- | ------- | ------------------------------------------------- |
 | `USE_MOCK_REPORTS`        | `false` | serve reports from the in-memory mock             |
 | `USE_LOCAL_REPORT_MIRROR` | `true`  | read My Issues and Issue Details from this device |
 | `USE_MOCK_COMMUNITY`      | `true`  | serve the feed from seeded posts                  |
+| `USE_MOCK_ROLE`           | `true`  | serve the account role from `MOCK_ROLE`           |
 | `ENABLE_COMMENT_POSTING`  | `false` | allow posting a comment                           |
-| `ESCALATE_LOW_CONFIDENCE` | `false` | send a low-confidence diagnosis to an expert      |
+| `ESCALATE_LOW_CONFIDENCE` | `true`  | hide a sub-80% diagnosis from the farmer          |
+
+`MOCK_ROLE` and `MOCK_EXPERT_APPROVAL` pick which §4.1 row `USE_MOCK_ROLE`
+serves. They are settings rather than switches, like `MOCK_SCENARIO`.
 
 `features/reports/services/index.ts` and `features/community/services/index.ts`
 each pick the real service or the mock and export it under an interface name. That
@@ -332,8 +345,13 @@ The mocks stay useful for working on the diagnosis and feed screens with no back
 running, and the report mock is the only place the duplicate-upload path can be
 exercised, because it honours the idempotency key and the real server does not yet.
 
-Three of the five are open backend gaps rather than product decisions. The feature
+Four of the six are open backend gaps rather than product decisions;
+`ESCALATE_LOW_CONFIDENCE` is the one that is purely a product stance. The feature
 tables in this doc and in the README note which, and why.
+
+`ESCALATE_LOW_CONFIDENCE` is read only by `features/reports/aiVisibility.ts`, and
+`USE_MOCK_ROLE` only by `features/user/role.ts`. Both exist so the pure modules
+behind them take the answer as an argument and stay testable in both states.
 
 ## Testing
 

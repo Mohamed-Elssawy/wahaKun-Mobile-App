@@ -139,3 +139,40 @@ service does not answer.
 That service is not in the backend repo, and it is not the same as the vision
 service on port 8001. Until we have it, comments cannot be posted at all — not
 even a harmless one. Where does it live?
+
+---
+
+## 8. The app cannot tell a farmer from an expert
+
+`UserDetailsResponse` returns id, name, email, phone, picture, village and
+region — and no role. The app needs to know which of the two it is talking to
+before it can show the right home screen, so please add the account's role and,
+for an expert, its approval status to that response.
+
+Both already exist on your side. Roles are in the Identity tables, and
+`TokenService.GenerateAccessToken` already puts them in the JWT. `AppUser.Status`
+is set to `UserStatus.Pending` when an expert registers. Neither reaches any
+response the phone can read.
+
+Until then the app serves a role from a mock and treats every account as a
+farmer, so the expert side is unreachable on a real login.
+
+## 9. A reopened issue has no `IssueStatus` value
+
+When a farmer says a repair did not work, the issue goes back to the expert's
+queue. `IssueStatus` has no value that means that, so the phone cannot store it
+and cannot recognise it coming back. A `Reopened` value would cover it.
+
+## 10. Nothing says whether the expert has reviewed an issue yet
+
+`Assigned` covers both "an expert has it and has not looked at it" and "an
+expert has reviewed it and has not scheduled the repair". Those are two
+different screens for the expert and two different lines for the farmer, so the
+phone needs them apart — either a new `IssueStatus` value or a flag on the
+issue.
+
+## 11. What does `IssueStatus.Verified` mean?
+
+It sits between `Diagnosed` and `Assigned`, and nothing in our spec verifies an
+issue before routing it to an expert. The app currently treats it the same as
+`Diagnosed`. If it means something specific, we would rather draw it properly.
