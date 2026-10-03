@@ -53,6 +53,8 @@ export type RootStackParamList = {
   ReportDiagnosis: { reportId: string };
   ConnectToExpert: { reportId: string };
   IssueDetails: { reportId: string };
+  /** F-06. Entry points: the F-07 card, the F-03b CTA, F-05's owner peek, notifications. */
+  ReportTracker: { reportId: string };
 
   Home: NavigatorScreenParams<HomeTabParamList> | undefined;
   /** The expert shell. A separate root because §8.3's tabs are not the farmer's with a flag. */

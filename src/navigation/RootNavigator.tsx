@@ -19,6 +19,7 @@ import IssueDetailsScreen from '@/features/reports/screens/IssueDetailsScreen';
 import ReportAnalyzingScreen from '@/features/reports/screens/ReportAnalyzingScreen';
 import ReportCaptureScreen from '@/features/reports/screens/ReportCaptureScreen';
 import ReportDiagnosisScreen from '@/features/reports/screens/ReportDiagnosisScreen';
+import ReportTrackerScreen from '@/features/reports/screens/ReportTrackerScreen';
 import EditProfilePictureScreen from '@/features/user/screens/EditProfilePictureScreen';
 import EditRegionScreen from '@/features/user/screens/EditRegionScreen';
 import ProfileScreen from '@/features/user/screens/ProfileScreen';
@@ -84,6 +85,7 @@ export function RootNavigator({ initialRoute }: RootNavigatorProps) {
         <Stack.Screen name="ReportDiagnosis" component={ReportDiagnosisScreen} />
         <Stack.Screen name="ConnectToExpert" component={ConnectToExpertScreen} />
         <Stack.Screen name="IssueDetails" component={IssueDetailsScreen} />
+        <Stack.Screen name="ReportTracker" component={ReportTrackerScreen} />
         <Stack.Screen name="Home" component={HomeTabs} />
         <Stack.Screen name="ExpertHome" component={ExpertTabs} />
 
