@@ -40,37 +40,7 @@ export type CommentsPage = {
   hasMore: boolean;
 };
 
-/** CommunityService FeedPostDto, camelCase. */
-export type FeedPostWire = {
-  issueId: string;
-  title: string;
-  description?: string | null;
-  /** IssueStatus name, e.g. "Diagnosed". */
-  status: string;
-  /** IssuePriority name, e.g. "Critical". */
-  priority: string;
-  latitude?: number | null;
-  longitude?: number | null;
-  /** MinIO object key, resolved through MediaStorageService. */
-  photoUrl?: string | null;
-  createdAt: string;
-  reporterId: string;
-  voteCount: number;
-  commentCount: number;
-  shareCount: number;
-  hasVoted: boolean;
-};
-
-/** CommunityService FeedPageDto. */
-export type FeedPageWire = {
-  items: FeedPostWire[];
-  page: number;
-  pageSize: number;
-  totalCount: number;
-  hasMore: boolean;
-};
-
-/** CommunityService VoteResultDto. */
+/** A confirmation's outcome. CommunityController has no vote endpoint yet, so only the mock answers it. */
 export type VoteResult = {
   issueId: string;
   hasVoted: boolean;
@@ -123,4 +93,6 @@ export type CommunityApi = {
   getFeed: (query: FeedQuery) => Promise<FeedPage>;
   toggleConfirmation: (issueId: string) => Promise<VoteResult>;
   getComments: (issueId: string, page: number, pageSize: number) => Promise<CommentsPage>;
+  /** One seeded post by id, so F-04 can open a feed card the server has never heard of. */
+  getPost: (issueId: string) => Promise<FeedPost | null>;
 };

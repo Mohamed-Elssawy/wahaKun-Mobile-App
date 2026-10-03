@@ -1,5 +1,6 @@
 import { API_BASE_URLS } from '@/config/env';
 
+import { subscribeToIssueChanges } from '../issueEvents';
 import {
   analyzeIssue,
   createIssue,
@@ -224,6 +225,78 @@ describe('createIssue', () => {
     );
   });
 });
+
+// Nullable is on server-side, so a null in any non-`?` field of AiAnalysisResponse is a 400 on create.
+describe('the analysis create receives', () => {
+  // What analyze really returns: the vision service's success body has no problem_code.
+  const FROM_SERVER = {
+    filePath: 'reportimage/f8086949.jpg',
+    problemName: null,
+    problemArabic: 'تسريب في الأنبوب',
+    confidence: 92.5,
+    severity: 'عالية',
+    recommendation: null,
+    explanation: 'شرح',
+    repairSteps: null,
+  };
+
+  beforeEach(async () => {
+    mockPost.mockReset();
+    await resetReportMirror();
+  });
+
+  it('fills every required field analyze can leave null', async () => {
+    mockPost.mockResolvedValue(FROM_SERVER);
+
+    const analysis = await analyzeIssue({ uri: 'file:///photo.jpg' });
+
+    expect(analysis.problemName).toBe('تسريب في الأنبوب');
+    expect(analysis.recommendation).toBe('');
+    expect(analysis.repairSteps).toEqual([]);
+    expect(analysis.severity).toBe('عالية');
+  });
+
+  it('repairs an analysis an older build checkpointed with nulls', async () => {
+    mockPost.mockResolvedValue({
+      id: '05533e56',
+      status: 1,
+      createdAt: '2026-08-09T13:01:13.42Z',
+      reporterId: 'f86295b1',
+    });
+
+    await createIssue({ analysis: FROM_SERVER as unknown as typeof ANALYSIS_SHAPE });
+
+    const body = mockPost.mock.calls[0][2];
+    expect(body.aiAnalysisResponse.problemName).toBe('تسريب في الأنبوب');
+    expect(body.aiAnalysisResponse.recommendation).toBe('');
+    expect(body.aiAnalysisResponse.repairSteps).toEqual([]);
+  });
+
+  it('tells the map a new issue exists', async () => {
+    mockPost.mockResolvedValue({
+      id: 'new-issue',
+      status: 1,
+      createdAt: '2026-08-09T13:01:13.42Z',
+      reporterId: 'f86295b1',
+    });
+    const listener = jest.fn();
+    const unsubscribe = subscribeToIssueChanges(listener);
+
+    await createIssue({ analysis: ANALYSIS_SHAPE });
+    unsubscribe();
+
+    expect(listener).toHaveBeenCalledWith({ kind: 'created', issueId: 'new-issue' });
+  });
+});
+
+const ANALYSIS_SHAPE = {
+  filePath: 'reportimage/a.jpg',
+  problemName: 'Blockage',
+  confidence: 0.9,
+  severity: 'حرجة' as const,
+  recommendation: '',
+  repairSteps: [],
+};
 
 // The mirror stands in for GetMyIssues, which IssueController no longer exposes.
 describe('getMyReports', () => {

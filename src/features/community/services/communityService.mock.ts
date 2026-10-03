@@ -1,4 +1,4 @@
-// Seeded feed for when CommunityService has no GetFeed, so F-01 can show the author and counts the real path cannot; ./index.ts picks one.
+// Seeded feed: CommunityController has no GetFeed or vote endpoint, so F-01 and the confirm button always run on this.
 
 import { isResolvedStatus } from '@/features/reports/status';
 
@@ -186,4 +186,13 @@ export async function toggleConfirmation(issueId: string): Promise<VoteResult> {
   return { issueId, hasVoted: post.hasConfirmed, voteCount: post.confirmations };
 }
 
-export const communityApi: CommunityApi = { getFeed, getComments, toggleConfirmation };
+export async function getPost(issueId: string): Promise<FeedPost | null> {
+  return SEED.find(post => post.issueId === issueId) ?? null;
+}
+
+export const communityApi: CommunityApi = {
+  getFeed,
+  getComments,
+  toggleConfirmation,
+  getPost,
+};

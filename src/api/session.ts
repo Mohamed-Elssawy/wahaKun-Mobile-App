@@ -4,9 +4,11 @@ import { API_ENDPOINTS } from './endpoints';
 import { clearTokens, getAccessToken, getRefreshToken, saveTokens } from './tokenStorage';
 
 type Listener = () => void;
+/** `network` = the server was never reached, so the session may still be good; boot keeps it. */
+export type RefreshOutcome = 'refreshed' | 'refused' | 'network';
 const expiredListeners = new Set<Listener>();
 const refreshedListeners = new Set<Listener>();
-let refreshing: Promise<boolean> | null = null;
+let refreshing: Promise<RefreshOutcome> | null = null;
 
 function decodeJwtPayload(token: string): Record<string, unknown> | null {
   try {
@@ -32,9 +34,9 @@ export function isTokenExpired(token: string | null, skewSeconds = 30): boolean 
   return exp * 1000 <= Date.now() + skewSeconds * 1000;
 }
 
-async function doRefresh(): Promise<boolean> {
+async function doRefresh(): Promise<RefreshOutcome> {
   const refreshToken = await getRefreshToken();
-  if (!refreshToken) return false;
+  if (!refreshToken) return 'refused';
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
   try {
@@ -51,28 +53,35 @@ async function doRefresh(): Promise<boolean> {
         signal: controller.signal,
       },
     );
-    if (!response.ok) return false;
+    // A gateway/server outage is not a refused token; only 4xx means the session is over.
+    if (response.status >= 500) return 'network';
+    if (!response.ok) return 'refused';
     const data = (await response.json()) as {
       accessToken?: string;
       refreshToken?: string;
     };
-    if (!data.accessToken || !data.refreshToken) return false;
+    if (!data.accessToken || !data.refreshToken) return 'refused';
     await saveTokens(data.accessToken, data.refreshToken);
     refreshedListeners.forEach(l => l());
-    return true;
+    return 'refreshed';
   } catch {
-    return false;
+    return 'network';
   } finally {
     clearTimeout(timeout);
   }
 }
 
-export function refreshSession(): Promise<boolean> {
+/** Single-flight: concurrent 401s share one refresh, since a refresh token is single-use. */
+export function refreshSessionOutcome(): Promise<RefreshOutcome> {
   if (!refreshing)
     refreshing = doRefresh().finally(() => {
       refreshing = null;
     });
   return refreshing;
+}
+
+export async function refreshSession(): Promise<boolean> {
+  return (await refreshSessionOutcome()) === 'refreshed';
 }
 
 export function onSessionExpired(listener: Listener): () => void {

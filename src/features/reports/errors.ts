@@ -1,6 +1,7 @@
 // Branch on kind / backend code, never on message text.
 
 import { ApiError } from '@/api';
+import { isDisplayableArabic } from '@/api/errorMessages';
 
 export type ReportErrorKind =
   /** Never reached the server: no connection, or it timed out. Retried with backoff. */
@@ -72,13 +73,32 @@ export function describeError(error: unknown, fallback: string): ReportError {
   return { ...base, kind: 'unknown' };
 }
 
-/** For api/Issue/analyze. Kept as a separate entry point so callers read clearly. */
+/** IssueService throws InvalidOperationException for both business refusals, which the middleware sends as this. */
+const INVALID_OPERATION = 'INVALID_OPERATION';
+
+/** The server's own Arabic reason when it sent one, e.g. the vision service's "الصورة لا تظهر مشكلة ري واضحة." */
+function serverReason(error: ApiError, fallback: string): string {
+  const reason = error.details.serverMessage;
+  return isDisplayableArabic(reason) ? reason : fallback;
+}
+
+/** For api/Issue/analyze. INVALID_OPERATION here means the model refused the photo (refused, low_confidence, poor_quality, uncertain). */
 export function describeAnalysisError(error: unknown, fallback: string): ReportError {
+  if (error instanceof ApiError && error.code === INVALID_OPERATION) {
+    return {
+      kind: 'unrecognized',
+      code: error.code,
+      message: serverReason(error, UNRECOGNIZED_MESSAGE),
+    };
+  }
   return describeError(error, fallback || UNKNOWN_MESSAGE);
 }
 
-/** For api/Issue/create. */
+/** For api/Issue/create. INVALID_OPERATION here means GetPriority returned Low/Unknown and the photo was deleted. */
 export function describeCreateError(error: unknown, fallback: string): ReportError {
+  if (error instanceof ApiError && error.code === INVALID_OPERATION) {
+    return { kind: 'tooMinor', code: error.code, message: TOO_MINOR_MESSAGE };
+  }
   return describeError(error, fallback || UNKNOWN_MESSAGE);
 }
 

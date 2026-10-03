@@ -56,6 +56,7 @@ export const UPLOAD_TIMEOUT_MS = 110000;
 export const REPORT_QUEUE_MAX = 5;
 export const USE_MOCK_REPORTS = false;
 export const USE_LOCAL_REPORT_MIRROR = true;
+/** false = the feed/votes are seeded and comments hit GetCommentsByIssueId; true = all seeded. */
 export const USE_MOCK_COMMUNITY = false;
 export const ENABLE_COMMENT_POSTING = false;
 export const ESCALATE_LOW_CONFIDENCE = false;

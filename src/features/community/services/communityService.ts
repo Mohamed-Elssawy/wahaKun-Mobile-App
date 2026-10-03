@@ -1,38 +1,28 @@
-/** Every CommunityController endpoint is [Authorize], hence `authenticated: true` throughout. */
+/** CommunityController has exactly one endpoint, GetCommentsByIssueId; everything else is the seeded mock. */
+// Never add a path here that CommunityController does not declare: the gateway answers it with a bare 404.
 
 import { API_ENDPOINTS, apiClient } from '@/api';
 import { API_BASE_URLS } from '@/config/env';
-import { describeTier, normalizeMapStatus } from '@/features/map/tier';
-import {
-  resolveAttachmentUrl,
-  toUtcTimestamp,
-} from '@/features/reports/services/reportService';
+import { toUtcTimestamp } from '@/features/reports/services/reportService';
 import {
   getUserDetails,
   resolveProfilePictureUrl,
 } from '@/features/user/services/userService';
 
-import { distanceKm } from '../distance';
+import * as mock from './communityService.mock';
 
-import type {
-  Comment,
-  CommentsPage,
-  CommentsPageWire,
-  CommunityApi,
-  FeedPage,
-  FeedPageWire,
-  FeedPost,
-  FeedPostWire,
-  FeedQuery,
-  VoteResult,
-} from '../types';
+import type { Comment, CommentsPage, CommentsPageWire, CommunityApi } from '../types';
 
 const BASE = API_BASE_URLS.community;
 
 const UNKNOWN_AUTHOR = 'مزارع من الواحة';
 
-/** "Nearby" has no server-side distance sort (coordinates are strings in SQL), so it pulls a wide page. */
-const NEARBY_PAGE_SIZE = 200;
+/** Issue ids are Guids; the seed's `i-1043` style ids would bind to nothing and come back 400. */
+const GUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function isServerIssueId(issueId: string): boolean {
+  return GUID.test(issueId);
+}
 
 type Author = { name: string; picture?: string };
 
@@ -52,7 +42,7 @@ function resolveAuthor(userId: string): Promise<Author> {
         picture: user.picture ? resolveProfilePictureUrl(user.picture) : undefined,
       }))
       .catch(() => {
-        // A missing name must not empty the feed; forget the failure so a later load retries.
+        // A missing name must not empty the thread; forget the failure so a later load retries.
         authorCache.delete(userId);
         return { name: UNKNOWN_AUTHOR };
       });
@@ -69,75 +59,16 @@ async function resolveAuthors(userIds: readonly string[]): Promise<Map<string, A
   return new Map(entries);
 }
 
-function toPost(wire: FeedPostWire, author?: Author): FeedPost {
-  const status = normalizeMapStatus(wire.status);
-  return {
-    issueId: wire.issueId,
-    title: wire.title,
-    description: wire.description ?? undefined,
-    photoUrl: wire.photoUrl ? resolveAttachmentUrl(wire.photoUrl) : undefined,
-    status,
-    tier: describeTier(wire.priority, status),
-    createdAt: toUtcTimestamp(wire.createdAt),
-    latitude: wire.latitude ?? undefined,
-    longitude: wire.longitude ?? undefined,
-    reporterId: wire.reporterId,
-    reporterName: author?.name ?? UNKNOWN_AUTHOR,
-    reporterPicture: author?.picture,
-    confirmations: wire.voteCount,
-    commentCount: wire.commentCount,
-    shareCount: wire.shareCount,
-    hasConfirmed: wire.hasVoted,
-  };
-}
-
-export async function getFeed(query: FeedQuery): Promise<FeedPage> {
-  const isNearby = query.filter === 'nearby';
-  // The server knows all, critical, inProgress and resolved; nearby is "all" sorted here by distance.
-  const serverFilter = isNearby ? 'all' : query.filter;
-  const pageSize = isNearby ? NEARBY_PAGE_SIZE : query.pageSize;
-  const page = isNearby ? 1 : query.page;
-
-  if (isNearby && query.page > 1) {
-    return { posts: [], hasMore: false };
-  }
-
-  const wire = await apiClient.get<FeedPageWire>(
-    BASE,
-    `/feed?page=${page}&pageSize=${pageSize}&filter=${encodeURIComponent(serverFilter)}`,
-    { authenticated: true },
-  );
-
-  const authors = await resolveAuthors(wire.items.map(item => item.reporterId));
-  let posts = wire.items.map(item => toPost(item, authors.get(item.reporterId)));
-
-  if (isNearby && query.origin) {
-    const origin = query.origin;
-    posts = posts
-      .filter(post => post.latitude !== undefined && post.longitude !== undefined)
-      .sort(
-        (a, b) =>
-          distanceKm(origin, { latitude: a.latitude!, longitude: a.longitude! }) -
-          distanceKm(origin, { latitude: b.latitude!, longitude: b.longitude! }),
-      );
-    return { posts, hasMore: false };
-  }
-
-  return { posts, hasMore: wire.hasMore };
-}
-
-/** "هل تواجه نفس المشكلة؟" Adds the farmer's confirmation, or removes it. */
-export function toggleConfirmation(issueId: string): Promise<VoteResult> {
-  return apiClient.post<VoteResult>(BASE, `/issues/${issueId}/vote`, undefined, {
-    authenticated: true,
-  });
-}
-
+/** GET api/Community/GetCommentsByIssueId for a real issue; the seed's thread for a seeded one. */
 export async function getComments(
   issueId: string,
   page: number,
   pageSize: number,
 ): Promise<CommentsPage> {
+  if (!isServerIssueId(issueId)) {
+    return mock.getComments(issueId, page, pageSize);
+  }
+
   const wire = await apiClient.get<CommentsPageWire>(
     BASE,
     API_ENDPOINTS.community.comments(issueId, page, pageSize),
@@ -169,4 +100,10 @@ export async function getComments(
   };
 }
 
-export const communityApi: CommunityApi = { getFeed, getComments, toggleConfirmation };
+export const communityApi: CommunityApi = {
+  // No GetFeed, GetPost or vote endpoint exists in CommunityController yet.
+  getFeed: mock.getFeed,
+  getPost: mock.getPost,
+  toggleConfirmation: mock.toggleConfirmation,
+  getComments,
+};

@@ -6,4 +6,5 @@ export type { ApiErrorKind } from './errorMessages';
 export { CODE_MESSAGES, STATUS_MESSAGES } from './errorMessages';
 export { API_ENDPOINTS } from './endpoints';
 export { saveTokens, getAccessToken, getRefreshToken, clearTokens } from './tokenStorage';
-export { expireSession, getValidAccessToken, isTokenExpired, onSessionExpired, onSessionRefreshed, refreshSession } from './session';
+export { expireSession, getValidAccessToken, isTokenExpired, onSessionExpired, onSessionRefreshed, refreshSession, refreshSessionOutcome } from './session';
+export type { RefreshOutcome } from './session';

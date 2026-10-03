@@ -6,6 +6,7 @@ import { API_ENDPOINTS, apiClient } from '@/api';
 import { API_BASE_URLS, UPLOAD_TIMEOUT_MS, USE_LOCAL_REPORT_MIRROR } from '@/config/env';
 import type { PickedImage } from '@/types/image';
 
+import { emitIssueChange } from './issueEvents';
 import {
   getMirroredReport,
   listMirroredReports,
@@ -94,6 +95,22 @@ export function resolveAttachmentUrl(url: string): string {
   return `${API_BASE_URLS.media}${API_ENDPOINTS.storage.download(url.slice(keyStart))}`;
 }
 
+/** What IssueService stores when the model names no severity; GetPriority reads it as Unknown. */
+const UNKNOWN_SEVERITY = 'غير معروفة';
+
+// Nullable is on server-side, so every non-`?` string in AiAnalysisResponse is [Required] on create.
+// The vision service's success body has no `problem_code`, so analyze hands back problemName: null
+// and posting that back verbatim is a 400 VALIDATION_FAILED. Filled here, never invented elsewhere.
+export function toCreatableAnalysis(analysis: AiAnalysisResult): AiAnalysisResult {
+  return {
+    ...analysis,
+    problemName: analysis.problemName || analysis.problemArabic || 'Unknown',
+    severity: analysis.severity || UNKNOWN_SEVERITY,
+    recommendation: analysis.recommendation ?? '',
+    repairSteps: analysis.repairSteps ?? [],
+  };
+}
+
 /** Uploads the photo and runs the model. Slow, so it carries the upload timeout. */
 export async function analyzeIssue(photo: PickedImage): Promise<AiAnalysisResult> {
   const analysis = await apiClient.post<AiAnalysisResult>(
@@ -107,20 +124,25 @@ export async function analyzeIssue(photo: PickedImage): Promise<AiAnalysisResult
     },
   );
 
-  return { ...analysis, confidence: normalizeConfidence(analysis.confidence) };
+  // Filled before the queue checkpoints it, so a retried create sends a body the server accepts.
+  return toCreatableAnalysis({
+    ...analysis,
+    confidence: normalizeConfidence(analysis.confidence),
+  });
 }
 
 /** Files the issue and returns a whole Report: create's own response carries neither photo nor analysis. */
 export async function createIssue(fields: CreateIssueFields): Promise<Report> {
-  const { analysis, description, latitude, longitude } = fields;
+  const { description, latitude, longitude } = fields;
+  // Again here: a queue item checkpointed by an older build still holds problemName: null.
+  const analysis = toCreatableAnalysis(fields.analysis);
 
   const created = await apiClient.post<CreatedIssue>(
     BASE,
     API_ENDPOINTS.report.create,
     {
-      // Sent back whole and unreshaped; create reads FilePath and Severity straight off it.
+      // Sent back whole; create reads FilePath and Severity straight off it.
       aiAnalysisResponse: analysis,
-      description,
       // 0 is a real coordinate, so these need undefined checks rather than truthiness.
       latitude: latitude === undefined ? undefined : String(latitude),
       longitude: longitude === undefined ? undefined : String(longitude),
@@ -157,6 +179,7 @@ export async function createIssue(fields: CreateIssueFields): Promise<Report> {
   }
 
   await saveMirroredReport(report);
+  emitIssueChange({ kind: 'created', issueId: report.id });
 
   return report;
 }
@@ -189,4 +212,5 @@ export async function deleteReport(reportId: string): Promise<void> {
     authenticated: true,
   });
   await removeMirroredReport(reportId);
+  emitIssueChange({ kind: 'deleted', issueId: reportId });
 }
