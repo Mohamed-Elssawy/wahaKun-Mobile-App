@@ -1,11 +1,4 @@
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Button, ProgressRing, ReportSummaryCard, TextField } from '@/components/ui';
 import { AiDiagnosisSummary } from '@/features/reports/components/AiDiagnosisSummary';
@@ -25,8 +18,6 @@ const NOTE_LABEL = 'ملاحظات الخبير';
 const NOTE_PLACEHOLDER = 'أي ملاحظة تريد نشرها للمزارع...';
 const PRIMARY_LABEL = 'الخطوة التالية — تحديد موعد الإصلاح';
 const LOAD_ERROR_TITLE = 'تعذر تحميل الحالة';
-const SUBMIT_SUCCESS_TITLE = 'تم إرسال المراجعة';
-const SUBMIT_SUCCESS_MESSAGE = 'تم حفظ مراجعتك لهذه الحالة.';
 
 /**
  * §8.3's E-02, node 3. The AI card is new, not F-04's: this branch leaves the farmer surface
@@ -68,9 +59,10 @@ export default function ExpertCaseReviewScreen({
   const handleSubmit = async () => {
     const didSubmit = await review.submit();
     if (didSubmit) {
-      Alert.alert(SUBMIT_SUCCESS_TITLE, SUBMIT_SUCCESS_MESSAGE, [
-        { text: 'حسناً', onPress: () => navigation.goBack() },
-      ]);
+      // Flow G: E-02's primary goes straight to E-03, never back - there is nothing to confirm.
+      // TODO(reschedule): a reopened case should land on `E-03 · state:reschedule`, not this
+      // screen - out of scope this session, and the mock's own status flip makes this a no-op.
+      navigation.replace('ExpertSchedule', { reportId });
     }
   };
 

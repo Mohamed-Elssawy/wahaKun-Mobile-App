@@ -62,7 +62,7 @@ export function formatRelativeTime(iso: string, now: Date = new Date()): string 
 
 // Hand-rolled rather than Intl, same call as the plural table above: full ICU data is not a
 // given on Hermes, and §6.7 pins Western numerals throughout regardless of locale behaviour.
-const WEEKDAYS = [
+export const WEEKDAYS = [
   'الأحد',
   'الاثنين',
   'الثلاثاء',
@@ -71,7 +71,7 @@ const WEEKDAYS = [
   'الجمعة',
   'السبت',
 ];
-const MONTHS = [
+export const MONTHS = [
   'يناير',
   'فبراير',
   'مارس',

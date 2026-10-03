@@ -6,7 +6,11 @@ import ForgotPasswordScreen from '@/features/auth/screens/ForgotPasswordScreen';
 import LoginOtpScreen from '@/features/auth/screens/LoginOtpScreen';
 import PhoneLoginScreen from '@/features/auth/screens/PhoneLoginScreen';
 import ResetPasswordScreen from '@/features/auth/screens/ResetPasswordScreen';
+import ExpertAwaitingApprovalScreen from '@/features/expert/screens/ExpertAwaitingApprovalScreen';
+import ExpertCaseClosedScreen from '@/features/expert/screens/ExpertCaseClosedScreen';
 import ExpertCaseReviewScreen from '@/features/expert/screens/ExpertCaseReviewScreen';
+import ExpertResolutionConfirmationScreen from '@/features/expert/screens/ExpertResolutionConfirmationScreen';
+import ExpertScheduleScreen from '@/features/expert/screens/ExpertScheduleScreen';
 import AccountStatusScreen from '@/features/onboarding/screens/AccountStatusScreen';
 import EmailPasswordScreen from '@/features/onboarding/screens/EmailPasswordScreen';
 import FullNameScreen from '@/features/onboarding/screens/FullNameScreen';
@@ -88,6 +92,13 @@ export function RootNavigator({ initialRoute }: RootNavigatorProps) {
         <Stack.Screen name="IssueDetails" component={IssueDetailsScreen} />
         <Stack.Screen name="ReportTracker" component={ReportTrackerScreen} />
         <Stack.Screen name="ExpertCaseReview" component={ExpertCaseReviewScreen} />
+        <Stack.Screen name="ExpertSchedule" component={ExpertScheduleScreen} />
+        <Stack.Screen
+          name="ExpertResolutionConfirmation"
+          component={ExpertResolutionConfirmationScreen}
+        />
+        <Stack.Screen name="ExpertAwaitingApproval" component={ExpertAwaitingApprovalScreen} />
+        <Stack.Screen name="ExpertCaseClosed" component={ExpertCaseClosedScreen} />
         <Stack.Screen name="Home" component={HomeTabs} />
         <Stack.Screen name="ExpertHome" component={ExpertTabs} />
 

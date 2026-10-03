@@ -1,7 +1,13 @@
 // In-memory ExpertCaseSummary/Detail for when no expert endpoint exists at all.
 import { emptyOnEmptyScenario, failOnErrorScenario, mockDelay } from '@/api/mockScenario';
+import {
+  applyExpertAppointment,
+  applyExpertRepair,
+} from '@/features/reports/services/reportTracker.mock';
 
 import type {
+  ConfirmAppointmentFields,
+  ConfirmRepairFields,
   ExpertCaseDetail,
   ExpertCaseSummary,
   SubmitExpertReviewFields,
@@ -13,6 +19,27 @@ const LATENCY = { read: 500, write: 700 } as const;
  * F-06 tracker mock - the relative-time copy has to stay true no matter when this is demoed. */
 function hoursAgo(hours: number): string {
   return new Date(Date.now() - hours * 60 * 60_000).toISOString();
+}
+
+function daysAgo(days: number): string {
+  return hoursAgo(days * 24);
+}
+
+/** T5's slot label mapped onto the farmer tracker's windowStart/windowEnd pair. E-03 only ever
+ * picks one fixed point in time, so the "window" the farmer sees collapses to that one slot. */
+function slotToWindow(slot: string): { windowStart: string; windowEnd: string } {
+  return { windowStart: slot, windowEnd: slot };
+}
+
+/** Local YYYY-MM-DD, offset by `days` from today - fixture dates stay relative to the device
+ * clock, same reasoning as `hoursAgo`, but as a date rather than a relative-time string. */
+function todayPlus(days: number): string {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 /**
@@ -170,6 +197,25 @@ const SUMMARIES: Record<string, ExpertCaseSummary> = {
     createdAt: hoursAgo(14),
     photoUrl: 'https://picsum.photos/seed/wahakun-2009/900/675',
   },
+  // Shared with reportService.mock.ts and reportTracker.mock.ts under the same id. Filed six
+  // days ago so E-03's C-WINDOW boundary is walkable: day 7 of the window is today, day 8 is
+  // disabled. الجدولة current -> متابعة -> E-03.
+  '2010': {
+    reportId: '2010',
+    status: 'UnderReview',
+    hasAiAnalysis: true,
+    hasExpertReview: true,
+    hasAppointment: false,
+    hasRepairConfirmation: false,
+    title: 'تشقق في جدار القناة الجنوبية قرب محطة الضخ',
+    severity: 'Medium',
+    confidence: 0.86,
+    corroborationCount: 1,
+    reporterName: 'إبراهيم الشريف',
+    reporterAvatar: 'https://i.pravatar.cc/150?img=8',
+    createdAt: daysAgo(6),
+    photoUrl: 'https://picsum.photos/seed/wahakun-2010/900/675',
+  },
 };
 
 /** E-02's extra leaves, keyed the same as `SUMMARIES`. Two carry no explanation/recommendation
@@ -204,11 +250,47 @@ const DETAILS: Record<string, Omit<ExpertCaseDetail, keyof ExpertCaseSummary>> =
     explanation: 'تلف في مفصل البوابة يمنع إغلاقها بالكامل عند الحاجة.',
     recommendation: 'استبدال المفصل وإعادة ضبط آلية التحكم.',
     description: 'البوابة لا تغلق بشكل كامل منذ أسبوعين تقريباً.',
+    // The drawn E-02 frame is toggle-ON; carrying it onto E-03's `قرار الخبير` card exercises
+    // the other half of `C-OVERRIDE` that card has to render.
+    currentOverride: {
+      severity: 'High',
+      correctedDiagnosis: 'تلف أعمق في مفصل البوابة من تقدير النموذج، يتطلب استبداله بالكامل.',
+    },
+  },
+  // Scheduled, repair not confirmed: entry point for E-04 straight from E-01's عرض.
+  '2006': {
+    explanation: 'كسر جزئي في جدار الأنبوب الثانوي عند نقطة التفريغ.',
+    recommendation: 'استبدال الجزء المكسور وفحص الأنابيب المجاورة.',
+    appointment: { date: todayPlus(1), slot: '9:00 ص', noteToFarmer: 'سأحتاج للوصول إلى محبس الصرف الجانبي.' },
+  },
+  // Scheduled, repair confirmed: entry point for E-05 straight from E-01's عرض.
+  '2007': {
+    appointment: { date: todayPlus(-2), slot: '11:00 ص' },
+    repair: {
+      photoUrl: 'https://picsum.photos/seed/wahakun-2007-repair/900/675',
+      notes: 'تم تبطين خط الري بالتنقيط واستبدال الوصلة التالفة.',
+    },
+  },
+  // Resolved: entry point for E-06 straight from E-01's عرض.
+  '2008': {
+    appointment: { date: todayPlus(-5), slot: '7:00 ص' },
+    repair: {
+      photoUrl: 'https://picsum.photos/seed/wahakun-2008-repair/900/675',
+      notes: 'تم استبدال صمام التحويل وإحكام الوصلات المحيطة به.',
+    },
+  },
+  '2010': {
+    explanation: 'تشقق طولي في جدار القناة الخرسانية مصحوب بتسرب بطيء عند القاعدة.',
+    recommendation: 'تبطين موضع التشقق بمادة عازلة قبل أن يتسع.',
+    description: 'ظهر تشقق صغير منذ أسبوع وبدأ يتسرب منه الماء ببطء.',
+    // Toggle-OFF - the common, undrawn default: no override, proceeding with the AI's own call.
   },
 };
 
 // Mutable so submitReview can move a case while the app runs, same pattern as reportTracker.mock.ts.
 const summaries = new Map(Object.entries(SUMMARIES));
+// Mutable too: submitReview/confirmAppointment/confirmRepair all write a leaf getCaseDetail reads back.
+const details = new Map(Object.entries(DETAILS));
 
 export async function getAssignedCases(): Promise<ExpertCaseSummary[]> {
   await mockDelay(LATENCY.read);
@@ -226,7 +308,7 @@ export async function getCaseDetail(reportId: string): Promise<ExpertCaseDetail>
     throw new Error(`Mock: no case for report ${reportId}`);
   }
 
-  return { ...summary, ...DETAILS[reportId] };
+  return { ...summary, ...details.get(reportId) };
 }
 
 /** No real review-submit exists; this only advances the in-memory fixture so E-02's primary
@@ -250,6 +332,54 @@ export async function submitReview(fields: SubmitExpertReviewFields): Promise<vo
     hasExpertReview: true,
     severity: fields.override?.severity ?? current.severity,
   });
+
+  // E-03's `قرار الخبير` card reads this back; undefined when the toggle was OFF.
+  details.set(fields.reportId, {
+    ...details.get(fields.reportId),
+    currentOverride: fields.override,
+  });
+}
+
+/** T5. Moves node 4 -> 5 and writes the appointment both sides read back - E-01's مجدولة
+ * cards, E-04/E-05/E-06, and (through the tracker's write-through) the matching farmer F-06. */
+export async function confirmAppointment(fields: ConfirmAppointmentFields): Promise<void> {
+  await mockDelay(LATENCY.write);
+  failOnErrorScenario('تعذر تأكيد الجدولة');
+
+  const current = summaries.get(fields.reportId);
+  if (!current) {
+    throw new Error(`Mock: no case for report ${fields.reportId}`);
+  }
+
+  summaries.set(fields.reportId, { ...current, status: 'Scheduled', hasAppointment: true });
+  details.set(fields.reportId, {
+    ...details.get(fields.reportId),
+    appointment: { date: fields.date, slot: fields.slot, noteToFarmer: fields.noteToFarmer },
+  });
+
+  applyExpertAppointment(fields.reportId, {
+    date: fields.date,
+    ...slotToWindow(fields.slot),
+  });
+}
+
+/** T6. Moves node 5 -> 6 and writes the repair payload. The photo is never actually uploaded
+ * here - there is nowhere real to send it - the mock just keeps the picked image's own uri. */
+export async function confirmRepair(fields: ConfirmRepairFields): Promise<void> {
+  await mockDelay(LATENCY.write);
+  failOnErrorScenario('تعذر تأكيد الحل');
+
+  const current = summaries.get(fields.reportId);
+  if (!current) {
+    throw new Error(`Mock: no case for report ${fields.reportId}`);
+  }
+
+  const repair = { photoUrl: fields.photo.uri, notes: fields.notes };
+
+  summaries.set(fields.reportId, { ...current, hasRepairConfirmation: true });
+  details.set(fields.reportId, { ...details.get(fields.reportId), repair });
+
+  applyExpertRepair(fields.reportId, repair);
 }
 
 /** Restores the seeded data. Useful from a dev screen or a test. */
@@ -257,5 +387,10 @@ export function resetMockExpertQueue() {
   summaries.clear();
   for (const [id, summary] of Object.entries(SUMMARIES)) {
     summaries.set(id, summary);
+  }
+
+  details.clear();
+  for (const [id, detail] of Object.entries(DETAILS)) {
+    details.set(id, detail);
   }
 }

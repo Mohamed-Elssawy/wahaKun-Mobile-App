@@ -9,6 +9,12 @@ export const CONFIDENCE_THRESHOLD = 0.8;
 
 const REPORTER_ID = '8f1c2b1e-0000-4000-8000-000000000001';
 
+/** Device-clock relative, like `reportTracker.mock.ts`'s `minutesAgo` - #2010's "filed six days
+ * ago" has to stay true no matter when this is demoed, since it walks the E-03 window boundary. */
+function daysAgo(days: number): string {
+  return new Date(Date.now() - days * 24 * 60 * 60_000).toISOString();
+}
+
 /** Tuned so loading states are actually visible in dev; 'slow' stretches these further. */
 const LATENCY = {
   read: 600,
@@ -213,6 +219,40 @@ const SEED: Report[] = [
       problemArabic: 'تسريب في القناة الفرعية الغربية',
       severity: 'منخفضة',
       createdAt: '2026-06-08T05:48:30Z',
+    },
+  },
+  // Shared with expertService.mock.ts and reportTracker.mock.ts under the same id, filed six
+  // days ago: the one case that walks E-03's window boundary and shows the expert's T5/T6
+  // writes landing live on this farmer's own F-06 (S4's cross-role DoD check).
+  {
+    id: '2010',
+    title: 'تشقق في جدار القناة الجنوبية قرب محطة الضخ',
+    description: 'ظهر تشقق صغير منذ أسبوع وبدأ يتسرب منه الماء ببطء.',
+    status: 'Assigned',
+    createdAt: daysAgo(6),
+    updatedAt: daysAgo(5),
+    reporterId: REPORTER_ID,
+    latitude: 29.2055,
+    longitude: 25.5168,
+    attachments: [
+      {
+        id: 'a-2010',
+        type: 'Photo',
+        url: 'https://picsum.photos/seed/wahakun-2010/900/675',
+        createdAt: daysAgo(6),
+      },
+    ],
+    analysis: {
+      filePath: 'reportimage/mock-canal-wall.jpg',
+      problemName: 'Wall_Crack',
+      problemArabic: 'تشقق في جدار القناة الجنوبية',
+      confidence: 0.86,
+      severity: 'متوسطة',
+      recommendation: 'تبطين موضع التشقق بمادة عازلة قبل أن يتسع.',
+      explanation: 'تشقق طولي في جدار القناة الخرسانية مصحوب بتسرب بطيء عند القاعدة.',
+      repairSteps: ['تفريغ القناة جزئياً عند الموضع.', 'تبطين التشقق بمادة عازلة.'],
+      modelVersion: '',
+      createdAt: daysAgo(6),
     },
   },
 ];

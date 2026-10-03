@@ -1,5 +1,6 @@
 import type { LifecycleFacts } from '@/features/reports/lifecycle';
 import type { Severity } from '@/features/reports/types';
+import type { PickedImage } from '@/types/image';
 
 /**
  * §8.3's E-01 card. `LifecycleFacts` fields are spread in directly, not nested, so
@@ -33,6 +34,51 @@ export type ExpertCaseDetail = ExpertCaseSummary & {
    * AI's - the repair photo is what `C-REOPEN-CLEAN` hides, and that lives on the farmer tracker.
    */
   previousReview?: ExpertReviewOverride & { expertNote?: string };
+  /** T4's just-submitted decision for *this* cycle - E-03's `قرار الخبير` card reads this.
+   * Distinct from `previousReview`, which is about the cycle before the last reopen. */
+  currentOverride?: ExpertReviewOverride;
+  /** T5's payload. E-03 writes it; E-01's `مجدولة` cards and E-04/E-05/E-06 read it back. */
+  appointment?: ExpertAppointment;
+  /** T6's payload. E-04 writes it; E-05/E-06 read it back for `ملخص ما تم إرساله للمزارع`. */
+  repair?: ExpertRepair;
+};
+
+/** §8.3's six fixed E-03 slots, identical every day - availability is never modelled. */
+export const SCHEDULE_SLOTS = [
+  '7:00 ص',
+  '9:00 ص',
+  '11:00 ص',
+  '1:00 م',
+  '3:00 م',
+  '5:00 م',
+] as const;
+
+export type ScheduleSlot = (typeof SCHEDULE_SLOTS)[number];
+
+export type ExpertAppointment = {
+  /** YYYY-MM-DD in the device's local calendar, matching `scheduleWindow`'s own dates. */
+  date: string;
+  slot: ScheduleSlot;
+  /** §8.3: opens the chat as message 1 once chat exists; persisted here until then. */
+  noteToFarmer?: string;
+};
+
+export type ExpertRepair = {
+  photoUrl: string;
+  notes: string;
+};
+
+export type ConfirmAppointmentFields = {
+  reportId: string;
+  date: string;
+  slot: ScheduleSlot;
+  noteToFarmer?: string;
+};
+
+export type ConfirmRepairFields = {
+  reportId: string;
+  photo: PickedImage;
+  notes: string;
 };
 
 /** `C-OVERRIDE` ON. Both fields are required together - there is no partial override. */
@@ -62,4 +108,8 @@ export type ExpertApi = {
   getCaseDetail: (reportId: string) => Promise<ExpertCaseDetail>;
   /** T-review. Marks `hasExpertReview`, and when `override` is set, repaints severity silently. */
   submitReview: (fields: SubmitExpertReviewFields) => Promise<void>;
+  /** T5. */
+  confirmAppointment: (fields: ConfirmAppointmentFields) => Promise<void>;
+  /** T6. */
+  confirmRepair: (fields: ConfirmRepairFields) => Promise<void>;
 };

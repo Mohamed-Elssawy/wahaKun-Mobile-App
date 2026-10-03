@@ -11,6 +11,10 @@ function minutesAgo(minutes: number): string {
   return new Date(Date.now() - minutes * 60_000).toISOString();
 }
 
+function daysAgo(days: number): string {
+  return minutesAgo(days * 24 * 60);
+}
+
 /**
  * One fixture per F-06 named state, keyed by the report id `reportService.mock.ts` seeds for
  * it. §8.2's six states, realistic Arabic, several lifted verbatim from the V2 exports.
@@ -102,6 +106,17 @@ const FIXTURES: Record<string, ReportTrackerDetails> = {
     closedBy: 'farmer',
     closedAt: '2026-06-11T08:00:00Z',
   },
+  // Shared with reportService.mock.ts and expertService.mock.ts under the same id - node 4
+  // current, review already submitted. `applyExpertAppointment`/`applyExpertRepair` write T5/T6
+  // onto this exact entry when the expert walks E-03/E-04, so this farmer's F-06 shows it live.
+  '2010': {
+    reportId: '2010',
+    status: 'Assigned',
+    hasExpertReview: true,
+    expert: { name: 'سارة محمود', specialty: 'خبيرة ري' },
+    assignedAt: daysAgo(6),
+    reviewedAt: daysAgo(5),
+  },
 };
 
 // Mutable so confirm/reject can move a case while the app runs, same pattern as reportService.mock.ts.
@@ -152,6 +167,41 @@ export async function rejectResolution(reportId: string): Promise<void> {
     hasExpertReview: false,
     expert: current.expert,
     assignedAt: new Date().toISOString(),
+  });
+}
+
+/** T5, called from the expert mock. A no-op for any id the tracker doesn't carry - most expert
+ * fixtures (2001-2009) have no farmer-side counterpart; only the shared walk-through id does. */
+export function applyExpertAppointment(
+  reportId: string,
+  appointment: { date: string; windowStart: string; windowEnd: string },
+): void {
+  const current = trackers.get(reportId);
+  if (!current) {
+    return;
+  }
+
+  trackers.set(reportId, {
+    ...current,
+    status: 'Assigned',
+    appointment: { confirmedAt: new Date().toISOString(), ...appointment },
+  });
+}
+
+/** T6, called from the expert mock. Same no-op rule as `applyExpertAppointment`. */
+export function applyExpertRepair(
+  reportId: string,
+  repair: { notes: string; photoUrl: string },
+): void {
+  const current = trackers.get(reportId);
+  if (!current) {
+    return;
+  }
+
+  trackers.set(reportId, {
+    ...current,
+    status: 'Repaired',
+    repair: { confirmedAt: new Date().toISOString(), ...repair },
   });
 }
 

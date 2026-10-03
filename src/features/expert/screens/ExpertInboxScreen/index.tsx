@@ -50,15 +50,24 @@ export default function ExpertInboxScreen() {
 
   const handlePrimary = useCallback(
     (summary: ExpertCaseRow['summary'], cta: ExpertCta) => {
-      if (cta.screen === 'E-02') {
-        navigation.navigate('ExpertCaseReview', {
-          reportId: summary.reportId,
-          state: cta.state,
-        });
-        return;
+      const reportId = summary.reportId;
+
+      switch (cta.screen) {
+        case 'E-02':
+          navigation.navigate('ExpertCaseReview', { reportId, state: cta.state });
+          return;
+        case 'E-03':
+          navigation.navigate('ExpertSchedule', { reportId });
+          return;
+        case 'E-04':
+          navigation.navigate('ExpertResolutionConfirmation', { reportId });
+          return;
+        case 'E-05':
+          navigation.navigate('ExpertAwaitingApproval', { reportId });
+          return;
+        case 'E-06':
+          navigation.navigate('ExpertCaseClosed', { reportId });
       }
-      // E-03 - E-06 are a later unit; nothing crashes, nothing pretends to work.
-      // TODO(expert-queue): wire once those screens exist.
     },
     [navigation],
   );
