@@ -2,9 +2,9 @@ import { ReportSummaryCard } from '@/components/ui';
 import type { ColorToken } from '@/theme';
 
 import { formatReportReference } from '../format';
+import { isClosedWireStatus } from '../lifecycle';
 import { formatRelativeTime } from '../relativeTime';
 import { describeSeverity } from '../severity';
-import { isResolvedStatus } from '../status';
 
 import type { Report } from '../types';
 
@@ -17,7 +17,7 @@ const UNTITLED = 'بلاغ بدون وصف';
 
 /** Green once it is fixed, whatever the severity was; grey while there is no analysis. */
 function stripeColor(report: Report): ColorToken {
-  if (isResolvedStatus(report.status)) {
+  if (isClosedWireStatus(report.status)) {
     return 'success';
   }
   return report.analysis

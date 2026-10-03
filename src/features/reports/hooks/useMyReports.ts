@@ -2,9 +2,9 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { describeError } from '../errors';
+import { isClosedWireStatus } from '../lifecycle';
 import { reportApi } from '../services';
 import { isCriticalSeverity } from '../severity';
-import { isResolvedStatus } from '../status';
 import { useReportQueue } from './useReportQueue';
 
 import type { ReportError } from '../errors';
@@ -28,8 +28,8 @@ const SECTION_TITLE: Record<ReportFilter, string> = {
 // resolved finally answers something: IssueStatus has Repaired and completed.
 const MATCHES: Record<ReportFilter, (report: Report) => boolean> = {
   all: () => true,
-  active: report => !isResolvedStatus(report.status),
-  resolved: report => isResolvedStatus(report.status),
+  active: report => !isClosedWireStatus(report.status),
+  resolved: report => isClosedWireStatus(report.status),
   // `!= null`, not `!== undefined`: the server sends null for an unanalysed report.
   critical: report =>
     report.analysis != null && isCriticalSeverity(report.analysis.severity),

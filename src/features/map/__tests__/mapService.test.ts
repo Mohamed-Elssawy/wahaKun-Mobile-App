@@ -84,9 +84,14 @@ describe('describeTier', () => {
     expect(describeTier('1', 'Diagnosed')).toBe('low');
   });
 
-  it('reads a fixed problem as resolved whatever its severity was', () => {
-    expect(describeTier('Critical', 'Repaired')).toBe('resolved');
+  it('reads a closed problem as resolved whatever its severity was', () => {
     expect(describeTier('4', 'Completed')).toBe('resolved');
+  });
+
+  // T6 leaves a repaired case at مجدولة: the pin only goes green once the farmer confirms,
+  // because until then the problem may still be there.
+  it('keeps the severity of a repaired case the farmer has not confirmed', () => {
+    expect(describeTier('Critical', 'Repaired')).toBe('critical');
   });
 
   it('falls back to low for a priority it does not know', () => {

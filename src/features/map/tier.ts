@@ -1,4 +1,4 @@
-import { isResolvedStatus } from '@/features/reports/status';
+import { isClosedWireStatus } from '@/features/reports/lifecycle';
 import type { ReportStatus } from '@/features/reports/types';
 import type { ColorToken } from '@/theme';
 
@@ -44,12 +44,12 @@ const TIER_BY_PRIORITY: Record<string, MapIssueTier> = {
   '4': 'critical',
 };
 
-/** Resolved wins over severity: a fixed problem reads green whatever it used to be. */
+/** Closed wins over severity: a case the farmer settled reads green whatever it used to be. */
 export function describeTier(
   priority: MapPriorityName | string,
   status: ReportStatus,
 ): MapIssueTier {
-  if (isResolvedStatus(status)) {
+  if (isClosedWireStatus(status)) {
     return 'resolved';
   }
   return TIER_BY_PRIORITY[priority] ?? 'low';

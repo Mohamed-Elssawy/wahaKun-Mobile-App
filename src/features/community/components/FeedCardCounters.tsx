@@ -4,12 +4,14 @@ import {
   CircleAlert,
   Clock3,
   MessageCircle,
+  RotateCcw,
   Share2,
 } from 'lucide-react-native';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { StatusChip, Text } from '@/components/ui';
-import { describeStatusDisplay } from '@/features/reports/status';
+import { describeWireStatus } from '@/features/reports/lifecycle';
+import type { StatusIconToken } from '@/features/reports/lifecycle';
 import type { ReportStatus } from '@/features/reports/types';
 import { colors, spacing } from '@/theme';
 
@@ -25,15 +27,13 @@ export type FeedCardCountersProps = {
 
 const ICON_SIZE = 22;
 
-// One glyph per stage, matching the four F-01 draws.
-const STATUS_ICONS: Record<ReportStatus, LucideIcon> = {
-  Reported: CircleAlert,
-  Diagnosed: Clock3,
-  Verified: Clock3,
-  Assigned: Clock3,
-  Scheduled: CalendarClock,
-  Repaired: CheckCircle2,
-  Completed: CheckCircle2,
+// The model names the glyph; this map is the only place a token becomes a lucide component.
+const STATUS_ICONS: Record<StatusIconToken, LucideIcon> = {
+  alert: CircleAlert,
+  clock: Clock3,
+  calendar: CalendarClock,
+  check: CheckCircle2,
+  rotate: RotateCcw,
 };
 
 // The frame's row is 47 tall including its gaps, so the 48dp target comes from hitSlop rather
@@ -53,12 +53,12 @@ export function FeedCardCounters({
   onOpenComments,
   onShare,
 }: FeedCardCountersProps) {
-  const { label } = describeStatusDisplay(status);
+  const { label, icon } = describeWireStatus(status);
 
   return (
     <View style={styles.row}>
       <StatusChip
-        icon={STATUS_ICONS[status] ?? CircleAlert}
+        icon={STATUS_ICONS[icon]}
         label={label}
         accessibilityLabel={`حالة البلاغ: ${label}`}
       />

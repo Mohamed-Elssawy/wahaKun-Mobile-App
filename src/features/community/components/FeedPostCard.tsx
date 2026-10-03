@@ -2,7 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Text } from '@/components/ui';
 import { describeTierDisplay } from '@/features/map/tier';
-import { isResolvedStatus } from '@/features/reports/status';
+import { isClosedWireStatus } from '@/features/reports/lifecycle';
 import { colors, radii, shadows, spacing } from '@/theme';
 
 import { ConfirmButton } from './ConfirmButton';
@@ -48,7 +48,7 @@ export function FeedPostCard({
 }: FeedPostCardProps) {
   const { color } = describeTierDisplay(post.tier);
   // A solved problem cannot be confirmed again, so the frame drops the whole row.
-  const isResolved = isResolvedStatus(post.status);
+  const isResolved = isClosedWireStatus(post.status);
   const distanceLabel = origin ? formatDistance(origin, post) : undefined;
 
   return (

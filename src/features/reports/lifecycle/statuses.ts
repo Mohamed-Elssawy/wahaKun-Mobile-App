@@ -49,6 +49,11 @@ export function fromWireStatus(status: ReportStatus): LifecycleStatus {
   return WIRE_STATUSES[status] ?? 'New';
 }
 
+/** True only for a case the farmer closed or an Admin force-closed. Repaired is node 6, not closed. */
+export function isClosedWireStatus(status: ReportStatus): boolean {
+  return isClosedStatus(fromWireStatus(status));
+}
+
 /** The two §3.2 statuses IssueStatus cannot express, so nothing reads them off the wire. */
 // Both are filed in BACKEND-CONTRACT-REQUESTS.md; a reopen has no enum value to arrive as.
 export const UNREPRESENTABLE_ON_THE_WIRE: readonly LifecycleStatus[] = [

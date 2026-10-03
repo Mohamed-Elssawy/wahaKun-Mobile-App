@@ -1,7 +1,7 @@
 /** The tab, chip and sort semantics F-01 draws, shared so the mock and the real path agree. */
 // Pure and in one file because both services page client-side today, and the backend's own
 // GetAllIssues spec ANDs three mutually exclusive predicates, so it cannot be copied.
-import { isResolvedStatus } from '@/features/reports/status';
+import { isClosedWireStatus } from '@/features/reports/lifecycle';
 
 import { distanceKm } from './distance';
 
@@ -20,10 +20,10 @@ const SEVERITY_RANK: Record<FeedPost['tier'], number> = {
 
 function matchesTab(post: FeedPost, tab: FeedQuery['tab']): boolean {
   if (tab === 'active') {
-    return !isResolvedStatus(post.status);
+    return !isClosedWireStatus(post.status);
   }
   if (tab === 'resolved') {
-    return isResolvedStatus(post.status);
+    return isClosedWireStatus(post.status);
   }
   return true;
 }
