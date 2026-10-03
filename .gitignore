@@ -115,3 +115,5 @@ docs/*.pdf
 # Local planning docs — not part of the codebase
 FRONTEND-BUILD-PLAN.md
 PROMPT-RULEBOOK.md
+SYSTEM-SPEC.md
+SPRINT-TO-OCT-08.md
