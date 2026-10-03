@@ -93,6 +93,10 @@ export const MOCK_ROLE: MockRole = 'farmer';
 
 export const MOCK_EXPERT_APPROVAL: MockApproval = 'approved';
 
+/** §8.3. On by backend gap, not choice: IssueController has no assigned-cases list, no
+ * review-submit and no override write, so the whole expert queue has nowhere real to go. */
+export const USE_MOCK_EXPERT_QUEUE = DEMO_MODE || true;
+
 /** Which state every mock serves, so loading, empty and error can be walked on a device. */
 export type MockScenario = 'content' | 'empty' | 'error' | 'slow';
 
