@@ -1,3 +1,6 @@
+export { AiConfidenceChip } from './AiConfidenceChip';
+export type { AiConfidenceChipProps } from './AiConfidenceChip';
+
 export { AiDiagnosisCard } from './AiDiagnosisCard';
 export type { AiDiagnosisCardProps } from './AiDiagnosisCard';
 
