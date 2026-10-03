@@ -2,6 +2,7 @@
 // the counters and the confirm state the real path cannot yet. ./index.ts picks one.
 
 import { emptyOnEmptyScenario, failOnErrorScenario, mockDelay } from '@/api/mockScenario';
+import { resolveRole } from '@/features/user/role';
 
 import { applyFeedQuery } from '../feedQuery';
 import { SEED_COMMENTS, SEED_POSTS, SEED_VOICE } from '../fixtures';
@@ -106,12 +107,16 @@ export async function postComment(issueId: string, text: string): Promise<Commen
   await mockDelay(LATENCY.write);
   failOnErrorScenario(WRITE_ERROR);
 
+  // No role reaches a real comment yet (Comment.isExpert is hardcoded false server-side);
+  // the mock reads the same role switch useIdentity does, so §10.5's badge is demoable at all.
+  const isExpert = resolveRole(null).role === 'expert';
+
   const comment: Comment = {
     id: `c-${Date.now()}`,
     issueId,
     authorId: ME.id,
     authorName: ME.name,
-    isExpert: false,
+    isExpert,
     text,
     createdAt: new Date().toISOString(),
   };
