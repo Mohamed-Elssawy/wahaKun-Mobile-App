@@ -6,6 +6,7 @@ import ForgotPasswordScreen from '@/features/auth/screens/ForgotPasswordScreen';
 import LoginOtpScreen from '@/features/auth/screens/LoginOtpScreen';
 import PhoneLoginScreen from '@/features/auth/screens/PhoneLoginScreen';
 import ResetPasswordScreen from '@/features/auth/screens/ResetPasswordScreen';
+import AccountStatusScreen from '@/features/onboarding/screens/AccountStatusScreen';
 import EmailPasswordScreen from '@/features/onboarding/screens/EmailPasswordScreen';
 import FullNameScreen from '@/features/onboarding/screens/FullNameScreen';
 import IntroSlideshowScreen from '@/features/onboarding/screens/IntroSlideshowScreen';
@@ -26,8 +27,9 @@ import { ExpertTabs } from './ExpertTabs';
 import { HomeTabs } from './HomeTabs';
 import { linking } from './linking';
 import { createPlaceholderScreen } from './PlaceholderScreen';
+import SessionErrorScreen from './SessionErrorScreen';
 
-import type { BootRoute, RootStackParamList } from './types';
+import type { BootDecision, RootStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -37,15 +39,16 @@ const PrivacyPolicyScreen = createPlaceholderScreen('سياسة الخصوصية
 const ConnectToExpertScreen = createPlaceholderScreen('التواصل مع خبير');
 
 export type RootNavigatorProps = {
-  /** Typed as BootRoute so the boot-shortcut habit cannot be committed through this prop. */
-  initialRouteName: BootRoute;
+  /** A BootDecision, so the boot-shortcut habit cannot be committed through this prop and
+   *  S-08 still arrives with the state it is meant to draw. */
+  initialRoute: BootDecision;
 };
 
-export function RootNavigator({ initialRouteName }: RootNavigatorProps) {
+export function RootNavigator({ initialRoute }: RootNavigatorProps) {
   return (
     <NavigationContainer linking={linking}>
       <Stack.Navigator
-        initialRouteName={initialRouteName}
+        initialRouteName={initialRoute.name}
         screenOptions={{
           headerShown: false,
           // Consistent slide transition on both platforms.
@@ -83,6 +86,16 @@ export function RootNavigator({ initialRouteName }: RootNavigatorProps) {
         <Stack.Screen name="IssueDetails" component={IssueDetailsScreen} />
         <Stack.Screen name="Home" component={HomeTabs} />
         <Stack.Screen name="ExpertHome" component={ExpertTabs} />
+
+        {/* Only §4.1 routes here, and only at boot, so the state rides in as initialParams. */}
+        <Stack.Screen
+          name="AccountStatus"
+          component={AccountStatusScreen}
+          initialParams={
+            initialRoute.name === 'AccountStatus' ? initialRoute.params : undefined
+          }
+        />
+        <Stack.Screen name="SessionError" component={SessionErrorScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

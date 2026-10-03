@@ -3,11 +3,13 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { BackHeader, Button, Screen, Text, TextField } from '@/components/ui';
 import type { ScreenProps } from '@/navigation/types';
+import { useRouteAfterLogin } from '@/navigation/useRouteAfterLogin';
 import { screenPadding, spacing } from '@/theme';
 
 import { useLogin } from '../../hooks/useLogin';
 
 export default function EmailLoginScreen({ navigation }: ScreenProps<'EmailLogin'>) {
+  const routeAfterLogin = useRouteAfterLogin();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [validationError, setValidationError] = useState('');
@@ -24,8 +26,7 @@ export default function EmailLoginScreen({ navigation }: ScreenProps<'EmailLogin
     setValidationError('');
 
     if (await signInWithEmail(email.trim(), password)) {
-      // reset, not navigate, so login does not stay on the back stack.
-      navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+      await routeAfterLogin();
     }
   };
 
