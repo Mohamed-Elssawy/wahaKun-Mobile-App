@@ -6,6 +6,7 @@ import ForgotPasswordScreen from '@/features/auth/screens/ForgotPasswordScreen';
 import LoginOtpScreen from '@/features/auth/screens/LoginOtpScreen';
 import PhoneLoginScreen from '@/features/auth/screens/PhoneLoginScreen';
 import ResetPasswordScreen from '@/features/auth/screens/ResetPasswordScreen';
+import ExpertCaseReviewScreen from '@/features/expert/screens/ExpertCaseReviewScreen';
 import AccountStatusScreen from '@/features/onboarding/screens/AccountStatusScreen';
 import EmailPasswordScreen from '@/features/onboarding/screens/EmailPasswordScreen';
 import FullNameScreen from '@/features/onboarding/screens/FullNameScreen';
@@ -84,6 +85,7 @@ export function RootNavigator({ initialRoute }: RootNavigatorProps) {
         <Stack.Screen name="ReportDiagnosis" component={ReportDiagnosisScreen} />
         <Stack.Screen name="ConnectToExpert" component={ConnectToExpertScreen} />
         <Stack.Screen name="IssueDetails" component={IssueDetailsScreen} />
+        <Stack.Screen name="ExpertCaseReview" component={ExpertCaseReviewScreen} />
         <Stack.Screen name="Home" component={HomeTabs} />
         <Stack.Screen name="ExpertHome" component={ExpertTabs} />
 

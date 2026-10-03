@@ -54,6 +54,9 @@ export type RootStackParamList = {
   ConnectToExpert: { reportId: string };
   IssueDetails: { reportId: string };
 
+  /** §8.3's E-02. `state` is set only when entered from an `E-01 · has-reopened` card. */
+  ExpertCaseReview: { reportId: string; state?: 'reopened' };
+
   Home: NavigatorScreenParams<HomeTabParamList> | undefined;
   /** The expert shell. A separate root because §8.3's tabs are not the farmer's with a flag. */
   ExpertHome: NavigatorScreenParams<ExpertTabParamList> | undefined;
