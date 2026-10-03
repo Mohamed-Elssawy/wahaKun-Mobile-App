@@ -11,6 +11,7 @@ import {
 import type { ScreenProps } from '@/navigation/types';
 import { colors, screenPadding, spacing } from '@/theme';
 
+import { farmerSeesAi } from '../../aiVisibility';
 import { CaptureNotice } from '../../components/CaptureNotice';
 import { CollapsibleCard } from '../../components/CollapsibleCard';
 import { DiagnosisNote } from '../../components/DiagnosisNote';
@@ -18,6 +19,7 @@ import { RepairStepsList } from '../../components/RepairStepsList';
 import { ReportErrorView } from '../../components/ReportErrorView';
 import { ReportHeader } from '../../components/ReportHeader';
 import { useReportDiagnosis } from '../../hooks/useReportDiagnosis';
+import { ESCALATION_LINE, ESCALATION_TITLE } from '../../lifecycle';
 import { describeSeverity } from '../../severity';
 
 const RECOMMENDATION_TITLE = 'الإجراء الموصى به';
@@ -64,6 +66,12 @@ export default function ReportDiagnosisScreen({
           message="لم يكتمل تحليل الذكاء الاصطناعي بعد."
         />
       );
+    }
+
+    // T2: below the threshold, or on a transcription failure, the farmer sees none of this.
+    // F-03b is the screen that belongs here; until it is built, the canonical line stands in.
+    if (!farmerSeesAi({ confidence: analysis.confidence })) {
+      return <CaptureNotice title={ESCALATION_TITLE} message={ESCALATION_LINE} />;
     }
 
     const severityTone = describeSeverity(analysis.severity);

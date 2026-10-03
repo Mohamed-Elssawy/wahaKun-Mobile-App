@@ -28,6 +28,7 @@ import { useAudioPlayer } from '@/hooks/useAudioPlayer';
 import type { ScreenProps } from '@/navigation/types';
 import { colors, screenPadding, spacing } from '@/theme';
 
+import { farmerSeesAi } from '../../aiVisibility';
 import { DiagnosisNote } from '../../components/DiagnosisNote';
 import { IssueIdentityBar } from '../../components/IssueIdentityBar';
 import { IssueTranscript } from '../../components/IssueTranscript';
@@ -35,6 +36,7 @@ import { ReportErrorView } from '../../components/ReportErrorView';
 import { ReportHero } from '../../components/ReportHero';
 import { ReportStatusTrack } from '../../components/ReportStatusTrack';
 import { useIssueDetails } from '../../hooks/useIssueDetails';
+import { ESCALATION_LINE } from '../../lifecycle';
 
 const DIAGNOSIS_LABEL = 'تشخيص الذكاء الاصطناعي';
 const STATUS_TITLE = 'حالة البلاغ';
@@ -88,7 +90,13 @@ export default function IssueDetailsScreen({
 
   const analysis = report.analysis;
   const photo = report.attachments.find(attachment => attachment.type === 'Photo');
-  const title = analysis?.problemArabic || issue?.title || report.description || UNTITLED;
+
+  // T2: the diagnosis, the severity and the confidence are all AI output, so all three go.
+  const seesAi = analysis ? farmerSeesAi({ confidence: analysis.confidence }) : false;
+
+  // issue.title is written by the AI too (§3.1), so only the farmer's description survives.
+  const aiTitle = seesAi ? analysis?.problemArabic || issue?.title : undefined;
+  const title = aiTitle || report.description || UNTITLED;
 
   const distanceLabel =
     origin && issue && hasCoordinates(issue)
@@ -134,12 +142,12 @@ export default function IssueDetailsScreen({
         <ReportHero
           photoUrl={photo?.url}
           title={title}
-          severity={analysis?.severity}
+          severity={seesAi ? analysis?.severity : undefined}
           hasVoice={Boolean(voiceUrl)}
           onBack={navigation.goBack}
           onShare={() => share()}
           badge={
-            issue && issue.tier !== 'resolved' ? (
+            issue && issue.tier !== 'resolved' && seesAi ? (
               <SeverityBadge
                 level={issue.tier}
                 label={describeTierDisplay(issue.tier).shortLabel}
@@ -186,7 +194,7 @@ export default function IssueDetailsScreen({
               {DIAGNOSIS_LABEL}
             </Text>
 
-            {analysis ? (
+            {analysis && seesAi ? (
               <>
                 <View style={styles.summary}>
                   <Text variant="h4" align="right" style={styles.summaryTitle}>
@@ -212,7 +220,7 @@ export default function IssueDetailsScreen({
               </>
             ) : (
               <Text variant="body14" color="textSecondary" align="right">
-                {NO_DIAGNOSIS}
+                {analysis ? ESCALATION_LINE : NO_DIAGNOSIS}
               </Text>
             )}
           </View>

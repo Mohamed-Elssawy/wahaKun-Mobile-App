@@ -53,6 +53,8 @@ export type {
 export {
   describeStatus,
   describeWireStatus,
+  ESCALATION_LINE,
+  ESCALATION_TITLE,
   EXPERT_ACTION_LABELS,
   RESCHEDULE_LABEL,
   stageFor,

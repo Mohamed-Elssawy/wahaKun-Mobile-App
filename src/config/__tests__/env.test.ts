@@ -1,6 +1,7 @@
 import {
   DEMO_MODE,
   ENABLE_COMMENT_POSTING,
+  ESCALATE_LOW_CONFIDENCE,
   MOCK_SCENARIO,
   USE_MOCK_COMMUNITY,
   USE_MOCK_REPORTS,
@@ -26,5 +27,11 @@ describe('committed feature flag defaults', () => {
   // that flipping it off reads as the deliberate wiring step it is.
   it('still serves the feed from the mock, because the endpoint does not exist', () => {
     expect(USE_MOCK_COMMUNITY).toBe(true);
+  });
+
+  // A product stance, not a gap: SYSTEM-SPEC T2 keeps uncertainty language away from farmers.
+  // Turning this off would put a sub-80% diagnosis back in front of them on three surfaces.
+  it('escalates a low-confidence diagnosis rather than showing it to the farmer', () => {
+    expect(ESCALATE_LOW_CONFIDENCE).toBe(true);
   });
 });

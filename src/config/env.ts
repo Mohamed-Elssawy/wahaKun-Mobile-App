@@ -73,8 +73,9 @@ export const USE_MOCK_USER = DEMO_MODE || false;
 // The mock moderates nothing, so a demo can post; the real path still needs :8000 up.
 export const ENABLE_COMMENT_POSTING = DEMO_MODE || false;
 
-/** Off by product decision: the farmer sees the diagnosis whatever the confidence. */
-export const ESCALATE_LOW_CONFIDENCE = false;
+/** On by SYSTEM-SPEC T2: below 80% the farmer gets the escalation line and no AI output. */
+// The expert still sees the amber chip on E-01, which is the only sub-threshold view anywhere.
+export const ESCALATE_LOW_CONFIDENCE = true;
 
 /** Which state every mock serves, so loading, empty and error can be walked on a device. */
 export type MockScenario = 'content' | 'empty' | 'error' | 'slow';

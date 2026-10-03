@@ -50,6 +50,12 @@ export const RESCHEDULE_LABEL = 'إعادة الجدولة';
 /** T13's copy, reused wherever the escalation withholds an AI-written title. */
 export const UNTITLED_REPORT = 'بلاغ بدون وصف';
 
+/** §8.3's canonical short form, used wherever the AI block is suppressed. */
+export const ESCALATION_LINE = 'الحالة تحتاج نظرة دقيقة — سيراجع خبير البلاغ شخصياً';
+
+/** F-03b's heading, for the surfaces that replace a whole block rather than a line. */
+export const ESCALATION_TITLE = 'خبير سيراجع بلاغك شخصيًا';
+
 /** The three draws F-04 has always had. §3.3's six nodes are the real timeline. */
 export type StatusStage = 'reported' | 'inProgress' | 'resolved';
 
