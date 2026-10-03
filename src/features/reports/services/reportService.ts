@@ -20,6 +20,7 @@ import type {
   IssueStatusCode,
   Report,
   ReportStatus,
+  ReportTrackerDetails,
 } from '../types';
 
 const BASE = API_BASE_URLS.report;
@@ -189,4 +190,25 @@ export async function deleteReport(reportId: string): Promise<void> {
     authenticated: true,
   });
   await removeMirroredReport(reportId);
+}
+
+const NO_TRACKER_ENDPOINT =
+  'IssueController has no read endpoint for the tracker; see USE_MOCK_TRACKER in config/env.';
+
+/** F-06. Nothing to swap to yet - BACKEND-CONTRACT-REQUESTS item 3 is still open. */
+export async function getReportTracker(_reportId: string): Promise<ReportTrackerDetails> {
+  throw new Error(NO_TRACKER_ENDPOINT);
+}
+
+const NO_TRACKER_WRITE =
+  'IssueController has no write endpoint for a farmer confirmation or rejection yet.';
+
+/** T7. */
+export async function confirmResolution(_reportId: string): Promise<void> {
+  throw new Error(NO_TRACKER_WRITE);
+}
+
+/** T8. */
+export async function rejectResolution(_reportId: string): Promise<void> {
+  throw new Error(NO_TRACKER_WRITE);
 }
