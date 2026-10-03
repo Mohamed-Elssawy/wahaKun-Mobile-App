@@ -25,14 +25,14 @@ export const PORTS = {
 } as const;
 
 export const API_BASE_URLS = {
-  auth: `http://${HOST}:${PORTS.auth}/api`,
-  user: `http://${HOST}:${PORTS.user}/api`,
-  notification: `http://${HOST}:${PORTS.notification}/api`,
-  report: `http://${HOST}:${PORTS.report}/api`,
-  community: `http://${HOST}:${PORTS.community}/api`,
-  map: `http://${HOST}:${PORTS.map}/api`,
+  auth: `${HOST}/auth/api`,
+  user: `${HOST}/user/api`,
+  notification: `${HOST}/notification/api`,
+  report: `${HOST}/report/api`,
+  community: `${HOST}/community/api`,
+  map: `${HOST}/map/api`,
   /** Only used to render attachments; no client call goes through apiClient. */
-  media: `http://${HOST}:${PORTS.media}/api`,
+  media: `${HOST}/media/api`,
 } as const;
 
 /** Registered natively in AndroidManifest.xml and Info.plist; changing it needs a rebuild. */
