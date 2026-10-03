@@ -323,3 +323,98 @@ Deleting one branch in `features/user/role.ts` and setting `USE_MOCK_ROLE` to
 `false`, once `UserDetailsResponse` carries the two fields. `roleFromDetails`
 is already written and tested against both the names and the ints, since
 `UserStatus` would arrive as a number the way `IssueStatus` does.
+
+---
+
+## S2 - report tracker: F-06, X-05, F-07's contextual slot
+
+**Screens:** F-06 Report tracker (new route `ReportTracker`), X-05 Location
+denied (inline in F-02, not a route), F-07's contextual slot and node-6
+approval control.
+**Branch:** `feature/report-tracker`, cut from `develop` after fast-forwarding
+`feature/lifecycle-and-expert-shell` into it (develop had no lifecycle model
+on it yet - see REFERENCE-NOTES.md).
+**Design source:** the local V2 exports under `Waha KUN Figma Designs V2/`;
+the Figma REST API was not called this session - the exports already matched
+the spec text on every value checked, and a live call risked the file-nodes
+rate limit for no gain.
+**Per-feature flag:** `USE_MOCK_TRACKER` (`DEMO_MODE || true`)
+
+### What it runs on now
+
+Everything F-06 needs beyond the bare `Report` - expert, appointment, repair,
+and the confirm/reject writes (T7/T8) - is **mocked in full**.
+`IssueController` has no read endpoint of any kind
+(BACKEND-CONTRACT-REQUESTS item 3), so there is no partial-real state to
+describe here the way the community feed has.
+
+`ReportTrackerDetails` is new and entirely PROPOSED. `reportService.ts` grows
+three stub exports (`getReportTracker`, `confirmResolution`,
+`rejectResolution`) that throw the documented "no endpoint" error, same shape
+as `getMyReports`'s existing guard, so the real path fails loudly rather than
+silently if the flag is ever flipped early.
+
+### The model, reused, not re-derived
+
+`trackerFacts.ts` is the only new thing that may construct a `LifecycleFacts`
+besides S1's own `factsFromWireStatus` - it exists because
+`ReportTrackerDetails` can say `hasExpertReview` directly, where a bare wire
+status cannot. `trackerView.ts` then turns facts into F-06's six node
+descriptors (label, marker state, datetime, chips) and F-07's one contextual
+slot - formatting only; every status/node answer still comes from
+`currentNode`/`publicStepperNode`. No component below it holds a status
+string, a node number, or a label of its own.
+
+### F-07's contextual slot costs a tracker fetch per active row
+
+`useMyReports` now also loads `ReportTrackerDetails` for every open report
+after the list resolves, so the chip and the `TrackerApprovalControl` can
+render. There is no batched endpoint to ask for this instead. Fine against
+the mock; the first thing to flag if F-07 ever needs to scale past a page
+against the real backend.
+
+### X-05 changed a standing decision, not just added a screen
+
+M6 (2026-07-28) decided a refused location permission must never block a
+report. §8.4 X-05/`D-HARD-BLOCK` says the opposite, and this session was
+explicitly asked to build it that way. `useCurrentLocation` now returns
+`{ location, status, recheck }` instead of a bare coordinate, re-checks on
+`AppState` returning to `active` (so granting the permission in Settings is
+picked up without backing out of the capture screen), and
+`ReportCaptureScreen` renders `LocationPermissionDenied` - no tertiary link,
+per `D-HARD-BLOCK` - ahead of every other capture state once `status` is
+`'denied'`. Three other hooks (`useOasisMap`, `useCommunityFeed`,
+`useIssueContext`) destructured the old bare-value shape and needed updating
+to match; `npx tsc` caught all three.
+
+### Known gaps, deliberate
+
+- **F-06's two CTAs:** `التواصل مع الخبير` opens the existing `ConnectToExpert`
+  placeholder (F-08 is out of scope this sprint); `عرض التعليقات (N)` opens
+  F-04 without scrolling to the thread - F-04 is untouched this session
+  (`B-TRACK` is not in this unit's read list).
+- **Node 1's evidence chip has an inferred photo variant.** §8.2 only gives
+  the voice copy (`🎤 تم تسجيل ملاحظة صوتية...`); every seeded fixture is
+  photo-based, so the mirrored photo line (`📷 تم إرفاق صورة للمشكلة...`) is
+  what actually renders. Flagged in `trackerView.ts`; replace if a source
+  ever gives the exact wording.
+- **`state:reopened` and `state:expert-changed` are explicitly out of this
+  session**, per the unit's own scope line. `rejectResolution`'s mock clears
+  nodes 4-5 (`C-REOPEN-CLEAN`) and returns the case to node 3, but no screen
+  renders that reverted state yet - the farmer stays on a timeline the model
+  has already moved, until that session lands.
+- **`formatAbsoluteDateTime` is hand-rolled**, matching `formatRelativeTime`'s
+  existing approach rather than `Intl`, since full ICU data is not a given on
+  Hermes and the repo already treats this as the house pattern.
+
+### Wiring it to the real backend
+
+1. `GET /api/Issue/{id}/tracker` (or whatever it is called) lands → add it to
+   `API_ENDPOINTS`, implement `reportService.ts`'s three stubs for real, map
+   the DTO onto `ReportTrackerDetails`, deleting PROPOSED fields as each one
+   is confirmed on the wire.
+2. Set `USE_MOCK_TRACKER = false`. Nothing else changes - `trackerFacts.ts`,
+   `trackerView.ts` and every component read the type, not the source.
+3. Confirm the server enforces the same ownership check `isReportOwner`
+   already does client-side (BACKEND-CONTRACT-REQUESTS item 4) - hiding the
+   `ReportTracker` entry points is not protection.
