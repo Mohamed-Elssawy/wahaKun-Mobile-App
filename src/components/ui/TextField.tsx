@@ -6,9 +6,12 @@ import { colors, controlHeight, radii, spacing, textStyles } from '@/theme';
 
 import { Text } from './Text';
 
+import type { Ref } from 'react';
 import type { StyleProp, TextInputProps, TextStyle, ViewStyle } from 'react-native';
 
 export type TextFieldProps = Omit<TextInputProps, 'style'> & {
+  /** React 19 passes ref as a prop; it lands on the inner TextInput via the spread (focus chaining). */
+  ref?: Ref<TextInput>;
   label?: string;
   /** Renders below the field and puts the border in the error colour. */
   error?: string;

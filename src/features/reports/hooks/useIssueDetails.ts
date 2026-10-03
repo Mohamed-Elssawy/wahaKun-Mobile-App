@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { communityApi } from '@/features/community/services';
+import { isServerIssueId } from '@/features/community/services/communityService';
+import type { FeedPost } from '@/features/community/types';
 import { getMapIssueById } from '@/features/map/services/mapService';
 import type { MapIssue } from '@/features/map/types';
 
@@ -33,6 +36,40 @@ function fromMapIssue(issue: MapIssue): Report {
         ]
       : [],
   };
+}
+
+/** A seeded feed card, which the map has never heard of. */
+function fromFeedPost(post: FeedPost): Report {
+  return {
+    id: post.issueId,
+    title: post.title,
+    description: post.description,
+    status: post.status,
+    createdAt: post.createdAt,
+    reporterId: post.reporterId ?? '',
+    latitude: post.latitude,
+    longitude: post.longitude,
+    attachments: post.photoUrl
+      ? [
+          {
+            id: `${post.issueId}-photo`,
+            type: 'Photo',
+            url: post.photoUrl,
+            createdAt: post.createdAt,
+          },
+        ]
+      : [],
+  };
+}
+
+/** Not a Guid means a seeded feed card; asking the map for it is a guaranteed 400. */
+async function loadIssue(issueId: string): Promise<Report | null> {
+  if (!isServerIssueId(issueId)) {
+    const post = await communityApi.getPost(issueId);
+    return post ? fromFeedPost(post) : null;
+  }
+  const issue = await getMapIssueById(issueId);
+  return issue ? fromMapIssue(issue) : null;
 }
 
 /** Resolves an issue whoever filed it: the mirror holds this device's, the map answers for the rest. */
@@ -71,14 +108,14 @@ export function useIssueDetails(issueId: string) {
     }
 
     try {
-      const issue = await getMapIssueById(issueId);
+      const issue = await loadIssue(issueId);
 
       if (!isMounted.current) {
         return;
       }
 
       if (issue) {
-        setReport(fromMapIssue(issue));
+        setReport(issue);
         setIsOwnReport(false);
       } else {
         setError({ kind: 'unknown', message: LOAD_ERROR });

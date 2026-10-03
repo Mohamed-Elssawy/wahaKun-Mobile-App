@@ -143,8 +143,12 @@ export type QueuedReport = {
   createdAt: string;
   /** Checkpoint: analyze uploaded the photo and ran the model, so a retry skips both. */
   analysis?: AiAnalysisResult;
-  /** Why it stopped. Never 'offline' (that retries) and never 'unauthorized'. */
+  /** Why it stopped. Never 'offline'/'temporary' (those retry) and never 'unauthorized'. */
   failureKind?: ReportErrorKind;
+  /** The server's specific Arabic reason (e.g. the vision service's suggestion), shown instead of the generic copy. */
+  failureMessage?: string;
+  /** Last transient failure, so the row can say why it is still waiting. */
+  lastError?: string;
 };
 
 /** A union because queued items have no server id, status or attachments. */

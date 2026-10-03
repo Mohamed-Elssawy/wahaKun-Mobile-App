@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { addEventListener as onConnectivityChange } from '@react-native-community/netinfo';
 import { AppState } from 'react-native';
 
-import { getAccessToken } from '@/api';
+import { getAccessToken, onSessionRefreshed } from '@/api';
 import { REPORT_QUEUE_MAX } from '@/config/env';
 
 import { describeAnalysisError, describeCreateError } from '../errors';
@@ -159,18 +159,26 @@ async function handleFailure(item: QueuedReport, error: ReportError): Promise<Ou
     return 'paused';
   }
 
-  if (error.kind === 'offline') {
+  // No connection, or the AI/storage/DB is temporarily down: back off and try again later.
+  if (error.kind === 'offline' || error.kind === 'temporary') {
     const attempts = item.attempts + 1;
     await patch(item.localId, {
       state: 'queued',
       attempts,
       nextAttemptAt: Date.now() + backoffFor(attempts),
+      lastError: error.message,
     });
+    // Offline affects every item; a busy server may still accept the next one, but be gentle.
     return 'retry';
   }
 
-  // A refused photo and a too-minor problem answer the same a thousand times. Stop.
-  await patch(item.localId, { state: 'failed', failureKind: error.kind });
+  // A refused photo, a too-minor problem or a validation error answer the same a thousand times. Stop.
+  await patch(item.localId, {
+    state: 'failed',
+    failureKind: error.kind,
+    failureMessage: error.message,
+    lastError: undefined,
+  });
   return 'failed';
 }
 
@@ -319,7 +327,14 @@ export async function discardQueuedReport(localId: string): Promise<void> {
 /** Manual send. Resets the backoff, since the farmer is telling us to try now. */
 export async function retryQueuedReport(localId: string): Promise<void> {
   await hydrate();
-  await patch(localId, { state: 'queued', attempts: 0, nextAttemptAt: 0 });
+  await patch(localId, {
+    state: 'queued',
+    attempts: 0,
+    nextAttemptAt: 0,
+    failureKind: undefined,
+    failureMessage: undefined,
+    lastError: undefined,
+  });
   await drainQueue();
 }
 
@@ -361,6 +376,11 @@ export function startReportQueue(): void {
     if (cameBack) {
       startDrain();
     }
+  });
+
+  // The API client refreshed an expired token: a queue paused on the old one can resume.
+  onSessionRefreshed(() => {
+    startDrain();
   });
 
   // NetInfo misses this: backgrounded on a dead link, foregrounded with the radio up.

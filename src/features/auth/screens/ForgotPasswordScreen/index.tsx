@@ -70,6 +70,7 @@ export default function ForgotPasswordScreen({
 
   return (
     <Screen
+      scrollable
       footer={
         <Button
           label="إرسال رابط الاستعادة"
