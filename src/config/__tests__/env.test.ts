@@ -7,6 +7,7 @@ import {
   USE_MOCK_COMMUNITY,
   USE_MOCK_REPORTS,
   USE_MOCK_ROLE,
+  USE_MOCK_TRACKER,
   USE_MOCK_USER,
 } from '../env';
 
@@ -36,6 +37,12 @@ describe('committed feature flag defaults', () => {
   it('mocks the account role, and mocks it as a farmer', () => {
     expect(USE_MOCK_ROLE).toBe(true);
     expect(MOCK_ROLE).toBe('farmer');
+  });
+
+  // On by backend gap: IssueController has no read endpoint, so the tracker has nowhere real
+  // to read expert, appointment or repair data from, or to send a confirm/reject write to.
+  it('still serves the tracker from the mock, because no read endpoint exists', () => {
+    expect(USE_MOCK_TRACKER).toBe(true);
   });
 
   // A product stance, not a gap: SYSTEM-SPEC T2 keeps uncertainty language away from farmers.

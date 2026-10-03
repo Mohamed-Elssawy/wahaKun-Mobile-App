@@ -40,6 +40,7 @@ export default function MyReportsScreen() {
   const { avatarUrl } = useIdentity();
   const {
     sections,
+    trackers,
     isEmpty,
     hasAnyReports,
     counts,
@@ -52,8 +53,9 @@ export default function MyReportsScreen() {
     discardQueued,
   } = useMyReports();
 
+  // §8.2: "F-07 card" is one of F-06's three documented entry points.
   const openReport = useCallback(
-    (reportId: string) => navigation.navigate('IssueDetails', { reportId }),
+    (reportId: string) => navigation.navigate('ReportTracker', { reportId }),
     [navigation],
   );
 
@@ -71,9 +73,14 @@ export default function MyReportsScreen() {
           onDiscard={discardQueued}
         />
       ) : (
-        <ReportRow report={item.report} onPress={openReport} />
+        <ReportRow
+          report={item.report}
+          onPress={openReport}
+          trackerDetails={trackers[item.report.id]}
+          onResolutionChanged={refresh}
+        />
       ),
-    [openReport, retryQueued, discardQueued],
+    [openReport, retryQueued, discardQueued, trackers, refresh],
   );
 
   const renderBody = () => {

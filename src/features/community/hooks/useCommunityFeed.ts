@@ -55,7 +55,7 @@ export function useCommunityFeed() {
   const isFocused = useRef(true);
   /** Guards against a filter change landing after a slower request for the old one. */
   const requestId = useRef(0);
-  const location = useCurrentLocation();
+  const { location } = useCurrentLocation();
 
   const load = useCallback(
     async (next: FeedFilters, isRefresh = false): Promise<void> => {

@@ -44,7 +44,11 @@ export function useReportCapture(initialMode: CaptureMode = 'photo') {
   const photoOutput = usePhotoOutput();
   // No pickFromCamera: the photo tab runs a live preview, so the system camera would double up.
   const { image, error: pickerError, pickFromGallery } = useImagePicker();
-  const location = useCurrentLocation();
+  const {
+    location,
+    status: locationStatus,
+    recheck: recheckLocation,
+  } = useCurrentLocation();
 
   // Owned here because switching mode must also drop the photo being reviewed.
   const [mode, setMode] = useState<CaptureMode>(initialMode);
@@ -133,7 +137,9 @@ export function useReportCapture(initialMode: CaptureMode = 'photo') {
     setIsSubmitting(true);
 
     try {
-      // Spread, not branch: a refused location permission must never block a report.
+      // X-05/D-HARD-BLOCK: the screen never lets this be called while location is denied, so
+      // reaching here means a coordinate exists. Spread, not a required field: `location` is
+      // still typed optional because the real service call takes it that way.
       const queued = await enqueueReport({
         photo,
         description: description.trim() || undefined,
@@ -160,6 +166,9 @@ export function useReportCapture(initialMode: CaptureMode = 'photo') {
     hasPermission,
     canFlipCamera: hasOtherCameraPosition,
     flipCamera,
+    /** X-05. True only on an outright refusal - 'pending' still reads as false, same as camera. */
+    isLocationDenied: locationStatus === 'denied',
+    recheckLocation,
     /** The screen mounts <Camera>, so its output is exposed rather than owned here. */
     photoOutput,
     /** The live preview is only worth running in this one combination of states. */

@@ -63,6 +63,10 @@ export const USE_MOCK_REPORTS = DEMO_MODE || false;
 /** Mirrors this device's reports locally. On because IssueController has no GetMyIssues/GetIssueById. */
 export const USE_LOCAL_REPORT_MIRROR = true;
 
+/** F-06. On by backend gap, not choice: IssueController has no read endpoint at all yet, so
+ * nothing - expert, appointment, repair, the confirm/reject writes - has anywhere real to go. */
+export const USE_MOCK_TRACKER = DEMO_MODE || true;
+
 /** Seeded feed. CommunityService has no feed endpoint, and the MapService fallback has no author or counts. */
 export const USE_MOCK_COMMUNITY = DEMO_MODE || true;
 

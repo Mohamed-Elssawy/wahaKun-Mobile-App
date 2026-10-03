@@ -59,3 +59,48 @@ export function formatRelativeTime(iso: string, now: Date = new Date()): string 
 
   return JUST_NOW;
 }
+
+// Hand-rolled rather than Intl, same call as the plural table above: full ICU data is not a
+// given on Hermes, and §6.7 pins Western numerals throughout regardless of locale behaviour.
+const WEEKDAYS = [
+  'الأحد',
+  'الاثنين',
+  'الثلاثاء',
+  'الأربعاء',
+  'الخميس',
+  'الجمعة',
+  'السبت',
+];
+const MONTHS = [
+  'يناير',
+  'فبراير',
+  'مارس',
+  'أبريل',
+  'مايو',
+  'يونيو',
+  'يوليو',
+  'أغسطس',
+  'سبتمبر',
+  'أكتوبر',
+  'نوفمبر',
+  'ديسمبر',
+];
+
+/** F-06's done-node timestamp: "الثلاثاء، 10 يونيو — 9:41 ص". `null` on a malformed timestamp. */
+export function formatAbsoluteDateTime(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const weekday = WEEKDAYS[date.getDay()];
+  const month = MONTHS[date.getMonth()];
+
+  const hour24 = date.getHours();
+  const period = hour24 < 12 ? 'ص' : 'م';
+  // 12-hour, no leading zero - "9:41", not "09:41", matching the export.
+  const hour12 = hour24 % 12 || 12;
+  const minute = String(date.getMinutes()).padStart(2, '0');
+
+  return `${weekday}، ${date.getDate()} ${month} — ${hour12}:${minute} ${period}`;
+}

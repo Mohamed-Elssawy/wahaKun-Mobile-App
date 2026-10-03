@@ -151,6 +151,55 @@ export type QueuedReport = {
 export type ReportListItem =
   { kind: 'queued'; queued: QueuedReport } | { kind: 'server'; report: Report };
 
+/**
+ * F-06. PROPOSED in full: IssueController has no read endpoint at all (BACKEND-CONTRACT-REQUESTS
+ * item 3), so none of nodes 3-6's payload exists on the wire yet. Named for the person it is
+ * about, not the DTO it will someday mirror, since there is no real DTO to mirror.
+ */
+export type TrackerExpert = {
+  name: string;
+  specialty: string;
+};
+
+/** §8.2 node 4. `reason` and `rescheduled` only appear once T10/T11 have run. */
+export type TrackerAppointment = {
+  /** T5. Node 4's done datetime - node 5's current state uses static copy, not this. */
+  confirmedAt: string;
+  date: string;
+  windowStart: string;
+  windowEnd: string;
+  rescheduled?: boolean;
+  reason?: string;
+};
+
+/** §8.2 node 5's payload, published by T6. */
+export type TrackerRepair = {
+  confirmedAt: string;
+  notes: string;
+  photoUrl: string;
+};
+
+/**
+ * Everything `publicStepperNode`/`currentNode` need beyond the bare wire status, plus the
+ * human-readable payload each node's `ContextChip` draws. `hasExpertReview` is PROPOSED the same
+ * way `LifecycleFacts` already proposes it - no `IssueStatus` value separates node 3 from node 4.
+ */
+export type ReportTrackerDetails = {
+  reportId: string;
+  status: ReportStatus;
+  hasExpertReview?: boolean;
+  expert?: TrackerExpert;
+  /** T3. Node 3's current-state relative time counts from here. */
+  assignedAt?: string;
+  /** T4. Node 3's done datetime and the basis for node 4's current-state relative time. */
+  reviewedAt?: string;
+  appointment?: TrackerAppointment;
+  repair?: TrackerRepair;
+  /** Node 6's closure table (§8.2): only 'farmer' is reachable from mobile; T12 has no client. */
+  closedBy?: 'farmer' | 'admin';
+  closedAt?: string;
+};
+
 /** Typing services/index.ts as this is what stops the mock promising data the server won't. */
 export type ReportApi = {
   analyzeIssue: (photo: PickedImage) => Promise<AiAnalysisResult>;
@@ -159,6 +208,12 @@ export type ReportApi = {
   getMyReports: () => Promise<Report[]>;
   getReportById: (reportId: string) => Promise<Report>;
   deleteReport: (reportId: string) => Promise<void>;
+  /** F-06. Separate from getReportById: the tracker is scheduling/expert detail, not the report. */
+  getReportTracker: (reportId: string) => Promise<ReportTrackerDetails>;
+  /** T7. Refused client-side first by `attempt()`; reaching the service means it was allowed. */
+  confirmResolution: (reportId: string) => Promise<void>;
+  /** T8. */
+  rejectResolution: (reportId: string) => Promise<void>;
 };
 
 /** The two tabs on F-02, client-only. `photo` covers capture and gallery pick alike. */

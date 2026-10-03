@@ -8,7 +8,7 @@ import { isCriticalSeverity } from '../severity';
 import { useReportQueue } from './useReportQueue';
 
 import type { ReportError } from '../errors';
-import type { Report, ReportListItem } from '../types';
+import type { Report, ReportListItem, ReportTrackerDetails } from '../types';
 
 const LOAD_ERROR = 'تعذر تحميل البلاغات، حاول مرة أخرى';
 
@@ -38,6 +38,9 @@ const MATCHES: Record<ReportFilter, (report: Report) => boolean> = {
 /** Refetches on focus: a report filed seconds ago is the reason to open this tab. */
 export function useMyReports() {
   const [reports, setReports] = useState<Report[]>([]);
+  // F-07's contextual slot (§8.2): keyed by report id, loaded only for the reports that are
+  // still open - a closed card draws no slot, so there is nothing to fetch for it.
+  const [trackers, setTrackers] = useState<Record<string, ReportTrackerDetails>>({});
   const [error, setError] = useState<ReportError | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<ReportFilter>('all');
@@ -51,6 +54,26 @@ export function useMyReports() {
       const result = await reportApi.getMyReports();
       if (isFocused.current) {
         setReports(result);
+      }
+
+      const active = result.filter(report => !isClosedWireStatus(report.status));
+      const loadedTrackers = await Promise.all(
+        active.map(report =>
+          reportApi
+            .getReportTracker(report.id)
+            .then(details => [report.id, details] as const)
+            .catch(() => null),
+        ),
+      );
+
+      if (isFocused.current) {
+        setTrackers(
+          Object.fromEntries(
+            loadedTrackers.filter(
+              (entry): entry is [string, ReportTrackerDetails] => entry != null,
+            ),
+          ),
+        );
       }
     } catch (err) {
       if (isFocused.current) {
@@ -113,6 +136,7 @@ export function useMyReports() {
   return {
     /** Already filtered, grouped and ordered, so the screen renders without deciding. */
     sections,
+    trackers,
     /** Nothing to show under the current filter, which picks between X-06 and X-07. */
     isEmpty: sections.length === 0,
     /** Whether the farmer has ever filed a report, which picks the empty state. */
