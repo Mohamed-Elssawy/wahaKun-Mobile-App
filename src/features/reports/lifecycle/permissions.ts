@@ -22,14 +22,7 @@ export type WritableField =
 
 /** §10.7's cell values. Kept distinct because override and remove are not plain writes. */
 export type WritePermission =
-  | 'none'
-  | 'create'
-  | 'write'
-  | 'override'
-  | 'remove'
-  | 'moderate'
-  | 'set'
-  | 'reassign';
+  'none' | 'create' | 'write' | 'override' | 'remove' | 'moderate' | 'set' | 'reassign';
 
 /** §10.7, with its first row split by §3.1's owners. An absent actor means that cell was a dash. */
 // §10.7 groups five fields under one "create" cell for brevity; §3.1 gives each its own owner,
@@ -43,7 +36,12 @@ const MATRIX: Record<WritableField, Partial<Record<Actor, WritePermission>>> = {
   severity: { expert: 'override', system: 'create' },
   correctedDiagnosis: { expert: 'write' },
   // The expert's is auto-posted at T4; the AI removes and the Admin confirms or restores.
-  publicComment: { farmer: 'write', expert: 'write', system: 'remove', admin: 'moderate' },
+  publicComment: {
+    farmer: 'write',
+    expert: 'write',
+    system: 'remove',
+    admin: 'moderate',
+  },
   chatMessage: { farmer: 'write', expert: 'write', system: 'write' },
   // Others' reports only, and undoable: canCorroborate() holds that half.
   corroboration: { farmer: 'write' },
@@ -64,8 +62,7 @@ export function canWrite(field: WritableField, actor: Actor): boolean {
 }
 
 export type WriteResult =
-  | { ok: true; permission: WritePermission }
-  | { ok: false; refusal: RefusalCode };
+  { ok: true; permission: WritePermission } | { ok: false; refusal: RefusalCode };
 
 /** §3.6's field clauses get their own codes; everything else refused by the matrix is R-WRONG-ACTOR. */
 function namedRefusal(field: WritableField, actor: Actor): RefusalCode {

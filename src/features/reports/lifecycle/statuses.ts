@@ -5,12 +5,7 @@ import type { ReportStatus } from '../types';
 
 /** The five farmer-visible statuses of §3.2, plus the one only an Admin can produce. */
 export type LifecycleStatus =
-  | 'New'
-  | 'UnderReview'
-  | 'Scheduled'
-  | 'Resolved'
-  | 'Reopened'
-  | 'AdminClosed';
+  'New' | 'UnderReview' | 'Scheduled' | 'Resolved' | 'Reopened' | 'AdminClosed';
 
 /** Declaration order is §3.2's, so a table-driven test reads in spec order. */
 export const LIFECYCLE_STATUSES: readonly LifecycleStatus[] = [
