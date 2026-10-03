@@ -2,7 +2,7 @@
 
 import { isResolvedStatus } from '@/features/reports/status';
 
-import { distanceKm } from '../distance';
+import { distanceKm } from '../distance.ts';
 
 import type {
   CommentsPage,
