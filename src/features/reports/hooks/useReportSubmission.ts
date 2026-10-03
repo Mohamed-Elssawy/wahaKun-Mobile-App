@@ -50,7 +50,10 @@ export function useReportSubmission(localId: string) {
 
     if (item.state === 'failed') {
       const kind = item.failureKind ?? 'unknown';
-      return { kind: 'failed', error: { kind, message: FAILURE_MESSAGES[kind] } };
+      return {
+        kind: 'failed',
+        error: { kind, message: item.failureMessage || FAILURE_MESSAGES[kind] },
+      };
     }
 
     // A backed-off item has already tried and lost the network, so it is not still working.

@@ -1,6 +1,6 @@
 // Retry policy, persistence and ordering all typecheck whatever they actually do.
 
-import { ApiError, NETWORK_ERROR_STATUS } from '@/api';
+import { ApiError } from '@/api';
 import type { PickedImage } from '@/types/image';
 
 import {
@@ -70,13 +70,13 @@ const PHOTO: PickedImage = {
   fileName: 'photo.jpg',
 };
 
-const offlineError = () => new ApiError('offline', NETWORK_ERROR_STATUS);
-const rejectedError = () => new ApiError('bad photo', 400);
-const unauthorizedError = () => new ApiError('expired', 401);
+const offlineError = () => ApiError.network({});
+const rejectedError = () => ApiError.fromResponse(400, { code: 'VALIDATION_FAILED' });
+const unauthorizedError = () => ApiError.fromResponse(401, { code: 'TOKEN_EXPIRED' });
 
-/** How ReportService refuses a below-Medium problem: an untyped 500 with a string body. */
+/** How ReportService refuses a below-Medium problem: 422 ISSUE_PRIORITY_TOO_LOW. */
 const tooMinorError = () =>
-  new ApiError('failed', 500, 'System.InvalidOperationException: priority too low');
+  ApiError.fromResponse(422, { code: 'ISSUE_PRIORITY_TOO_LOW' });
 
 const ANALYSIS = {
   filePath: 'reportimage/analysed.jpg',
@@ -334,14 +334,36 @@ describe('delivery', () => {
     expect(item.failureKind).toBe('tooMinor');
   });
 
-  // The same 500 shape off analyze means the model would not read the photo. F-03c.
+  // ReportService answers 422 PHOTO_* when the model refuses the photo. F-03c, with its Arabic reason.
   it('tells a refused photo apart from a too-minor problem', async () => {
-    analyzeIssue.mockRejectedValue(tooMinorError());
+    analyzeIssue.mockRejectedValue(
+      ApiError.fromResponse(422, {
+        code: 'PHOTO_NOT_IRRIGATION',
+        serverMessage: 'الصورة لا تظهر مشكلة ري واضحة.',
+      }),
+    );
 
     await enqueueReport({ photo: PHOTO });
     await drainQueue();
 
-    expect(getQueueSnapshot().items[0].failureKind).toBe('unrecognized');
+    const [item] = getQueueSnapshot().items;
+    expect(item.failureKind).toBe('unrecognized');
+    expect(item.failureMessage).toBe('الصورة لا تظهر مشكلة ري واضحة');
+  });
+
+  // AI or MinIO down is not the farmer's fault: keep the report and retry later.
+  it('backs off instead of failing when the AI service is unavailable', async () => {
+    analyzeIssue.mockRejectedValue(
+      ApiError.fromResponse(503, { code: 'AI_SERVICE_UNAVAILABLE' }),
+    );
+
+    await enqueueReport({ photo: PHOTO });
+    await drainQueue();
+
+    const [item] = getQueueSnapshot().items;
+    expect(item.state).toBe('queued');
+    expect(item.attempts).toBe(1);
+    expect(item.lastError).toBeTruthy();
   });
 });
 

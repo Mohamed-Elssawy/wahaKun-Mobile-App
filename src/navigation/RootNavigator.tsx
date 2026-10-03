@@ -24,6 +24,7 @@ import ProfileScreen from '@/features/user/screens/ProfileScreen';
 
 import { HomeTabs } from './HomeTabs';
 import { linking } from './linking';
+import { navigationRef } from './navigationRef';
 import { createPlaceholderScreen } from './PlaceholderScreen';
 
 import type { BootRoute, RootStackParamList } from './types';
@@ -42,7 +43,7 @@ export type RootNavigatorProps = {
 
 export function RootNavigator({ initialRouteName }: RootNavigatorProps) {
   return (
-    <NavigationContainer linking={linking}>
+    <NavigationContainer ref={navigationRef} linking={linking}>
       <Stack.Navigator
         initialRouteName={initialRouteName}
         screenOptions={{

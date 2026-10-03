@@ -4,7 +4,14 @@ import { isResolvedStatus } from '@/features/reports/status';
 
 import { distanceKm } from '../distance';
 
-import type { CommentsPage, CommunityApi, FeedPage, FeedPost, FeedQuery } from '../types';
+import type {
+  CommentsPage,
+  CommunityApi,
+  FeedPage,
+  FeedPost,
+  FeedQuery,
+  VoteResult,
+} from '../types';
 
 function delay(ms: number) {
   return new Promise<void>(resolve => setTimeout(resolve, ms));
@@ -167,4 +174,16 @@ export async function getComments(
   };
 }
 
-export const communityApi: CommunityApi = { getFeed, getComments };
+/** Flips the seeded post in memory, so the demo button behaves like the real one. */
+export async function toggleConfirmation(issueId: string): Promise<VoteResult> {
+  await delay(LATENCY.comments);
+  const post = SEED.find(item => item.issueId === issueId);
+  if (!post) {
+    return { issueId, hasVoted: false, voteCount: 0 };
+  }
+  post.hasConfirmed = !post.hasConfirmed;
+  post.confirmations += post.hasConfirmed ? 1 : -1;
+  return { issueId, hasVoted: post.hasConfirmed, voteCount: post.confirmations };
+}
+
+export const communityApi: CommunityApi = { getFeed, getComments, toggleConfirmation };

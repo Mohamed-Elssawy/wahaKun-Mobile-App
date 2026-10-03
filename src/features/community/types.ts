@@ -40,6 +40,43 @@ export type CommentsPage = {
   hasMore: boolean;
 };
 
+/** CommunityService FeedPostDto, camelCase. */
+export type FeedPostWire = {
+  issueId: string;
+  title: string;
+  description?: string | null;
+  /** IssueStatus name, e.g. "Diagnosed". */
+  status: string;
+  /** IssuePriority name, e.g. "Critical". */
+  priority: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  /** MinIO object key, resolved through MediaStorageService. */
+  photoUrl?: string | null;
+  createdAt: string;
+  reporterId: string;
+  voteCount: number;
+  commentCount: number;
+  shareCount: number;
+  hasVoted: boolean;
+};
+
+/** CommunityService FeedPageDto. */
+export type FeedPageWire = {
+  items: FeedPostWire[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  hasMore: boolean;
+};
+
+/** CommunityService VoteResultDto. */
+export type VoteResult = {
+  issueId: string;
+  hasVoted: boolean;
+  voteCount: number;
+};
+
 /** One card on F-01. */
 export type FeedPost = {
   issueId: string;
@@ -53,12 +90,12 @@ export type FeedPost = {
   latitude?: number;
   longitude?: number;
 
-  /** Empty on the real path: MapResponseDto carries no reporterId to resolve. */
+  /** Resolved to a name through UserService. */
   reporterId?: string;
   reporterName?: string;
   reporterPicture?: string;
 
-  /** "N تأكيدات". Zero on the real path until a feed endpoint returns the counts. */
+  /** "N تأكيدات": IssueVote rows for this issue. */
   confirmations: number;
   commentCount: number;
   shareCount: number;
@@ -84,5 +121,6 @@ export type FeedQuery = {
 /** Typing services/index.ts as this is what stops the mock promising data the server won't. */
 export type CommunityApi = {
   getFeed: (query: FeedQuery) => Promise<FeedPage>;
+  toggleConfirmation: (issueId: string) => Promise<VoteResult>;
   getComments: (issueId: string, page: number, pageSize: number) => Promise<CommentsPage>;
 };

@@ -4,19 +4,53 @@ import BootSplash from 'react-native-bootsplash';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { getAccessToken } from '@/api';
+import {
+  clearTokens,
+  getAccessToken,
+  getRefreshToken,
+  isTokenExpired,
+  onSessionExpired,
+  refreshSessionOutcome,
+} from '@/api';
 import { RegistrationProvider } from '@/features/onboarding/context/RegistrationContext';
 import { hasSeenIntro } from '@/features/onboarding/services/firstRunStore';
 import { startReportQueue } from '@/features/reports/services/reportQueue';
+import { resetToWelcome } from '@/navigation/navigationRef';
 import { RootNavigator } from '@/navigation/RootNavigator';
 import type { BootRoute } from '@/navigation/types';
 
-/** A stored session boots straight to Home; otherwise first-run decides intro vs welcome. */
+/**
+ * Welcome is the first screen of a fresh install. Set to true to show the three-slide intro
+ * before it instead (it then marks itself seen and resets to Welcome).
+ */
+const SHOW_INTRO_ON_FIRST_LAUNCH = false;
+
+/** Home only for a session that is still usable; anything else starts at Welcome. */
 async function resolveBootRoute(): Promise<BootRoute> {
-  if (await getAccessToken()) {
-    return 'Home';
+  const accessToken = await getAccessToken();
+
+  if (accessToken) {
+    if (!isTokenExpired(accessToken)) {
+      return 'Home';
+    }
+
+    // Expired access token: try the refresh token before deciding.
+    if (await getRefreshToken()) {
+      const outcome = await refreshSessionOutcome();
+      // Offline at launch: keep the farmer signed in so queued reports still upload later.
+      if (outcome === 'refreshed' || outcome === 'network') {
+        return 'Home';
+      }
+    }
+
+    // Refused or missing refresh token: this session is over.
+    await clearTokens();
   }
-  return (await hasSeenIntro()) ? 'Welcome' : 'IntroSlideshow';
+
+  if (SHOW_INTRO_ON_FIRST_LAUNCH && !(await hasSeenIntro())) {
+    return 'IntroSlideshow';
+  }
+  return 'Welcome';
 }
 
 /** Both providers are mounted once here; a second one mid-tree breaks insets and gestures. */
@@ -33,6 +67,9 @@ const App = () => {
 
     // Queued reports must upload whether or not the farmer opens the tab showing them.
     startReportQueue();
+
+    // The API client ends the session when the server refuses the refresh token.
+    return onSessionExpired(resetToWelcome);
   }, []);
 
   if (!bootRoute) {

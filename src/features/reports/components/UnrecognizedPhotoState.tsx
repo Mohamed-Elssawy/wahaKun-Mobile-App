@@ -24,12 +24,15 @@ const HERO_STROKE = 1.5;
 const TIP_STROKE = 1.75;
 
 export type UnrecognizedPhotoStateProps = {
+  /** The vision service's own Arabic reason and suggestion, when it sent one. */
+  reason?: string;
   onRetakePhoto: () => void;
   onUseVoice: () => void;
 };
 
 /** F-03c. Not an error a retry fixes, so this shows what a readable photo looks like. */
 export function UnrecognizedPhotoState({
+  reason,
   onRetakePhoto,
   onUseVoice,
 }: UnrecognizedPhotoStateProps) {
@@ -52,7 +55,7 @@ export function UnrecognizedPhotoState({
             </Text>
             {/* N700, not the frame's N500, which is 2.9:1 on this background. */}
             <Text variant="label14" color="textSecondary" align="center">
-              {SUBTITLE}
+              {reason && reason !== TITLE ? reason : SUBTITLE}
             </Text>
           </View>
         </View>

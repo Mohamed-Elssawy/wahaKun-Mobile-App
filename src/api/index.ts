@@ -1,8 +1,9 @@
 export { apiClient } from './client';
 export type { HttpMethod, RequestOptions } from './client';
-
-export { ApiError, NETWORK_ERROR_STATUS } from './errors';
-
+export { ApiError, NETWORK_ERROR_STATUS, getErrorMessage } from './errors';
+export type { ApiErrorDetails } from './errors';
+export type { ApiErrorKind } from './errorMessages';
+export { CODE_MESSAGES, STATUS_MESSAGES } from './errorMessages';
 export { API_ENDPOINTS } from './endpoints';
-
 export { saveTokens, getAccessToken, getRefreshToken, clearTokens } from './tokenStorage';
+export { expireSession, getValidAccessToken, isTokenExpired, onSessionExpired, onSessionRefreshed, refreshSession } from './session';

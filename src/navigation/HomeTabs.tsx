@@ -48,8 +48,8 @@ export function HomeTabs() {
 
   return (
     <Tab.Navigator
-      // MyReports is declared last, so the landing tab has to be named explicitly.
-      initialRouteName="MyReports"
+      // F-01 (المجتمع) is the signed-in landing tab; My Reports stays one tap away.
+      initialRouteName="CommunityFeed"
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.primary,

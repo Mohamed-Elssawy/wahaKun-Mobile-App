@@ -1,6 +1,7 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useRef, useState } from 'react';
 
+import { getErrorMessage } from '@/api';
 import { describeError } from '@/features/reports/errors';
 import type { ReportError } from '@/features/reports/errors';
 import { useCurrentLocation } from '@/hooks/useCurrentLocation';
@@ -121,6 +122,44 @@ export function useCommunityFeed() {
     }
   }, [hasMore, isLoadingMore, isLoading, error, filter, location]);
 
+  /** Optimistic: flips the card at once, then settles on the server's count (or rolls back). */
+  const toggleConfirmation = useCallback(
+    async (issueId: string): Promise<string | null> => {
+      const patchPost = (update: (post: FeedPost) => FeedPost) =>
+        setPosts(current =>
+          current.map(post => (post.issueId === issueId ? update(post) : post)),
+        );
+
+      let previous: FeedPost | undefined;
+      patchPost(post => {
+        previous = post;
+        const hasConfirmed = !post.hasConfirmed;
+        return {
+          ...post,
+          hasConfirmed,
+          confirmations: Math.max(0, post.confirmations + (hasConfirmed ? 1 : -1)),
+        };
+      });
+
+      try {
+        const result = await communityApi.toggleConfirmation(issueId);
+        patchPost(post => ({
+          ...post,
+          hasConfirmed: result.hasVoted,
+          confirmations: result.voteCount,
+        }));
+        return null;
+      } catch (err) {
+        if (previous) {
+          const original = previous;
+          patchPost(() => original);
+        }
+        return getErrorMessage(err, 'تعذر تسجيل التأكيد، حاول مرة أخرى');
+      }
+    },
+    [],
+  );
+
   const changeFilter = useCallback(
     (next: FeedFilter) => {
       setFilter(next);
@@ -141,6 +180,7 @@ export function useCommunityFeed() {
     hasMore,
     error,
     refresh: () => load(filter, true),
+    toggleConfirmation,
     loadMore,
     retry: () => load(filter),
     /** Empty under a filter is X-06; empty with no filter is a first-use feed. */

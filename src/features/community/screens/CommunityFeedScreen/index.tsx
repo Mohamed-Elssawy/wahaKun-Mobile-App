@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { Users } from 'lucide-react-native';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -8,11 +9,11 @@ import {
   View,
 } from 'react-native';
 
-import { AppHeader } from '@/components/ui';
+import { AppHeader, Text } from '@/components/ui';
 import { ReportErrorView } from '@/features/reports/components/ReportErrorView';
 import { ReportsEmptyState } from '@/features/reports/components/ReportsEmptyState';
 import { useIdentity } from '@/features/user/hooks/useIdentity';
-import { colors, screenPadding, spacing } from '@/theme';
+import { colors, radii, screenPadding, shadows, spacing } from '@/theme';
 
 import { FeedFilterTabs } from '../../components/FeedFilterTabs';
 import { FeedPostCard } from '../../components/FeedPostCard';
@@ -48,19 +49,23 @@ export default function CommunityFeedScreen() {
     retry,
     isEmpty,
     origin,
+    toggleConfirmation,
   } = useCommunityFeed();
+  const [actionError, setActionError] = useState('');
+
+  const confirm = async (issueId: string) => {
+    setActionError('');
+    const message = await toggleConfirmation(issueId);
+    if (message) {
+      setActionError(message);
+    }
+  };
 
   const openIssue = (issueId: string) =>
     navigation.navigate('IssueDetails', { reportId: issueId });
 
   const renderItem = ({ item }: { item: FeedPost }) => (
-    <FeedPostCard
-      post={item}
-      origin={origin}
-      onPress={openIssue}
-      // Confirming is a hub call the backend cannot take yet; opening the issue is honest.
-      onConfirm={openIssue}
-    />
+    <FeedPostCard post={item} origin={origin} onPress={openIssue} onConfirm={confirm} />
   );
 
   const renderBody = () => {
@@ -122,14 +127,24 @@ export default function CommunityFeedScreen() {
 
   return (
     <View style={styles.screen}>
-      <AppHeader
-        title="واحة كُن"
-        avatarUrl={avatarUrl}
-        location={location}
-        onOpenProfile={() => navigation.navigate('Profile')}
-      />
+      {/* Green bar, then the sand band holding location + categories, lifted above the list. */}
+      <View style={styles.header}>
+        <AppHeader
+          title="واحة كُن"
+          avatarUrl={avatarUrl}
+          location={location}
+          onOpenProfile={() => navigation.navigate('Profile')}
+        />
+        <FeedFilterTabs filter={filter} onChange={changeFilter} />
+      </View>
 
-      <FeedFilterTabs filter={filter} onChange={changeFilter} />
+      {actionError ? (
+        <View style={styles.banner} accessibilityLiveRegion="polite">
+          <Text variant="label12" color="errorText" align="right">
+            {actionError}
+          </Text>
+        </View>
+      ) : null}
 
       {renderBody()}
     </View>
@@ -141,8 +156,22 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  header: {
+    backgroundColor: colors.background,
+    // Above the list so the shadow falls on the cards, as in F-01.
+    zIndex: 1,
+    ...shadows.card,
+  },
+  banner: {
+    marginHorizontal: screenPadding,
+    marginTop: spacing[12],
+    padding: spacing[12],
+    borderRadius: radii[12],
+    backgroundColor: colors.errorTint,
+  },
   list: {
     padding: screenPadding,
+    paddingTop: spacing[24],
     gap: spacing[16],
   },
   fallback: {
