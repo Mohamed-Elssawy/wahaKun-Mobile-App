@@ -1,5 +1,6 @@
 // camelCase, not the C# casing: AddControllers() renames every property, so PascalCase reads undefined.
 
+import type { UserRole } from '@/features/auth/types';
 import type { PickedImage } from '@/types/image';
 
 /** UserUpdateRequest. Every field optional; only what changed should be sent. */
@@ -24,6 +25,23 @@ export type UserDetails = {
   /** Lowercase in the C# record too, so it survives the rename unchanged. */
   village: string;
   region: string;
+  /** PROPOSED. Roles live in AuthService's Identity tables; no UserService DTO returns one. */
+  role?: UserRole;
+  /** PROPOSED. AppUser.Status is set to Pending on expert register but reaches no response. */
+  status?: ExpertApproval | ExpertApprovalCode;
+};
+
+/** §4.1's four expert destinations, and the backend's UserStatus names, which agree exactly. */
+export type ExpertApproval = 'approved' | 'pending' | 'rejected' | 'suspended';
+
+/** UserStatus in C#: Approved=1, Pending=2, Rejected=3, Suspended=4, and an int on the wire. */
+export type ExpertApprovalCode = 1 | 2 | 3 | 4;
+
+/** Who the signed-in account is, which is all §4.1's routing table needs. */
+export type RoleIdentity = {
+  role: UserRole;
+  /** Always 'approved' for a farmer: §4.1 only gates experts. */
+  approval: ExpertApproval;
 };
 
 /** MediaStorageService's UploadFileResponse. `filePath` is the key User/update stores. */

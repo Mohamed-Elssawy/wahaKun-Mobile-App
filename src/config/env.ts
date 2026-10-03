@@ -77,6 +77,22 @@ export const ENABLE_COMMENT_POSTING = DEMO_MODE || false;
 // The expert still sees the amber chip on E-01, which is the only sub-threshold view anywhere.
 export const ESCALATE_LOW_CONFIDENCE = true;
 
+/** Mirrors UserRole, redeclared because config/ imports nothing from features/ (ARCHITECTURE). */
+export type MockRole = 'farmer' | 'expert';
+
+/** §4.1's four expert destinations. The backend's UserStatus has exactly these, numbered 1-4. */
+export type MockApproval = 'approved' | 'pending' | 'rejected' | 'suspended';
+
+/** On by backend gap: UserDetailsResponse carries no role, so there is nothing real to read. */
+// Identity roles do exist in AuthService, but only inside the JWT, which is a separate request.
+export const USE_MOCK_ROLE = DEMO_MODE || true;
+
+/** Farmer by default, so the committed build and DEMO_MODE both boot the farmer shell. */
+// Set to 'expert' with MOCK_EXPERT_APPROVAL 'approved' to walk the expert shell on a device.
+export const MOCK_ROLE: MockRole = 'farmer';
+
+export const MOCK_EXPERT_APPROVAL: MockApproval = 'approved';
+
 /** Which state every mock serves, so loading, empty and error can be walked on a device. */
 export type MockScenario = 'content' | 'empty' | 'error' | 'slow';
 

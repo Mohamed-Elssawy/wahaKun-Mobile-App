@@ -22,6 +22,10 @@ const ME: UserDetails = {
   picture: '',
   village: 'شالي',
   region: 'واحة سيوة',
+  // The committed MOCK_ROLE is what resolveRole actually answers with; these keep the record
+  // internally consistent for anything reading UserDetails directly.
+  role: 'farmer',
+  status: 'approved',
 };
 
 /** The feed's and the thread's authors, so a comment resolves a name instead of the fallback. */

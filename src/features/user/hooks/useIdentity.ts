@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 
+import { resolveRole } from '../role';
 import { resolveProfilePictureUrl, userApi } from '../services';
 
 import type { UserDetails } from '../types';
@@ -27,6 +28,8 @@ export function useIdentity() {
   }, []);
 
   const region = [user?.region, user?.village].filter(Boolean).join('، ');
+  // Resolved here rather than fetched again: this hook already holds the details it reads.
+  const { role, approval } = resolveRole(user);
 
   return {
     /** Who the signed-in farmer is. Undefined until UserService answers, and if it never does. */
@@ -36,5 +39,9 @@ export function useIdentity() {
     // Same resolver the profile screen uses, so a profile-pictures/ key resolves the same way.
     avatarUrl: user?.picture ? resolveProfilePictureUrl(user.picture) : undefined,
     location: region || undefined,
+    /** §4.1's two account types. Mocked until UserDetailsResponse carries the field. */
+    role,
+    /** Always 'approved' for a farmer; §4.1 only gates experts. */
+    approval,
   };
 }

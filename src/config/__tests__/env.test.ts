@@ -2,9 +2,11 @@ import {
   DEMO_MODE,
   ENABLE_COMMENT_POSTING,
   ESCALATE_LOW_CONFIDENCE,
+  MOCK_ROLE,
   MOCK_SCENARIO,
   USE_MOCK_COMMUNITY,
   USE_MOCK_REPORTS,
+  USE_MOCK_ROLE,
   USE_MOCK_USER,
 } from '../env';
 
@@ -27,6 +29,13 @@ describe('committed feature flag defaults', () => {
   // that flipping it off reads as the deliberate wiring step it is.
   it('still serves the feed from the mock, because the endpoint does not exist', () => {
     expect(USE_MOCK_COMMUNITY).toBe(true);
+  });
+
+  // On by backend gap: UserDetailsResponse carries no role. Asserted with the role it serves,
+  // because an expert default here would send every account to a shell of empty placeholders.
+  it('mocks the account role, and mocks it as a farmer', () => {
+    expect(USE_MOCK_ROLE).toBe(true);
+    expect(MOCK_ROLE).toBe('farmer');
   });
 
   // A product stance, not a gap: SYSTEM-SPEC T2 keeps uncertainty language away from farmers.
