@@ -22,6 +22,7 @@ import EditProfilePictureScreen from '@/features/user/screens/EditProfilePicture
 import EditRegionScreen from '@/features/user/screens/EditRegionScreen';
 import ProfileScreen from '@/features/user/screens/ProfileScreen';
 
+import { ExpertTabs } from './ExpertTabs';
 import { HomeTabs } from './HomeTabs';
 import { linking } from './linking';
 import { createPlaceholderScreen } from './PlaceholderScreen';
@@ -81,6 +82,7 @@ export function RootNavigator({ initialRouteName }: RootNavigatorProps) {
         <Stack.Screen name="ConnectToExpert" component={ConnectToExpertScreen} />
         <Stack.Screen name="IssueDetails" component={IssueDetailsScreen} />
         <Stack.Screen name="Home" component={HomeTabs} />
+        <Stack.Screen name="ExpertHome" component={ExpertTabs} />
       </Stack.Navigator>
     </NavigationContainer>
   );

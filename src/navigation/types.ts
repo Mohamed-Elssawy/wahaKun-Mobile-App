@@ -11,6 +11,13 @@ export type HomeTabParamList = {
   MyReports: undefined;
 };
 
+/** §8.3's three tabs, listed left to right as the bar shows them, so الوارد lands on the right. */
+export type ExpertTabParamList = {
+  ExpertChats: undefined;
+  ExpertMap: undefined;
+  ExpertInbox: undefined;
+};
+
 /** A route must be listed here to exist, so a bad navigate() fails to compile. */
 // The wizard's draft lives in RegistrationContext, outside navigation state.
 export type RootStackParamList = {
@@ -48,13 +55,15 @@ export type RootStackParamList = {
   IssueDetails: { reportId: string };
 
   Home: NavigatorScreenParams<HomeTabParamList> | undefined;
+  /** The expert shell. A separate root because §8.3's tabs are not the farmer's with a flag. */
+  ExpertHome: NavigatorScreenParams<ExpertTabParamList> | undefined;
 };
 
 /** The routes the app may boot at, so no dev shortcut can reach the rest. */
-// Home is here for session restore: a stored token boots straight in.
+// Home and ExpertHome are here for session restore: a stored token boots straight in.
 export type BootRoute = Extract<
   keyof RootStackParamList,
-  'IntroSlideshow' | 'Welcome' | 'Home'
+  'IntroSlideshow' | 'Welcome' | 'Home' | 'ExpertHome'
 >;
 
 /** Props for a screen component, e.g. `ScreenProps<'Otp'>`. */
