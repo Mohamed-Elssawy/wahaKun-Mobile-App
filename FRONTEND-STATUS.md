@@ -541,3 +541,125 @@ sitting next to the S1 model the way `trackerFacts.ts` does, computing
    that assumption is wrong.
 4. Set `USE_MOCK_EXPERT_QUEUE = false` once S3's and S4's methods are real
    together - they share one flag.
+
+## S6 - expert detail, map and diagnosis: E-07, E-08, E-09, E-11
+
+**Screens:** E-07 Issue details (expert), E-08 Oasis map (expert), E-09 Chats
+list empty state, E-11 AI diagnosis detail (expert) (new routes
+`ExpertIssueDetails`, `ExpertDiagnosis`; `ExpertMap`/`ExpertChats` move from
+chrome-only stubs to real screens).
+**Branch:** `feature/expert-detail-map-and-diagnosis` (off
+`feature/expert-schedule-to-closure`, not `develop` - `develop` had zero
+commits `feature/expert-schedule-to-closure` lacked, 21 behind).
+**Design source:** SYSTEM-SPEC.md §8.3's delta tables plus the V2 exports for
+E-07, E-08, F-05's multi-marker state and E-09. **E-11 needed no derivation
+in practice**: inspecting F-03a's code showed its body already took no
+farmer-only branch anywhere, so E-11 reuses it verbatim with no value to
+invent - the session prompt's "derive and flag every value" concern turned
+out not to apply once the code was read, not before.
+**Per-feature flag:** none new for E-07/E-08/E-11 (reuse existing
+`USE_MOCK_EXPERT_QUEUE`, `USE_MOCK_REPORTS`); E-09 adds its own
+`USE_MOCK_EXPERT_CHATS`, since no chat endpoint exists at all yet and chat is
+independent of the expert queue.
+**State:** E-07/E-08/E-11 are real screens with no mock gap beyond what
+F-04/F-05/F-03a already carry. E-09 is a real screen over a service that
+returns an empty list on purpose - there is no message data model, no E-10
+and nothing to click into yet.
+
+### The no-fork architecture
+
+E-07, E-08 and E-11 are **shared bodies plus thin route wrappers**, not
+cloned screens:
+
+- `IssueDetailsBody` (F-04/E-07) takes one real prop, `showPublicStepper`.
+  Nothing else differs behaviourally.
+- `ReportDiagnosisBody` (F-03a/E-11) takes no prop at all - the two screens
+  are identical, and chrome (header, back target) is the wrapper's job.
+- `OasisMapBody` (F-05/E-08) takes `buildPeekAction(issue)`, called per row
+  so a mixed-ownership or mixed-assignment stack routes each row by its own
+  rule. Nothing about the map's mechanics - MapLibre, tiles, clustering,
+  search, the legend - is role-aware.
+
+None of the three bodies contains a role conditional; every difference is a
+prop the wrapper decides.
+
+### The "tab bar" row turned out not to be a build item
+
+SYSTEM-SPEC §8.3 lists a "Tab bar | الوارد active" row for E-07 (and an
+analogous row for E-11). Both the F-04 and E-07 exports were checked
+side-by-side and **neither draws a tab bar** - both frames end at the
+comment composer. The live code confirms why: `IssueDetails`, like every
+other pushed detail/flow screen (E-02 through E-06), is a root-stack screen,
+never nested in `HomeTabs`/`ExpertTabs`, so no tab bar has ever rendered
+under any of them, farmer or expert. Read the spec row as documentation of
+which tab a screen logically belongs under, not a rendered element - no
+tab-bar chrome was built for E-07/E-11, and none was needed to match the
+exports.
+
+### Two pre-existing bugs fixed along the way, not S6 scope but blocking it
+
+- **F-04's two تتبع كامل links were one component**, same label, same
+  destination (`ReportDiagnosis`) for both the AI block and the status
+  track - `B-TRACK`'s own ⚠ already flagged this. Worse, the single link was
+  gated on `isOwnReport`, so a non-owner (every expert, always) saw **no**
+  diagnosis link at all, which would have made E-11 permanently unreachable
+  from E-07. Split into two independently gated links: diagnosis is open to
+  any viewer (`B-PUBLIC`), tracker stays owner-and-farmer-only and now
+  actually points at `ReportTracker` (which has landed since this comment
+  was written) instead of `ReportDiagnosis`.
+- **F-05's peek CTA was hardcoded** to `تتبع البلاغ` → `IssueDetails`
+  regardless of who was viewing, so the owner/non-owner branch §8.2 F-05
+  documents never existed in code, independent of the Figma export also
+  drawing it unconditionally. Fixed via `useOwnedReportIds`, a client-side
+  join against the farmer's own report list - see below.
+
+### E-08's peek CTA and the assignment gap
+
+**The E-08 export draws `تتبع البلاغ ←` → F-06 on every pin** - farmer
+language on a farmer-only screen, clone-debt from F-05. SYSTEM-SPEC §8.3
+explicitly overrides the export here, the one case this session where the
+spec outranks the Figma file. Built as specified: assigned pins route
+through `expertCtaFor` (E-02 through E-06, labelled via the same
+`EXPERT_ACTION_LABELS` E-01's cards use); unassigned pins open E-07.
+
+**MapResponseDto cannot answer "is this assigned to me" any more than it can
+answer F-05's "is this mine"** - it carries neither a reporter id nor an
+assigned-expert id (`BACKEND-BLOCKERS.md` Part B). Both gaps get the same
+fix: a client-side join, not a new service.
+
+- `useOwnedReportIds` (reports feature) joins the map's issues against
+  `reportApi.getMyReports()` by id, for F-05.
+- `useAssignedCaseCtas` (expert feature) joins against
+  `expertApi.getAssignedCases()` by `reportId`, for E-08 - the same call
+  that backs E-01, so a case's CTA is computed identically wherever it
+  appears.
+
+Both fail closed (not owned / not assigned) on a failed fetch, same as
+`isReportOwner` already does for F-04. Not added to
+`BACKEND-CONTRACT-REQUESTS.md` as a *new* ask - it is the same `MapResponseDto`
+gap already requested there for `reporterId`; worth widening that ask to
+cover an assigned-expert id and the node flags `expertCtaFor` needs when it
+is next revisited, rather than filing a second request for the same field.
+
+### E-09 is a surface, not a feature
+
+The service interface (`ChatApi.getThreads`), the mock and the real stub
+(mirroring `expertService.ts`'s own-no-endpoint-yet shape) all exist and are
+exercised by `useExpertChats`, but **the mock always returns an empty
+list** - there is no `ChatThread` fixture data, because there is nowhere for
+a row to navigate to without E-10. The row/message-preview UI was
+deliberately not built and then hidden; it simply does not exist yet. When
+E-10 lands, `chatService.mock.ts` gets fixtures and `ExpertChatsScreen`
+grows a row renderer - `useExpertChats` already returns `threads` and
+filters them, so nothing above the mock needs to change.
+
+### Wiring it to the real backend
+
+1. Once `MapResponseDto` carries an assigned-expert id and the node flags
+   (see above), `useAssignedCaseCtas`'s join becomes redundant - the map
+   could answer `expertCtaFor` directly as `useOasisMap`'s own issues carry
+   the CTA facts (the equivalent is not yet asked for `reporterId`'s F-05
+   ownership gap either, but it is the same backend edge either way).
+2. Once a chat endpoint exists, implement `chatService.ts`'s `getThreads`
+   for real and set `USE_MOCK_EXPERT_CHATS = false`. E-10, the row renderer
+   and the rest of chat are the next unit, not this one.
