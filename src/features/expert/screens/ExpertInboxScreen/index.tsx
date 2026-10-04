@@ -35,7 +35,7 @@ const TABS: { key: ExpertTab; label: string }[] = [
  * `expertCtaFor`. Reassignment, decline and availability have no control anywhere here. */
 export default function ExpertInboxScreen() {
   const navigation = useNavigation();
-  const { avatarUrl, location } = useIdentity();
+  const { avatarUrl } = useIdentity();
   const {
     sections,
     isEmpty,
@@ -134,7 +134,6 @@ export default function ExpertInboxScreen() {
       <AppHeader
         title={TITLE}
         avatarUrl={avatarUrl}
-        location={location}
         onOpenProfile={() => navigation.navigate('Profile')}
       />
 

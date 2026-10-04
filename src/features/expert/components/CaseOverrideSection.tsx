@@ -3,7 +3,7 @@ import { StyleSheet, Switch, View } from 'react-native';
 import { FilterChip, TextField, Text } from '@/components/ui';
 import { describeSeverity } from '@/features/reports/severity';
 import type { Severity } from '@/features/reports/types';
-import { colors, spacing } from '@/theme';
+import { colors, radii, spacing } from '@/theme';
 
 export type CaseOverrideSectionProps = {
   isOn: boolean;
@@ -34,7 +34,7 @@ export function CaseOverrideSection({
 }: CaseOverrideSectionProps) {
   return (
     <View style={styles.section}>
-      <View style={styles.toggleRow}>
+      <View style={styles.toggleCard}>
         <View style={styles.toggleText}>
           <Text variant="h5" align="right">
             {TOGGLE_TITLE}
@@ -93,11 +93,16 @@ const styles = StyleSheet.create({
   section: {
     gap: spacing[16],
   },
-  toggleRow: {
+  toggleCard: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: spacing[12],
+    backgroundColor: colors.surface,
+    borderRadius: radii[16],
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing[16],
   },
   toggleText: {
     flex: 1,

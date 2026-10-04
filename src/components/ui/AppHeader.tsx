@@ -13,7 +13,7 @@ export type AppHeaderProps = {
   /** Region line under the bar, e.g. "واحة سيوة، شمال". Hidden when unknown. */
   location?: string;
   onOpenProfile: () => void;
-  /** Omitted hides the bell. S-06 Notifications has no screen yet, and an inert control lies. */
+  /** S-06 Notifications has no screen yet — omitted, the bell renders inert (TODO: wire S-06). */
   onOpenNotifications?: () => void;
 };
 
@@ -44,6 +44,15 @@ export function AppHeader({
       >
         <View style={styles.row}>
           <View style={styles.leading}>
+            {/* TODO(S-06): wire onOpenNotifications once Notifications exists; inert until then. */}
+            <TouchableOpacity
+              onPress={onOpenNotifications ?? (() => {})}
+              accessibilityRole="button"
+              accessibilityLabel="الإشعارات"
+            >
+              <Bell size={ICON_SIZE} color={colors.textInverse} />
+            </TouchableOpacity>
+
             <TouchableOpacity
               onPress={onOpenProfile}
               accessibilityRole="button"
@@ -57,16 +66,6 @@ export function AppHeader({
                 </View>
               )}
             </TouchableOpacity>
-
-            {onOpenNotifications ? (
-              <TouchableOpacity
-                onPress={onOpenNotifications}
-                accessibilityRole="button"
-                accessibilityLabel="الإشعارات"
-              >
-                <Bell size={ICON_SIZE} color={colors.textInverse} />
-              </TouchableOpacity>
-            ) : null}
           </View>
 
           <Text variant="h3" color="textInverse" align="right" style={styles.title}>

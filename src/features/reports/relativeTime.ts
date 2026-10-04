@@ -71,6 +71,9 @@ export const WEEKDAYS = [
   'الجمعة',
   'السبت',
 ];
+// Not WEEKDAYS.map(w => w.slice(0, 2)): every full name starts with the "ال" definite
+// article, so that slice returns "ال" for all seven. These are the actual short forms.
+export const SHORT_WEEKDAYS = ['ح', 'ن', 'ت', 'ر', 'خ', 'ج', 'س'];
 export const MONTHS = [
   'يناير',
   'فبراير',

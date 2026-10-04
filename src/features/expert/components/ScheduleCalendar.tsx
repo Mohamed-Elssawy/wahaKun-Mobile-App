@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { Text } from '@/components/ui';
-import { MONTHS, WEEKDAYS } from '@/features/reports/relativeTime';
+import { MONTHS, SHORT_WEEKDAYS } from '@/features/reports/relativeTime';
 import { colors, radii, spacing } from '@/theme';
 
 import { dateKey } from '../scheduleWindow';
@@ -79,9 +79,9 @@ export function ScheduleCalendar({
       </View>
 
       <View style={styles.weekRow}>
-        {WEEKDAYS.map(day => (
+        {SHORT_WEEKDAYS.map(day => (
           <Text key={day} variant="label12" color="textSecondary" align="center" style={styles.cell}>
-            {day.slice(0, 2)}
+            {day}
           </Text>
         ))}
       </View>
@@ -140,6 +140,11 @@ const hitSlop = { top: 12, bottom: 12, left: 12, right: 12 };
 const styles = StyleSheet.create({
   card: {
     gap: spacing[12],
+    backgroundColor: colors.surface,
+    borderRadius: radii[16],
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing[16],
   },
   nav: {
     flexDirection: 'row-reverse',
@@ -152,8 +157,10 @@ const styles = StyleSheet.create({
   weeks: {
     gap: spacing[4],
   },
+  // flex: 1, not a fixed width - seven equal columns spanning the card, each date centred
+  // in its own column, rather than bunching toward the trailing edge.
   cell: {
-    width: CELL_SIZE,
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },

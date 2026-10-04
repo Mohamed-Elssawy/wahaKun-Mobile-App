@@ -97,6 +97,7 @@ const SUMMARIES: Record<string, ExpertCaseSummary> = {
     corroborationCount: 1,
     reporterName: 'خالد إبراهيم',
     createdAt: hoursAgo(1),
+    photoUrl: 'https://picsum.photos/seed/wahakun-2003/900/675',
   },
   // UnderReview, review not yet submitted: مراجعة current -> متابعة -> E-02.
   '2004': {

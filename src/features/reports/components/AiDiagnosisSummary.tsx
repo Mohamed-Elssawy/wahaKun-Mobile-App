@@ -1,7 +1,7 @@
 import { CheckCircle2, ChevronLeft } from 'lucide-react-native';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
-import { ConfidenceRing, Text } from '@/components/ui';
+import { AiDiagnosisCard, ConfidenceRing, Text } from '@/components/ui';
 import { colors, spacing } from '@/theme';
 
 import { DiagnosisNote } from './DiagnosisNote';
@@ -9,7 +9,7 @@ import { DiagnosisNote } from './DiagnosisNote';
 const TITLE = 'تشخيص الذكاء الاصطناعي';
 const EXPLANATION_LABEL = 'لماذا هذا التشخيص؟';
 const RECOMMENDATION_LABEL = 'الإجراء الموصى به';
-const FULL_TRACKER = 'تتبع كامل';
+const FULL_DIAGNOSIS = 'التشخيص الكامل';
 const LINK_ICON_SIZE = 18;
 
 export type AiDiagnosisSummaryProps = {
@@ -34,13 +34,15 @@ export function AiDiagnosisSummary({
   onOpenFull,
 }: AiDiagnosisSummaryProps) {
   return (
-    <View style={styles.section}>
-      <Text variant="label16" color="textMuted" align="right">
-        {TITLE}
-      </Text>
-
+    <AiDiagnosisCard title={TITLE}>
       <View style={styles.summary}>
-        <Text variant="h4" align="right" style={styles.summaryTitle}>
+        <Text
+          variant="h5"
+          align="right"
+          numberOfLines={2}
+          ellipsizeMode="tail"
+          style={styles.summaryTitle}
+        >
           {title}
         </Text>
         <ConfidenceRing confidence={confidence} compact />
@@ -63,22 +65,19 @@ export function AiDiagnosisSummary({
           style={styles.link}
           onPress={onOpenFull}
           accessibilityRole="link"
-          accessibilityLabel={FULL_TRACKER}
+          accessibilityLabel={FULL_DIAGNOSIS}
         >
           <Text variant="label16Bold" color="primary">
-            {FULL_TRACKER}
+            {FULL_DIAGNOSIS}
           </Text>
           <ChevronLeft size={LINK_ICON_SIZE} color={colors.primary} />
         </TouchableOpacity>
       ) : null}
-    </View>
+    </AiDiagnosisCard>
   );
 }
 
 const styles = StyleSheet.create({
-  section: {
-    gap: spacing[12],
-  },
   summary: {
     flexDirection: 'row-reverse',
     alignItems: 'center',

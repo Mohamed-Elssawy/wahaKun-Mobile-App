@@ -5,8 +5,9 @@ import { Text } from '@/components/ui';
 import { colors, radii, spacing } from '@/theme';
 
 /** §8.3's 4-node stepper. A view of canonical nodes 3-6, not a second state machine - the
- * screen that owns a step passes its own 1-4 position, never a `LifecycleNode`. */
-export type ExpertStepNode = 1 | 2 | 3 | 4;
+ * screen that owns a step passes its own 1-4 position, never a `LifecycleNode`. 5 is E-06's
+ * closed state: past the last node, so all four read as done rather than node 4 "current". */
+export type ExpertStepNode = 1 | 2 | 3 | 4 | 5;
 
 export type ExpertStepperProps = {
   current: ExpertStepNode;

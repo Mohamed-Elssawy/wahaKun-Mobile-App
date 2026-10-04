@@ -59,8 +59,10 @@ export function CaseDecisionSummary({ override, onReview }: CaseDecisionSummaryP
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.surfaceMuted,
+    backgroundColor: colors.surface,
     borderRadius: radii[12],
+    borderWidth: 1,
+    borderColor: colors.border,
     padding: spacing[16],
     gap: spacing[12],
   },

@@ -19,14 +19,16 @@ export type StatusDisplay = {
   color: ColorToken;
 };
 
+// §6.2: status is text label + leading icon, never colour - every chip renders in primary
+// green and the glyph alone carries the difference. Severity is the axis that stays multi-coloured.
 const STATUS_DISPLAY: Record<LifecycleStatus, StatusDisplay> = {
-  New: { label: 'جديدة', icon: 'alert', color: 'error' },
-  UnderReview: { label: 'قيد المراجعة', icon: 'clock', color: 'info' },
-  Scheduled: { label: 'مجدولة', icon: 'calendar', color: 'warning' },
-  Resolved: { label: 'تم الحل', icon: 'check', color: 'success' },
-  Reopened: { label: 'معاد فتحها', icon: 'rotate', color: 'warning' },
+  New: { label: 'جديدة', icon: 'alert', color: 'primary' },
+  UnderReview: { label: 'قيد المراجعة', icon: 'clock', color: 'primary' },
+  Scheduled: { label: 'مجدولة', icon: 'calendar', color: 'primary' },
+  Resolved: { label: 'تم الحل', icon: 'check', color: 'primary' },
+  Reopened: { label: 'معاد فتحها', icon: 'rotate', color: 'primary' },
   // §3.2: renders as تم الحل, so the farmer cannot tell an Admin closure from their own.
-  AdminClosed: { label: 'تم الحل', icon: 'check', color: 'success' },
+  AdminClosed: { label: 'تم الحل', icon: 'check', color: 'primary' },
 };
 
 export function describeStatus(status: LifecycleStatus): StatusDisplay {
@@ -37,6 +39,14 @@ export function describeStatus(status: LifecycleStatus): StatusDisplay {
 export function describeWireStatus(status: ReportStatus): StatusDisplay {
   return describeStatus(fromWireStatus(status));
 }
+
+/** F-07's tab labels. §3.2 / §12.2: feminine forms, because the subject is مشكلة/حالة. */
+export const REPORT_FILTER_LABELS = {
+  all: 'الكل',
+  active: 'نشطة',
+  resolved: 'تم الحل',
+  critical: 'حرجة',
+} as const;
 
 /** §8.3's C-CTA labels. The mapping is in selectors; only the words are here. */
 export const EXPERT_ACTION_LABELS: Record<ExpertAction, string> = {

@@ -1,4 +1,4 @@
-import { Clock, RotateCcw, User, Users } from 'lucide-react-native';
+import { Clock, User, Users } from 'lucide-react-native';
 import { Image, StyleSheet, View } from 'react-native';
 
 import {
@@ -29,7 +29,6 @@ export type ExpertCaseCardProps = {
   onReschedule: () => void;
 };
 
-const REOPENED_LABEL = 'معاد فتحها';
 const AVATAR_SIZE = 36;
 const AVATAR_ICON = 18;
 const CORROBORATION_ICON = 14;
@@ -68,15 +67,6 @@ export function ExpertCaseCard({
             color={severity.color}
           />
         </View>
-
-        {summary.status === 'Reopened' ? (
-          <View style={styles.reopenedChip}>
-            <RotateCcw size={CORROBORATION_ICON} color={colors.warningText} />
-            <Text variant="label12Bold" color="warningText">
-              {REOPENED_LABEL}
-            </Text>
-          </View>
-        ) : null}
 
         <View style={styles.meta}>
           <View style={styles.metaItem}>
@@ -172,16 +162,6 @@ const styles = StyleSheet.create({
   },
   title: {
     flex: 1,
-  },
-  reopenedChip: {
-    flexDirection: 'row-reverse',
-    alignSelf: 'flex-start',
-    alignItems: 'center',
-    gap: spacing[4],
-    paddingHorizontal: spacing[8],
-    paddingVertical: spacing[4],
-    borderRadius: radii.pill,
-    backgroundColor: colors.warningTint,
   },
   meta: {
     flexDirection: 'row-reverse',

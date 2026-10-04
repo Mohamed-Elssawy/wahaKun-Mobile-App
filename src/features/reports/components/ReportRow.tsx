@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
-import { ContextChip, ProgressBar, ReportSummaryCard } from '@/components/ui';
+import { ContextChip, ProgressBar, ReportSummaryCard, Text } from '@/components/ui';
 import { spacing } from '@/theme';
 import type { ColorToken } from '@/theme';
 
@@ -86,6 +86,10 @@ export function ReportRow({
     >
       {trackerDetails ? (
         <View style={styles.footer}>
+          <Text variant="label12" color="textSecondary" align="right">
+            {`الخطوة ${activeCardStep(trackerDetails)} من ${TOTAL_NODES}`}
+          </Text>
+
           <ProgressBar
             step={activeCardStep(trackerDetails)}
             totalSteps={TOTAL_NODES}

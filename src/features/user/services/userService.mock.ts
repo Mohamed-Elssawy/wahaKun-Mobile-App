@@ -19,7 +19,7 @@ const ME: UserDetails = {
   fullName: 'يوسف زين',
   email: 'farmer@wahakun.local',
   phoneNumber: '+201000000001',
-  picture: '',
+  picture: 'https://i.pravatar.cc/150?img=68',
   village: 'شالي',
   region: 'واحة سيوة',
   // The committed MOCK_ROLE is what resolveRole actually answers with; these keep the record

@@ -20,6 +20,10 @@ const CHECK_SIZE = 18;
 const DOT_SIZE = 10;
 const CONNECTOR_WIDTH = 2;
 const PHOTO_SIZE = 56;
+// h5's line height (§6.6). The marker is taller than one line of title, so centring it on
+// that line - not on the whole content block - leaves no room for a flexed top segment.
+const TITLE_LINE_HEIGHT = 24;
+const TOP_CONNECTOR_HEIGHT = Math.max(0, (TITLE_LINE_HEIGHT - MARKER_SIZE) / 2);
 
 function Marker({ state }: { state: TimelineNodeView['markerState'] }) {
   if (state === 'done') {
@@ -54,9 +58,31 @@ export function ReportTimeline({
     <View accessibilityRole="progressbar">
       {nodes.map((node, index) => (
         <View key={node.node} style={styles.row}>
+          <View style={styles.markerColumn}>
+            <View
+              style={[
+                styles.topConnector,
+                index === 0 ? styles.connectorHidden : styles.connectorPending,
+                // The segment above is reached once this node is current or done.
+                node.markerState !== 'pending' && styles.connectorDone,
+              ]}
+            />
+            <Marker state={node.markerState} />
+            <View
+              style={[
+                styles.bottomConnector,
+                index === nodes.length - 1
+                  ? styles.connectorHidden
+                  : styles.connectorPending,
+                // The segment below is reached only once this node itself is done.
+                node.markerState === 'done' && styles.connectorDone,
+              ]}
+            />
+          </View>
+
           <View style={styles.content}>
             <Text
-              variant="body14Bold"
+              variant="h5"
               color={node.markerState === 'pending' ? 'textSecondary' : 'textPrimary'}
               align="right"
             >
@@ -107,28 +133,6 @@ export function ReportTimeline({
               />
             ) : null}
           </View>
-
-          <View style={styles.markerColumn}>
-            <View
-              style={[
-                styles.connector,
-                index === 0 ? styles.connectorHidden : styles.connectorPending,
-                // The segment above is reached once this node is current or done.
-                node.markerState !== 'pending' && styles.connectorDone,
-              ]}
-            />
-            <Marker state={node.markerState} />
-            <View
-              style={[
-                styles.connector,
-                index === nodes.length - 1
-                  ? styles.connectorHidden
-                  : styles.connectorPending,
-                // The segment below is reached only once this node itself is done.
-                node.markerState === 'done' && styles.connectorDone,
-              ]}
-            />
-          </View>
         </View>
       ))}
     </View>
@@ -144,7 +148,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: MARKER_SIZE,
   },
-  connector: {
+  // Fixed, not flexed: this is what keeps the marker pinned to the title line rather than
+  // centred across the whole content block (chips, photo, approval control and all).
+  topConnector: {
+    width: CONNECTOR_WIDTH,
+    height: TOP_CONNECTOR_HEIGHT,
+    backgroundColor: colors.border,
+  },
+  // Flexed: it absorbs whatever content height follows the title, so the row still stretches
+  // edge to edge into the next node.
+  bottomConnector: {
     width: CONNECTOR_WIDTH,
     flex: 1,
     minHeight: spacing[16],

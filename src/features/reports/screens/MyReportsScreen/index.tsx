@@ -19,6 +19,7 @@ import { ReportCtaCard } from '../../components/ReportCtaCard';
 import { ReportErrorView } from '../../components/ReportErrorView';
 import { ReportRow } from '../../components/ReportRow';
 import { useMyReports } from '../../hooks/useMyReports';
+import { REPORT_FILTER_LABELS } from '../../lifecycle/display';
 
 import type { ReportFilter } from '../../hooks/useMyReports';
 import type { ReportListItem } from '../../types';
@@ -27,10 +28,10 @@ const TITLE = 'بلاغاتي';
 
 // Only two tabs carry a count in the frame, and a count on all four reads as a dashboard.
 const TABS: { key: ReportFilter; label: string; showCount: boolean }[] = [
-  { key: 'all', label: 'الكل', showCount: false },
-  { key: 'active', label: 'نشط', showCount: true },
-  { key: 'resolved', label: 'تم الحل', showCount: true },
-  { key: 'critical', label: 'حرج', showCount: false },
+  { key: 'all', label: REPORT_FILTER_LABELS.all, showCount: false },
+  { key: 'active', label: REPORT_FILTER_LABELS.active, showCount: true },
+  { key: 'resolved', label: REPORT_FILTER_LABELS.resolved, showCount: true },
+  { key: 'critical', label: REPORT_FILTER_LABELS.critical, showCount: false },
 ];
 
 /** F-07. The empty state splits: never filed one (X-07) reads differently to no match (X-06). */

@@ -70,7 +70,8 @@ export default function ExpertCaseClosedScreen({
           photoUrl={detail.photoUrl}
         />
 
-        <ExpertStepper current={4} />
+        {/* E-06 is closed: all four nodes are complete, not node 4 "current". */}
+        <ExpertStepper current={5} />
 
         <View style={styles.hero}>
           <View style={styles.circle}>

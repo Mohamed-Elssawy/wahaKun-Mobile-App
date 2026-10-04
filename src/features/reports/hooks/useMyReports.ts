@@ -25,6 +25,12 @@ const SECTION_TITLE: Record<ReportFilter, string> = {
   critical: 'البلاغات الحرجة',
 };
 
+/** §8.2: `الكل` never shows one undifferentiated list - it splits into these two sections. */
+const ALL_TAB_SECTION_TITLE = {
+  active: 'البلاغات النشطة',
+  resolved: 'بلاغات تم حلها',
+} as const;
+
 // resolved finally answers something: IssueStatus has Repaired and completed.
 const MATCHES: Record<ReportFilter, (report: Report) => boolean> = {
   all: () => true,
@@ -120,6 +126,27 @@ export function useMyReports() {
         title: 'محفوظ على جهازك',
         data: queued.map(item => ({ kind: 'queued' as const, queued: item })),
       });
+    }
+
+    if (filter === 'all') {
+      const active = reports.filter(MATCHES.active);
+      const resolved = reports.filter(MATCHES.resolved);
+
+      if (active.length > 0) {
+        result.push({
+          title: ALL_TAB_SECTION_TITLE.active,
+          data: active.map(item => ({ kind: 'server' as const, report: item })),
+        });
+      }
+
+      if (resolved.length > 0) {
+        result.push({
+          title: ALL_TAB_SECTION_TITLE.resolved,
+          data: resolved.map(item => ({ kind: 'server' as const, report: item })),
+        });
+      }
+
+      return result;
     }
 
     const visible = reports.filter(MATCHES[filter]);

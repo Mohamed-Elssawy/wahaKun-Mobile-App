@@ -28,15 +28,10 @@ const UNDERLINE_HEIGHT = 2;
 /** Under Android's 48dp target, which is what the frame draws; hitSlop is not available here. */
 const FLOATING_TAB_HEIGHT = 44;
 
-function labelVariant(
-  variant: SegmentedTabsVariant,
-  isActive: boolean,
-): TextProps['variant'] {
-  // F-01 changes the colour between states, not the type; F-07 changes both.
-  if (variant === 'floating') {
-    return 'h5';
-  }
-  return isActive ? 'label14Bold' : 'label14';
+// S-6: every tab label is h5, active and inactive alike - the two states differ by colour
+// and the underline only, never by size or weight.
+function labelVariant(): TextProps['variant'] {
+  return 'h5';
 }
 
 function labelColor(variant: SegmentedTabsVariant, isActive: boolean): ColorToken {
@@ -67,9 +62,15 @@ export function SegmentedTabs<K extends string>({
 
         const content = (
           <>
+            {/* h5 is wider than the old per-state sizing (Cairo-SemiBold, not NotoSansArabic) -
+                a two-word label in a five-tab row (E-01's قيد المراجعة) can outgrow its
+                column. Shrink-to-fit on one line rather than let it wrap and stack. */}
             <Text
-              variant={labelVariant(variant, isActive)}
+              variant={labelVariant()}
               color={labelColor(variant, isActive)}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.8}
             >
               {item.label}
             </Text>
