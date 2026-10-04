@@ -1,42 +1,39 @@
 import { useNavigation } from '@react-navigation/native';
-import { Map } from 'lucide-react-native';
-import { StyleSheet, View } from 'react-native';
 
-import { AppHeader, EmptyState } from '@/components/ui';
-import { useIdentity } from '@/features/user/hooks/useIdentity';
-import { colors } from '@/theme';
+import type { MapPeekAction } from '@/features/map/components/MapPeekSheet';
+import { OasisMapBody } from '@/features/map/components/OasisMapBody';
+import type { MapIssue } from '@/features/map/types';
+import { EXPERT_ACTION_LABELS } from '@/features/reports/lifecycle';
 
-const TITLE = 'خريطة الواحة';
+import { useAssignedCaseCtas } from '../../hooks/useAssignedCaseCtas';
+import { navigateToExpertCta } from '../../navigateToCta';
+
+const DETAILS_LABEL = 'عرض تفاصيل المشكلة';
 
 /**
- * E-08, chrome only. The expert's map differs from the farmer's in what a pin opens, so it is
- * its own screen rather than a flag on F-05; the pins and the peek sheet are a later unit.
+ * §8.3's E-08. Reuses the entire map feature unchanged - MapLibre, Esri tiles, clustering,
+ * search, the legend - the only thing that differs from F-05 is the peek, which branches on
+ * assignment and speaks expertCtaFor's own vocabulary, same as E-01's cards.
  */
 export default function ExpertMapScreen() {
   const navigation = useNavigation();
-  const { avatarUrl, location } = useIdentity();
+  const ctaByReportId = useAssignedCaseCtas();
 
-  return (
-    <View style={styles.screen}>
-      <AppHeader
-        title={TITLE}
-        avatarUrl={avatarUrl}
-        location={location}
-        onOpenProfile={() => navigation.navigate('Profile')}
-      />
+  const buildPeekAction = (issue: MapIssue): MapPeekAction => {
+    const cta = ctaByReportId.get(issue.id);
 
-      <View style={styles.body}>
-        <EmptyState
-          icon={Map}
-          title="لا توجد حالات على الخريطة"
-          message="الحالات المسندة إليك ستظهر على الخريطة."
-        />
-      </View>
-    </View>
-  );
+    if (!cta) {
+      return {
+        label: DETAILS_LABEL,
+        onPress: () => navigation.navigate('ExpertIssueDetails', { reportId: issue.id }),
+      };
+    }
+
+    return {
+      label: EXPERT_ACTION_LABELS[cta.action],
+      onPress: () => navigateToExpertCta(navigation, issue.id, cta),
+    };
+  };
+
+  return <OasisMapBody buildPeekAction={buildPeekAction} />;
 }
-
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.background },
-  body: { flex: 1 },
-});

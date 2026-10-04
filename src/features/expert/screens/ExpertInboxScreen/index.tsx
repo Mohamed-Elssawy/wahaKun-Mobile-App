@@ -18,6 +18,7 @@ import { colors, screenPadding, spacing } from '@/theme';
 import { ExpertCaseCard } from '../../components/ExpertCaseCard';
 import { ExpertChipRow } from '../../components/ExpertChipRow';
 import { useExpertInbox } from '../../hooks/useExpertInbox';
+import { navigateToExpertCta } from '../../navigateToCta';
 
 import type { ExpertCaseRow, ExpertTab } from '../../hooks/useExpertInbox';
 
@@ -50,24 +51,7 @@ export default function ExpertInboxScreen() {
 
   const handlePrimary = useCallback(
     (summary: ExpertCaseRow['summary'], cta: ExpertCta) => {
-      const reportId = summary.reportId;
-
-      switch (cta.screen) {
-        case 'E-02':
-          navigation.navigate('ExpertCaseReview', { reportId, state: cta.state });
-          return;
-        case 'E-03':
-          navigation.navigate('ExpertSchedule', { reportId });
-          return;
-        case 'E-04':
-          navigation.navigate('ExpertResolutionConfirmation', { reportId });
-          return;
-        case 'E-05':
-          navigation.navigate('ExpertAwaitingApproval', { reportId });
-          return;
-        case 'E-06':
-          navigation.navigate('ExpertCaseClosed', { reportId });
-      }
+      navigateToExpertCta(navigation, summary.reportId, cta);
     },
     [navigation],
   );

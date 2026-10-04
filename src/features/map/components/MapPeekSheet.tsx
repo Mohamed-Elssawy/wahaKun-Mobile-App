@@ -7,10 +7,14 @@ import { MapPeekCard } from './MapPeekCard';
 
 import type { MapIssue } from '../types';
 
+export type MapPeekAction = { label: string; onPress: () => void };
+
 export type MapPeekSheetProps = {
   /** Everything under the tapped pin, worst first. One issue draws F-05, several draw X-11. */
   issues: MapIssue[];
-  onOpen: (issueId: string) => void;
+  /** §8.2/§8.3's C-CTA: the farmer's branch is ownership, the expert's is assignment. Built
+   * per row, not once for the sheet, so a mixed-severity stack can route each row differently. */
+  buildAction: (issue: MapIssue) => MapPeekAction;
   onDismiss: () => void;
 };
 
@@ -26,8 +30,8 @@ const OVERFLOW_PEEK = spacing[16];
 const LIST_MAX_HEIGHT =
   VISIBLE_CARDS * (REPORT_SUMMARY_CARD_HEIGHT + spacing[16]) + OVERFLOW_PEEK;
 
-/** F-05 and X-11: the sheet that rises over the tab bar when a pin is tapped. */
-export function MapPeekSheet({ issues, onOpen, onDismiss }: MapPeekSheetProps) {
+/** F-05 and E-08's X-11: the sheet that rises over the tab bar when a pin is tapped. */
+export function MapPeekSheet({ issues, buildAction, onDismiss }: MapPeekSheetProps) {
   const [first] = issues;
 
   return (
@@ -44,12 +48,13 @@ export function MapPeekSheet({ issues, onOpen, onDismiss }: MapPeekSheetProps) {
       {issues.length === 1 ? (
         <>
           <MapPeekCard issue={first} />
-          <Button label="تتبع البلاغ" onPress={() => onOpen(first.id)} showArrow />
+          <Button {...buildAction(first)} showArrow />
         </>
       ) : (
         <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
+          {/* No single primary: each row routes by its own buildAction, worst first. */}
           {issues.map(issue => (
-            <MapPeekCard key={issue.id} issue={issue} onPress={onOpen} />
+            <MapPeekCard key={issue.id} issue={issue} onPress={() => buildAction(issue).onPress()} />
           ))}
         </ScrollView>
       )}
