@@ -55,6 +55,10 @@ export type RootStackParamList = {
   IssueDetails: { reportId: string };
   /** F-06. Entry points: the F-07 card, the F-03b CTA, F-05's owner peek, notifications. */
   ReportTracker: { reportId: string };
+  /** §8.3's E-07. Reached from E-08's unassigned peek. Shares IssueDetailsBody with IssueDetails. */
+  ExpertIssueDetails: { reportId: string };
+  /** §8.3's E-11. Reached from التشخيص الكامل on E-02 and E-07. Shares ReportDiagnosisBody. */
+  ExpertDiagnosis: { reportId: string };
 
   /** §8.3's E-02. `state` is set only when entered from an `E-01 · has-reopened` card. */
   ExpertCaseReview: { reportId: string; state?: 'reopened' };

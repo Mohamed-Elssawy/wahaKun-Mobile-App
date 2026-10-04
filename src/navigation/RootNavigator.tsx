@@ -9,6 +9,8 @@ import ResetPasswordScreen from '@/features/auth/screens/ResetPasswordScreen';
 import ExpertAwaitingApprovalScreen from '@/features/expert/screens/ExpertAwaitingApprovalScreen';
 import ExpertCaseClosedScreen from '@/features/expert/screens/ExpertCaseClosedScreen';
 import ExpertCaseReviewScreen from '@/features/expert/screens/ExpertCaseReviewScreen';
+import ExpertDiagnosisScreen from '@/features/expert/screens/ExpertDiagnosisScreen';
+import ExpertIssueDetailsScreen from '@/features/expert/screens/ExpertIssueDetailsScreen';
 import ExpertResolutionConfirmationScreen from '@/features/expert/screens/ExpertResolutionConfirmationScreen';
 import ExpertScheduleScreen from '@/features/expert/screens/ExpertScheduleScreen';
 import AccountStatusScreen from '@/features/onboarding/screens/AccountStatusScreen';
@@ -91,6 +93,8 @@ export function RootNavigator({ initialRoute }: RootNavigatorProps) {
         <Stack.Screen name="ConnectToExpert" component={ConnectToExpertScreen} />
         <Stack.Screen name="IssueDetails" component={IssueDetailsScreen} />
         <Stack.Screen name="ReportTracker" component={ReportTrackerScreen} />
+        <Stack.Screen name="ExpertIssueDetails" component={ExpertIssueDetailsScreen} />
+        <Stack.Screen name="ExpertDiagnosis" component={ExpertDiagnosisScreen} />
         <Stack.Screen name="ExpertCaseReview" component={ExpertCaseReviewScreen} />
         <Stack.Screen name="ExpertSchedule" component={ExpertScheduleScreen} />
         <Stack.Screen

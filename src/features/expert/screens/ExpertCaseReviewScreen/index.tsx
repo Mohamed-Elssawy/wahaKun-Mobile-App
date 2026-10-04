@@ -93,8 +93,7 @@ export default function ExpertCaseReviewScreen({
           confidence={detail.confidence}
           explanation={detail.explanation}
           recommendation={detail.recommendation}
-          // TODO(S6): wire to E-11 once it exists; inert until then.
-          onOpenFull={() => {}}
+          onOpenFull={() => navigation.navigate('ExpertDiagnosis', { reportId })}
         />
 
         <CaseOverrideSection
