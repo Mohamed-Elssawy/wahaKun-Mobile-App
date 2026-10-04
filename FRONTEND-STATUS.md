@@ -418,3 +418,126 @@ to match; `npx tsc` caught all three.
 3. Confirm the server enforces the same ownership check `isReportOwner`
    already does client-side (BACKEND-CONTRACT-REQUESTS item 4) - hiding the
    `ReportTracker` entry points is not protection.
+
+---
+
+## S3 - expert triage + review: E-01, E-02
+
+**Screens:** E-01 Expert Inbox, E-02 Case Review (new route `ExpertCaseReview`).
+**Branch:** `feature/expert-queue-and-review`
+**Design source:** the local V2 exports under `Waha KUN Figma Designs V2\`, per
+the session's own prompt; now also committed under `design/figma-exports/`
+with the `<id> · <name> · state=<x>` naming.
+**Per-feature flag:** `USE_MOCK_EXPERT_QUEUE` (`DEMO_MODE || true`)
+**State:** running on the mock, except `ملاحظات الخبير`'s public-comment post,
+which is real.
+
+### What it runs on now
+
+| Piece                                    | Source                   | Real?                                                       |
+| ----------------------------------------- | ------------------------ | ------------------------------------------------------------ |
+| Assigned-cases list, case detail          | `expertService.mock.ts`  | mock only - `IssueController` has no expert endpoint at all |
+| Review submission (T4), the override      | `expertService.mock.ts`  | mock only                                                    |
+| `ملاحظات الخبير` → public comment         | `communityApi.postComment` | real transport - the same `CommunityHub` path F-04 uses, gated on `ENABLE_COMMENT_POSTING` |
+
+### The model, reused
+
+`ExpertCaseSummary` extends `LifecycleFacts` directly, the same move
+`trackerFacts.ts` makes for F-06, so `expertCtaFor`/`currentNode` take a case
+straight off the inbox with no adapter. `expertCtaFor` is the only source of
+every card's CTA (`C-CTA`); `AiConfidenceChip` is the only place a
+sub-threshold diagnosis is visible anywhere (`C-CONFIDENCE-CHIP`);
+`ExpertStepper` is the 4-node view of canonical nodes 3-6, wired on E-02 only
+this session.
+
+### Known gaps, deliberate
+
+- **E-11** (the full diagnosis detail) is not built - `تتبع كامل` has nowhere
+  to go yet.
+- **The `مجدولة` card's `إعادة الجدولة` action is registered but inert** -
+  rescheduling is its own unit, not this one.
+- **A severity override repaints only the expert's own in-memory summary.**
+  It never reaches a farmer surface this session, because
+  `expertService.mock.ts`'s fixtures (ids 2001-2009) and the farmer's own
+  report/tracker mocks (ids 1020-1050) are disjoint - the mock's own comment
+  says as much. S4 closes this for exactly one shared id; see below.
+- **No reschedule reason chips** (§8.3's `سبب التغيير` set) exist yet - tied
+  to the same out-of-scope reschedule flow.
+
+### Wiring it to the real backend
+
+1. Once the assigned-cases, case-detail and review-submit endpoints land, add
+   their paths, implement `expertService.ts`'s three stubs for real, map the
+   DTOs onto `ExpertCaseSummary`/`ExpertCaseDetail`, and delete the fixtures.
+2. The severity-override repaint becomes a real cross-role effect once both
+   features read the same backend record - nothing to reconcile client-side,
+   it was a mock-only seam.
+3. Set `USE_MOCK_EXPERT_QUEUE = false`.
+
+---
+
+## S4 - expert schedule to closure: E-03, E-04, E-05, E-06
+
+**Screens:** E-03 Schedule repair, E-04 Resolution confirmation, E-05 Awaiting
+farmer approval, E-06 Case closed (new routes `ExpertSchedule`,
+`ExpertResolutionConfirmation`, `ExpertAwaitingApproval`, `ExpertCaseClosed`).
+**Branch:** `feature/expert-schedule-to-closure`
+**Design source:** SYSTEM-SPEC.md §8.3's text and the existing E-02 screen's
+pattern only - the Figma exports named in this session's own prompt were
+never opened. Worth a pixel check against `design/figma-exports/E-03` through
+`E-06` before calling this pixel-complete.
+**Per-feature flag:** `USE_MOCK_EXPERT_QUEUE` (same flag as S3, extended with
+`confirmAppointment`/`confirmRepair`)
+**State:** running on the mock, same backend gap as S3 - appointment, repair
+proof and the farmer notification are all in-memory only, on both sides.
+
+### What it runs on now
+
+| Piece                              | Source                  | Real?                                                        |
+| ----------------------------------- | ------------------------ | ------------------------------------------------------------- |
+| Appointment confirm (T5), repair confirm (T6) | `expertService.mock.ts` | mock only |
+| Farmer notification                 | declared as a T5/T6 model effect only | not built - no `NotificationService` call exists anywhere in the client |
+| Photo pick                          | `useImagePicker` (camera + gallery) | real - the same hook F-02 uses |
+| Photo upload                        | -                        | no multipart call anywhere; the mock keeps the picked image's own local `uri` |
+
+### The model, reused
+
+T5/T6 are wired onto the S1 model through `attempt()`, the same guard
+`useResolutionAction` already applies to T7/T8 on the farmer side.
+`scheduleWindow.ts` is new but owns no new model concept - a pure resolver
+sitting next to the S1 model the way `trackerFacts.ts` does, computing
+`C-WINDOW` off the filing date's local calendar day.
+
+### Known gaps, deliberate
+
+- **`E-03 · state:reschedule` is explicitly out of scope.** The `مجدولة`
+  card's `إعادة الجدولة` button from S3 stays inert.
+- **No chat exists.** `ملاحظة للمزارع` is persisted on the case
+  (`ExpertAppointment.noteToFarmer`) with a TODO that it becomes chat message
+  1 once chat is built.
+- **No notification surface exists.** `farmerNotified` is a declared effect
+  on T5/T6 only; nothing calls `NotificationService` - its port is configured
+  in `env.ts`, but the client never requests it anywhere.
+- **The cross-role DoD only holds for one shared mock id.** Report `2010` is
+  seeded in `expertService.mock.ts`, `reportTracker.mock.ts` and
+  `reportService.mock.ts` alike, with a write-through
+  (`applyExpertAppointment`/`applyExpertRepair`) from the expert mock into the
+  farmer tracker mock. Every other case the expert schedules stays invisible
+  to that farmer's F-06 until both sides share a real backend id.
+
+### Wiring it to the real backend
+
+1. Once `confirmAppointment`/`confirmRepair` endpoints land, add their paths
+   and implement `expertService.ts`'s two stubs for real.
+   `confirmRepair` needs `timeoutMs: UPLOAD_TIMEOUT_MS`, not `API_TIMEOUT_MS`
+   - same reasoning as `reportService.ts`'s `analyzeIssue`. Map the response
+   and delete the PROPOSED `ExpertAppointment`/`ExpertRepair` fields as each
+   lands on the real DTO.
+2. Once the farmer tracker reads the same backend record, delete
+   `applyExpertAppointment`/`applyExpertRepair` and the shared mock id `2010`
+   - the real backend makes that bridge for free.
+3. Confirm where `farmerNotified` actually fires - almost certainly
+   server-side on the same endpoint call. Nothing to build client-side unless
+   that assumption is wrong.
+4. Set `USE_MOCK_EXPERT_QUEUE = false` once S3's and S4's methods are real
+   together - they share one flag.
