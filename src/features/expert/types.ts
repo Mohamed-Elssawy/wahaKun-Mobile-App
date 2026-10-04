@@ -113,3 +113,29 @@ export type ExpertApi = {
   /** T6. */
   confirmRepair: (fields: ConfirmRepairFields) => Promise<void>;
 };
+
+/**
+ * §8.3's E-09 row. Minimal on purpose: E-10's message list, a composer and read-receipts are
+ * a separate unit. `reportId` is here so a later row can open the case screen a thread belongs
+ * to, the same way E-10 will open the chat itself.
+ */
+export type ChatThread = {
+  id: string;
+  reportId: string;
+  farmerName: string;
+  farmerAvatar?: string;
+  lastMessage: {
+    kind: 'text' | 'voice' | 'image';
+    /** Only `text` carries one; voice/image render their own fixed preview copy. */
+    text?: string;
+    fromExpert: boolean;
+  };
+  lastMessageAt: string;
+  isUnread: boolean;
+  /** False once the case has closed or Admin has reassigned it away - the نشطة فقط filter's axis. */
+  isActive: boolean;
+};
+
+export type ChatApi = {
+  getThreads: () => Promise<ChatThread[]>;
+};

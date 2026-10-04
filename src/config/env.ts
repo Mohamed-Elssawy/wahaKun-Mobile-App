@@ -101,6 +101,10 @@ export const MOCK_EXPERT_APPROVAL: MockApproval = 'approved';
  * review-submit and no override write, so the whole expert queue has nowhere real to go. */
 export const USE_MOCK_EXPERT_QUEUE = DEMO_MODE || true;
 
+/** §8.3's E-09. On by backend gap: no chat endpoint exists at all yet. Independent of
+ * USE_MOCK_EXPERT_QUEUE - E-10 and the rest of chat are a separate unit from the case queue. */
+export const USE_MOCK_EXPERT_CHATS = DEMO_MODE || true;
+
 /** Which state every mock serves, so loading, empty and error can be walked on a device. */
 export type MockScenario = 'content' | 'empty' | 'error' | 'slow';
 
