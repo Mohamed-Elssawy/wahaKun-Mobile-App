@@ -99,7 +99,7 @@ export function SeverityBadge({ level, label, color, style }: SeverityBadgeProps
           the label, which is where the frame draws every icon on these screens. */}
       <Droplet level={level} size={GLYPH_SIZE} />
 
-      <Text variant="h6" color="textInverse">
+      <Text variant="label12Bold" color="textInverse">
         {label}
       </Text>
     </View>

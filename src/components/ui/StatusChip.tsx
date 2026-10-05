@@ -48,6 +48,6 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
-    gap: spacing[8],
+    gap: spacing[4],
   },
 });

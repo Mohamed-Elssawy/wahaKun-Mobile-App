@@ -29,8 +29,8 @@ export type ExpertCaseCardProps = {
   onReschedule: () => void;
 };
 
-const AVATAR_SIZE = 36;
-const AVATAR_ICON = 18;
+const AVATAR_SIZE = 24;
+const AVATAR_ICON = 12;
 const CORROBORATION_ICON = 14;
 const STRIP_HEIGHT = 4;
 const STEP_LABEL: Record<ExpertCta['action'], string> = {
@@ -57,7 +57,7 @@ export function ExpertCaseCard({
 
       <View style={styles.body}>
         <View style={styles.header}>
-          <Text variant="h5" align="right" numberOfLines={2} style={styles.title}>
+          <Text variant="body14" align="right" numberOfLines={2} style={styles.title}>
             {summary.title}
           </Text>
 
@@ -79,7 +79,7 @@ export function ExpertCaseCard({
           {summary.corroborationCount > 0 ? (
             <View style={styles.metaItem}>
               <Users size={CORROBORATION_ICON} color={colors.primary} />
-              <Text variant="label12Bold" color="primary">
+              <Text variant="label12" color="primary">
                 {`${summary.corroborationCount} نفس المشكلة`}
               </Text>
             </View>
@@ -101,15 +101,14 @@ export function ExpertCaseCard({
                 <User size={AVATAR_ICON} color={colors.textPrimary} />
               </View>
             )}
-            <Text variant="label14" color="textSecondary">
+            <Text variant="label14" color="textPrimary">
               {summary.reporterName}
             </Text>
-          </View>
-
-          <View style={styles.referencePill}>
-            <Text variant="label12" color="textSecondary">
-              {`#${summary.reportId}`}
-            </Text>
+            <View style={styles.referencePill}>
+              <Text variant="label12" color="textSecondary">
+                {`#${summary.reportId}`}
+              </Text>
+            </View>
           </View>
 
           <StatusChip

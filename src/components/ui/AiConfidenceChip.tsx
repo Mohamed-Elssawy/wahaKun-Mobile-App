@@ -36,19 +36,19 @@ export function AiConfidenceChip({
     >
       <Sparkles
         size={ICON_SIZE}
-        color={colors[isConfident ? 'primary' : 'warningText']}
+        color={colors[isConfident ? 'primaryPressed' : 'warningText']}
       />
 
       <Text
-        variant="label14Bold"
-        color={isConfident ? 'textStrong' : 'warningText'}
+        variant="body12"
+        color={isConfident ? 'primaryPressed' : 'warningText'}
         style={styles.diagnosis}
         numberOfLines={1}
       >
         {diagnosis}
       </Text>
 
-      <Text variant="label14" color={isConfident ? 'textSecondary' : 'warningText'}>
+      <Text variant="body12" color={isConfident ? 'primaryPressed' : 'warningText'}>
         {`— ${CAPTION} ${percent}%`}
       </Text>
     </View>
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
   chip: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
-    gap: spacing[4],
+    gap: spacing[10],
     borderWidth: 1,
     borderRadius: radii[12],
     paddingVertical: spacing[8],
@@ -67,11 +67,11 @@ const styles = StyleSheet.create({
   },
   chipConfident: {
     backgroundColor: colors.primaryTint,
-    borderColor: colors.primary,
+    borderColor: colors.primaryPressed,
   },
   chipLow: {
     backgroundColor: colors.warningTint,
-    borderColor: colors.warning,
+    borderColor: colors.warningText,
   },
   diagnosis: {
     flexShrink: 1,

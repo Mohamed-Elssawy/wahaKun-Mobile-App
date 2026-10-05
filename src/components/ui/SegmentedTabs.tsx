@@ -69,7 +69,7 @@ export function SegmentedTabs<K extends string>({
               variant={labelVariant()}
               color={labelColor(variant, isActive)}
               numberOfLines={1}
-              adjustsFontSizeToFit
+              // adjustsFontSizeToFit
               minimumFontScale={0.8}
             >
               {item.label}
