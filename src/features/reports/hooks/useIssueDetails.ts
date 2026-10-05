@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { communityApi } from '@/features/community/services';
-import type { IssueDetails } from '@/features/community/types';
-import { useIdentity } from '@/features/user/hooks/useIdentity';
+import { isServerIssueId } from '@/features/community/services/communityService';
+import type { FeedPost } from '@/features/community/types';
+import { getMapIssueById } from '@/features/map/services/mapService';
+import type { MapIssue } from '@/features/map/types';
 
 import { describeError } from '../errors';
 import { isReportOwner } from '../ownership';
@@ -39,10 +41,42 @@ function fromIssueDetails(issue: IssueDetails): Report {
   };
 }
 
-/** Resolves an issue whoever filed it: the mirror holds this device's, the feed answers for the rest. */
-// Through communityApi rather than mapService directly, so both halves of F-04 read the same
-// source and the one flag switches both. The real implementation still calls the map.
-// A feed row carries no diagnosis, which is why the screen treats a missing analysis as normal.
+/** A seeded feed card, which the map has never heard of. */
+function fromFeedPost(post: FeedPost): Report {
+  return {
+    id: post.issueId,
+    title: post.title,
+    description: post.description,
+    status: post.status,
+    createdAt: post.createdAt,
+    reporterId: post.reporterId ?? '',
+    latitude: post.latitude,
+    longitude: post.longitude,
+    attachments: post.photoUrl
+      ? [
+          {
+            id: `${post.issueId}-photo`,
+            type: 'Photo',
+            url: post.photoUrl,
+            createdAt: post.createdAt,
+          },
+        ]
+      : [],
+  };
+}
+
+/** Not a Guid means a seeded feed card; asking the map for it is a guaranteed 400. */
+async function loadIssue(issueId: string): Promise<Report | null> {
+  if (!isServerIssueId(issueId)) {
+    const post = await communityApi.getPost(issueId);
+    return post ? fromFeedPost(post) : null;
+  }
+  const issue = await getMapIssueById(issueId);
+  return issue ? fromMapIssue(issue) : null;
+}
+
+/** Resolves an issue whoever filed it: the mirror holds this device's, the map answers for the rest. */
+// A map row carries no diagnosis, which is why the screen treats a missing analysis as normal.
 export function useIssueDetails(issueId: string) {
   const [report, setReport] = useState<Report | null>(null);
   const [error, setError] = useState<ReportError | null>(null);
@@ -78,15 +112,15 @@ export function useIssueDetails(issueId: string) {
     }
 
     try {
-      const issue = await communityApi.getIssue(issueId);
+      const issue = await loadIssue(issueId);
 
       if (!isMounted.current) {
         return;
       }
 
       if (issue) {
-        setReport(fromIssueDetails(issue));
-        setIsMirrored(false);
+        setReport(issue);
+        setIsOwnReport(false);
       } else {
         setError({ kind: 'unknown', message: LOAD_ERROR });
       }

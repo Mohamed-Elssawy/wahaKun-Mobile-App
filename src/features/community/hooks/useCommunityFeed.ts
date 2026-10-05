@@ -1,6 +1,7 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useRef, useState } from 'react';
 
+import { getErrorMessage } from '@/api';
 import { describeError } from '@/features/reports/errors';
 import type { ReportError } from '@/features/reports/errors';
 import { useCurrentLocation } from '@/hooks/useCurrentLocation';
@@ -34,10 +35,10 @@ function flipVote(posts: FeedPost[], issueId: string): FeedPost[] {
   return posts.map(post =>
     post.issueId === issueId
       ? {
-          ...post,
-          hasConfirmed: !post.hasConfirmed,
-          confirmations: post.confirmations + (post.hasConfirmed ? -1 : 1),
-        }
+        ...post,
+        hasConfirmed: !post.hasConfirmed,
+        confirmations: post.confirmations + (post.hasConfirmed ? -1 : 1),
+      }
       : post,
   );
 }
@@ -214,6 +215,44 @@ export function useCommunityFeed() {
     [patchPost],
   );
 
+  /** Optimistic: flips the card at once, then settles on the server's count (or rolls back). */
+  const toggleConfirmation = useCallback(
+    async (issueId: string): Promise<string | null> => {
+      const updatePost = (update: (post: FeedPost) => FeedPost) =>
+        setPosts(current =>
+          current.map(post => (post.issueId === issueId ? update(post) : post)),
+        );
+
+      let previous: FeedPost | undefined;
+      updatePost(post => {
+        previous = post;
+        const hasConfirmed = !post.hasConfirmed;
+        return {
+          ...post,
+          hasConfirmed,
+          confirmations: Math.max(0, post.confirmations + (hasConfirmed ? 1 : -1)),
+        };
+      });
+
+      try {
+        const result = await communityApi.toggleConfirmation(issueId);
+        updatePost(post => ({
+          ...post,
+          hasConfirmed: result.hasVoted,
+          confirmations: result.voteCount,
+        }));
+        return null;
+      } catch (err) {
+        if (previous) {
+          const original = previous;
+          updatePost(() => original);
+        }
+        return getErrorMessage(err, 'تعذر تسجيل التأكيد، حاول مرة أخرى');
+      }
+    },
+    [],
+  );
+
   const share = useCallback(
     async (issueId: string): Promise<void> => {
       const bump = (delta: number) =>
@@ -251,6 +290,7 @@ export function useCommunityFeed() {
     hasMore,
     error,
     refresh: () => load(filters, true),
+    toggleConfirmation,
     loadMore,
     retry: () => load(filters),
     /** Empty under a filter is X-06; empty with none is a first-use feed. */

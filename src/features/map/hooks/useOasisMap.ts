@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { describeError } from '@/features/reports/errors';
 import type { ReportError } from '@/features/reports/errors';
+import { subscribeToIssueChanges } from '@/features/reports/services/issueEvents';
 import { useCurrentLocation } from '@/hooks/useCurrentLocation';
 
 import { boundsOf, clusterIssues, COINCIDENT_SPAN, isZoomedIn } from '../clustering';
@@ -103,6 +104,21 @@ export function useOasisMap() {
         isFocused.current = false;
       };
     }, [load]),
+  );
+
+  // The queue files reports in the background, so the map can be open when one lands.
+  useEffect(
+    () =>
+      subscribeToIssueChanges(change => {
+        if (change.kind === 'deleted') {
+          setSelectedIds(ids => ids.filter(id => id !== change.issueId));
+        }
+        // Blurred maps skip it: the focus effect refetches on the way back anyway.
+        if (isFocused.current) {
+          load();
+        }
+      }),
+    [load],
   );
 
   // Title and reference only: MapResponseDto carries no description, reporter or place.

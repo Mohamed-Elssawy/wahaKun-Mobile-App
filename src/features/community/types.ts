@@ -87,6 +87,13 @@ export type CommentsPage = {
   hasMore: boolean;
 };
 
+/** A confirmation's outcome. CommunityController has no vote endpoint yet, so only the mock answers it. */
+export type VoteResult = {
+  issueId: string;
+  hasVoted: boolean;
+  voteCount: number;
+};
+
 /** One card on F-01. */
 export type FeedPost = {
   issueId: string;
@@ -102,12 +109,12 @@ export type FeedPost = {
   latitude?: number;
   longitude?: number;
 
-  /** Empty on the real path: MapResponseDto carries no reporterId to resolve. */
+  /** Resolved to a name through UserService. */
   reporterId?: string;
   reporterName?: string;
   reporterPicture?: string;
 
-  /** "N تأكيدات". Zero on the real path until a feed endpoint returns the counts. */
+  /** "N تأكيدات": IssueVote rows for this issue. */
   confirmations: number;
   commentCount: number;
   shareCount: number;
@@ -153,22 +160,19 @@ export type IssueDetails = FeedPost & {
   transcript?: string;
 };
 
-/** What a vote toggle settles on, so the card can correct an optimistic guess. */
-export type VoteResult = {
-  hasConfirmed: boolean;
-  confirmations: number;
-};
-
 /** Typing services/index.ts as this is what stops the mock promising data the server won't. */
 export type CommunityApi = {
   getFeed: (query: FeedQuery) => Promise<FeedPage>;
   /** Null rather than a throw when the feed does not list it: F-04 still draws the report. */
   getIssue: (issueId: string) => Promise<IssueDetails | null>;
-  getComments: (issueId: string, page: number, pageSize: number) => Promise<CommentsPage>;
   /** CommunityHub.VoteIssue. Toggles: the hub deletes an existing vote rather than erroring. */
   toggleConfirm: (issueId: string) => Promise<VoteResult>;
   /** CommunityHub.ShareIssue. Resolves to the new share count. */
   shareIssue: (issueId: string) => Promise<number>;
   /** CommunityHub.SendComment. Rejects when moderation blocks the text. */
   postComment: (issueId: string, text: string) => Promise<Comment>;
+  toggleConfirmation: (issueId: string) => Promise<VoteResult>;
+  getComments: (issueId: string, page: number, pageSize: number) => Promise<CommentsPage>;
+  /** One seeded post by id, so F-04 can open a feed card the server has never heard of. */
+  getPost: (issueId: string) => Promise<FeedPost | null>;
 };

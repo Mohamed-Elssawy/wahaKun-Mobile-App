@@ -89,7 +89,8 @@ export async function toggleConfirm(issueId: string): Promise<VoteResult> {
   post.hasConfirmed = !post.hasConfirmed;
   post.confirmations += post.hasConfirmed ? 1 : -1;
 
-  return { hasConfirmed: post.hasConfirmed, confirmations: post.confirmations };
+  const result = { hasConfirmed: post.hasConfirmed, confirmations: post.confirmations };
+  return result;
 }
 
 export async function shareIssue(issueId: string): Promise<number> {
@@ -135,8 +136,10 @@ export async function postComment(issueId: string, text: string): Promise<Commen
 export const communityApi: CommunityApi = {
   getFeed,
   getIssue,
+  getPost: getIssue,
   getComments,
   toggleConfirm,
+  toggleConfirmation: toggleConfirm,
   shareIssue,
   postComment,
 };

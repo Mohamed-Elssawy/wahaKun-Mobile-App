@@ -1,28 +1,45 @@
-// Branch on kind, never message text: server copy is unstable and not always Arabic.
+// Branch on kind / backend code, never on message text.
 
 import { ApiError } from '@/api';
+import { isDisplayableArabic } from '@/api/errorMessages';
 
 export type ReportErrorKind =
-  /** Never reached the server: no connection, or it timed out. */
+  /** Never reached the server: no connection, or it timed out. Retried with backoff. */
   | 'offline'
-  /** Token missing, expired or rejected. */
+  /** Reached the server, but it or a dependency (AI, MinIO, DB) is temporarily down. Retried with backoff. */
+  | 'temporary'
+  /** Token missing, expired or rejected, and refresh failed. */
   | 'unauthorized'
   /** The model looked at the photo and would not diagnose it. F-03c answers this. */
   | 'unrecognized'
   /** Diagnosed fine, but ReportService refuses to file anything below Medium priority. */
   | 'tooMinor'
-  /** Reached the server and it refused, or something non-API threw. */
+  /** Reached the server and it refused for another reason, or something non-API threw. */
   | 'unknown';
 
 export type ReportError = {
   kind: ReportErrorKind;
   /** Already Arabic and safe to show. */
   message: string;
+  /** Backend code, kept for logs/debugging. */
+  code?: string;
 };
 
 const OFFLINE_MESSAGE = 'تحقق من اتصالك وحاول مرة أخرى';
+const TEMPORARY_MESSAGE = 'الخدمة مشغولة حالياً، سيُعاد إرسال البلاغ تلقائياً';
 const UNAUTHORIZED_MESSAGE = 'انتهت جلستك، سجّل الدخول مرة أخرى';
-const FORBIDDEN_MESSAGE = 'ليست لديك صلاحية لهذا الإجراء';
+const UNRECOGNIZED_MESSAGE = 'لم نتمكن من رؤية مشكلة واضحة في الصورة';
+const TOO_MINOR_MESSAGE = 'المشكلة تبدو بسيطة، ولا يحتاج هذا البلاغ إلى متابعة';
+const UNKNOWN_MESSAGE = 'تعذر إرسال البلاغ، حاول مرة أخرى';
+
+/** Every PHOTO_* code from ReportService means "the model refused this photo". */
+const PHOTO_REJECTION_CODES = new Set([
+  'PHOTO_REJECTED',
+  'PHOTO_POOR_QUALITY',
+  'PHOTO_NOT_IRRIGATION',
+  'PHOTO_LOW_CONFIDENCE',
+  'PHOTO_UNCERTAIN',
+]);
 
 /** Each caller passes its own fallback, since loading and sending fail differently. */
 export function describeError(error: unknown, fallback: string): ReportError {
@@ -30,59 +47,65 @@ export function describeError(error: unknown, fallback: string): ReportError {
     return { kind: 'unknown', message: fallback };
   }
 
+  const base = { code: error.code, message: error.userMessage || fallback };
+
   if (error.isNetworkError) {
-    return { kind: 'offline', message: OFFLINE_MESSAGE };
+    return { ...base, kind: 'offline', message: OFFLINE_MESSAGE };
   }
 
   if (error.isUnauthorized) {
-    return { kind: 'unauthorized', message: UNAUTHORIZED_MESSAGE };
+    return { ...base, kind: 'unauthorized', message: UNAUTHORIZED_MESSAGE };
   }
 
-  // Forbidden, not expired: re-login cannot fix it, so 'unknown' fails this item instead of pausing the queue.
-  if (error.isForbidden) {
-    return { kind: 'unknown', message: FORBIDDEN_MESSAGE };
+  if (error.code && PHOTO_REJECTION_CODES.has(error.code)) {
+    return { ...base, kind: 'unrecognized' };
   }
 
-  // client.ts already pulled the server's own message out of the ASP.NET body.
-  return { kind: 'unknown', message: error.message || fallback };
+  if (error.code === 'ISSUE_PRIORITY_TOO_LOW') {
+    return { ...base, kind: 'tooMinor', message: TOO_MINOR_MESSAGE };
+  }
+
+  if (error.isTransient) {
+    return { ...base, kind: 'temporary' };
+  }
+
+  // Forbidden, validation, not found…: re-sending the same request cannot fix these.
+  return { ...base, kind: 'unknown' };
 }
 
-const UNRECOGNIZED_MESSAGE = 'لم نتمكن من رؤية مشكلة واضحة في الصورة';
-const TOO_MINOR_MESSAGE = 'المشكلة تبدو بسيطة، ولا يحتاج هذا البلاغ إلى متابعة';
+/** IssueService throws InvalidOperationException for both business refusals, which the middleware sends as this. */
+const INVALID_OPERATION = 'INVALID_OPERATION';
 
-// Both refusals are untyped 500s, so the call that threw is the only thing telling them apart.
-
-// TODO: needs a typed 4xx from ReportService; until then a 500 body is all there is to match.
-function isRefusal(error: unknown): boolean {
-  return (
-    error instanceof ApiError &&
-    error.status === 500 &&
-    typeof error.body === 'string' &&
-    error.body.includes('InvalidOperationException')
-  );
+/** The server's own Arabic reason when it sent one, e.g. the vision service's "الصورة لا تظهر مشكلة ري واضحة." */
+function serverReason(error: ApiError, fallback: string): string {
+  const reason = error.details.serverMessage;
+  return isDisplayableArabic(reason) ? reason : fallback;
 }
 
-/** For api/Issue/analyze, where a refusal means the model would not read the photo. */
+/** For api/Issue/analyze. INVALID_OPERATION here means the model refused the photo (refused, low_confidence, poor_quality, uncertain). */
 export function describeAnalysisError(error: unknown, fallback: string): ReportError {
-  if (isRefusal(error)) {
-    return { kind: 'unrecognized', message: UNRECOGNIZED_MESSAGE };
+  if (error instanceof ApiError && error.code === INVALID_OPERATION) {
+    return {
+      kind: 'unrecognized',
+      code: error.code,
+      message: serverReason(error, UNRECOGNIZED_MESSAGE),
+    };
   }
-  return describeError(error, fallback);
+  return describeError(error, fallback || UNKNOWN_MESSAGE);
 }
 
-/** For api/Issue/create, where the same shape means the priority was below Medium. */
+/** For api/Issue/create. INVALID_OPERATION here means GetPriority returned Low/Unknown and the photo was deleted. */
 export function describeCreateError(error: unknown, fallback: string): ReportError {
-  if (isRefusal(error)) {
-    return { kind: 'tooMinor', message: TOO_MINOR_MESSAGE };
+  if (error instanceof ApiError && error.code === INVALID_OPERATION) {
+    return { kind: 'tooMinor', code: error.code, message: TOO_MINOR_MESSAGE };
   }
-  return describeError(error, fallback);
+  return describeError(error, fallback || UNKNOWN_MESSAGE);
 }
 
-const UNKNOWN_MESSAGE = 'تعذر إرسال البلاغ، حاول مرة أخرى';
-
-/** Kind to Arabic copy, for a failed queue item the screen shows without a live error object. */
+/** Kind to Arabic copy, for a failed queue item stored without its original message. */
 export const FAILURE_MESSAGES: Record<ReportErrorKind, string> = {
   offline: OFFLINE_MESSAGE,
+  temporary: TEMPORARY_MESSAGE,
   unauthorized: UNAUTHORIZED_MESSAGE,
   unrecognized: UNRECOGNIZED_MESSAGE,
   tooMinor: TOO_MINOR_MESSAGE,

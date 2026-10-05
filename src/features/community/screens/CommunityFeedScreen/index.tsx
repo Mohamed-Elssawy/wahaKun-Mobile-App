@@ -12,7 +12,7 @@ import {
 import { AppHeader, EmptyState, SegmentedTabs } from '@/components/ui';
 import { ReportErrorView } from '@/features/reports/components/ReportErrorView';
 import { useIdentity } from '@/features/user/hooks/useIdentity';
-import { colors, screenPadding, spacing } from '@/theme';
+import { colors, radii, screenPadding, shadows, spacing } from '@/theme';
 
 import { FeedChipRow } from '../../components/FeedChipRow';
 import { FeedPostCard } from '../../components/FeedPostCard';
@@ -70,7 +70,17 @@ export default function CommunityFeedScreen() {
     isEmpty,
     isFiltered,
     origin,
+    toggleConfirmation,
   } = useCommunityFeed();
+  const [actionError, setActionError] = useState('');
+
+  const confirm = async (issueId: string) => {
+    setActionError('');
+    const message = await toggleConfirmation(issueId);
+    if (message) {
+      setActionError(message);
+    }
+  };
 
   const openIssue = (issueId: string) =>
     navigation.navigate('IssueDetails', { reportId: issueId });
@@ -183,6 +193,19 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  header: {
+    backgroundColor: colors.background,
+    // Above the list so the shadow falls on the cards, as in F-01.
+    zIndex: 1,
+    ...shadows.card,
+  },
+  banner: {
+    marginHorizontal: screenPadding,
+    marginTop: spacing[12],
+    padding: spacing[12],
+    borderRadius: radii[12],
+    backgroundColor: colors.errorTint,
   },
   list: {
     paddingHorizontal: screenPadding,

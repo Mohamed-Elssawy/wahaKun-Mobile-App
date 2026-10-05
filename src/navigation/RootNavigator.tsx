@@ -34,6 +34,7 @@ import ProfileScreen from '@/features/user/screens/ProfileScreen';
 import { ExpertTabs } from './ExpertTabs';
 import { HomeTabs } from './HomeTabs';
 import { linking } from './linking';
+import { navigationRef } from './navigationRef';
 import { createPlaceholderScreen } from './PlaceholderScreen';
 import SessionErrorScreen from './SessionErrorScreen';
 
@@ -54,7 +55,7 @@ export type RootNavigatorProps = {
 
 export function RootNavigator({ initialRoute }: RootNavigatorProps) {
   return (
-    <NavigationContainer linking={linking}>
+    <NavigationContainer ref={navigationRef} linking={linking}>
       <Stack.Navigator
         initialRouteName={initialRoute.name}
         screenOptions={{

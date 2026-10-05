@@ -79,6 +79,7 @@ export default function ReportAnalyzingScreen({
     if (failureKind === 'unrecognized') {
       return (
         <UnrecognizedPhotoState
+          reason={state.kind === 'failed' ? state.error.message : undefined}
           onRetakePhoto={() => startOver('photo')}
           onUseVoice={() => startOver('voice')}
         />
