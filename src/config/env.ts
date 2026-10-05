@@ -55,7 +55,7 @@ export const REPORT_QUEUE_MAX = 5;
 
 /** The master switch for a demo with no backend running. Forces every feature onto its mock. */
 // Deliberately above the per-feature flags: each ORs against it, so one edit moves the whole app.
-export const DEMO_MODE = true;
+export const DEMO_MODE = false;
 
 /** Flip to true to work on the diagnosis screens with no backend running. */
 export const USE_MOCK_REPORTS = DEMO_MODE || false;
