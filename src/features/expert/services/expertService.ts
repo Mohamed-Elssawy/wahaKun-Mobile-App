@@ -8,11 +8,12 @@
 // any other environment the body is empty. See BACKEND-GAPS-FOR-TEAMMATE.md item 6, which is
 // the one change that deletes all three.
 
-import { ApiError } from '@/api';
-import { LOG_API_ERRORS } from '@/config/env';
+import { API_ENDPOINTS, ApiError, apiClient } from '@/api';
+import { API_BASE_URLS, LOG_API_ERRORS, UPLOAD_TIMEOUT_MS } from '@/config/env';
 import { factsFromWireStatus } from '@/features/reports/lifecycle';
 import type { LifecycleFacts } from '@/features/reports/lifecycle';
 import {
+  buildAnalyzeFormData,
   normalizeConfidence,
   resolveAttachmentUrl,
   toUtcTimestamp,
@@ -26,11 +27,14 @@ import type {
   ExpertCaseDetail,
   ExpertCaseSummary,
   ExpertInboxRowWire,
+  ExpertPaginatedWire,
   ExpertReviewOverride,
   ExpertReviewWire,
   IssueAttachmentWire,
+  ScheduleRepairBody,
   ScheduleSlot,
   SubmitExpertReviewFields,
+  SubmitReviewBody,
   WirePriority,
 } from '../types';
 
@@ -279,26 +283,190 @@ export const SLOT_TIMES: Record<ScheduleSlot, { slotStart: string; slotEnd: stri
   '5:00 م': { slotStart: '17:00:00', slotEnd: '19:00:00' },
 };
 
-const NO_EXPERT_ENDPOINT = 'IssueController has no expert-facing endpoint yet.';
+const BASE = API_BASE_URLS.issue;
 
+/** PageSize is clamped server-side to [5, 10], so ten is the most one page can carry. */
+const PAGE_SIZE = 10;
+
+/** 1 = date ascending, 2 = date descending. */
+const SORT_NEWEST_FIRST = 2;
+
+// The inbox has no server-side status filter, so a long-serving expert's closed cases page
+// alongside the live ones. Five pages is the ceiling before the detail fan-out gets expensive.
+const MAX_PAGES = 5;
+const MAX_ROWS = PAGE_SIZE * MAX_PAGES;
+
+/** Ten detail calls in flight at once: fifty is fine against localhost and not on a device. */
+const DETAIL_CHUNK = 10;
+
+function fetchCaseReview(reportId: string): Promise<CaseReviewWire> {
+  return apiClient.get<CaseReviewWire>(BASE, API_ENDPOINTS.issue.review(reportId), {
+    authenticated: true,
+  });
+}
+
+/** Pages until the rows reach `totalCount`. Never off `pageCount`, which is the item count on
+ * this page rather than the number of pages. */
+async function fetchAssignedRows(): Promise<ExpertInboxRowWire[]> {
+  const rows: ExpertInboxRowWire[] = [];
+
+  for (let pageIndex = 1; pageIndex <= MAX_PAGES; pageIndex += 1) {
+    let page: ExpertPaginatedWire<ExpertInboxRowWire>;
+
+    try {
+      page = await apiClient.get<ExpertPaginatedWire<ExpertInboxRowWire>>(
+        BASE,
+        API_ENDPOINTS.issue.inbox(PAGE_SIZE, pageIndex, SORT_NEWEST_FIRST),
+        { authenticated: true },
+      );
+    } catch (error) {
+      // On page one this is an empty inbox; on a later page it means the server has no more
+      // to give, so either way the rows gathered so far are the answer.
+      if (isEmptyResultError(error)) {
+        return rows;
+      }
+      throw error;
+    }
+
+    rows.push(...page.results);
+
+    // A short page that did not throw is the server running out early.
+    if (
+      page.results.length === 0 ||
+      rows.length >= page.totalCount ||
+      rows.length >= MAX_ROWS
+    ) {
+      break;
+    }
+  }
+
+  return rows.slice(0, MAX_ROWS);
+}
+
+/**
+ * Chunked rather than one wide `Promise.allSettled`. A rejected detail is never fatal and never
+ * retried: `toCaseSummary` has a degraded branch for exactly this, which drops the card's
+ * confidence to zero so the expert is told to look for themselves.
+ */
+async function fetchDetailsInChunks(ids: string[]): Promise<Map<string, CaseReviewWire>> {
+  const details = new Map<string, CaseReviewWire>();
+  let failures = 0;
+
+  for (let start = 0; start < ids.length; start += DETAIL_CHUNK) {
+    const chunk = ids.slice(start, start + DETAIL_CHUNK);
+    const settled = await Promise.allSettled(chunk.map(fetchCaseReview));
+
+    settled.forEach((result, index) => {
+      const id = chunk[index];
+      if (result.status === 'fulfilled') {
+        details.set(id, result.value);
+      } else {
+        failures += 1;
+      }
+    });
+  }
+
+  // One line per load, not one per failure: an unreachable server would write fifty.
+  if (failures > 0 && LOG_API_ERRORS) {
+    console.warn(`[expertService] ${failures} of ${ids.length} case details failed to load`);
+  }
+
+  return details;
+}
+
+/**
+ * E-01. One page call per page, then a chunked detail fan-out: the inbox row carries no
+ * confidence, no severity string, no reporter and no photo, so the card cannot be filled
+ * without the second round trip - BACKEND-GAP G5/G6/G7.
+ */
 export async function getAssignedCases(): Promise<ExpertCaseSummary[]> {
-  throw new Error(NO_EXPERT_ENDPOINT);
+  const rows = await fetchAssignedRows();
+  if (rows.length === 0) {
+    return [];
+  }
+
+  const details = await fetchDetailsInChunks(rows.map(row => row.id));
+  return rows.map(row => toCaseSummary(row, details.get(row.id) ?? null));
 }
 
-export async function getCaseDetail(_reportId: string): Promise<ExpertCaseDetail> {
-  throw new Error(NO_EXPERT_ENDPOINT);
+export async function getCaseDetail(reportId: string): Promise<ExpertCaseDetail> {
+  return toCaseDetail(await fetchCaseReview(reportId));
 }
 
-export async function submitReview(_fields: SubmitExpertReviewFields): Promise<void> {
-  throw new Error(NO_EXPERT_ENDPOINT);
+const CONFIRM_AI_DECISION = 0;
+const CONFLICT_STATUS = 409;
+
+/** InvalidOperationException, which a second submission on the same case always hits. */
+const REVIEW_REFUSAL = 'Only assigned issues can be reviewed';
+
+/** InvalidOperationException again, from a case that was never scheduled. */
+const RESOLUTION_REFUSAL = 'Resolution action can only be created for a scheduled issue';
+
+/** Rebuilt as the 409 the server has no middleware to send. STATUS_MESSAGES[409] tells the
+ * expert this may already be done; a 500 would tell them to retry what will fail forever. */
+function asConflict(error: ApiError): ApiError {
+  return ApiError.fromResponse(CONFLICT_STATUS, error.details);
 }
 
-export async function confirmAppointment(_fields: ConfirmAppointmentFields): Promise<void> {
-  throw new Error(NO_EXPERT_ENDPOINT);
+/** T4. The server refuses unless the status is exactly `Assigned`. */
+export async function submitReview(fields: SubmitExpertReviewFields): Promise<void> {
+  const body: SubmitReviewBody = {
+    decision: fields.override ? OVERRIDE_DECISION : CONFIRM_AI_DECISION,
+    notes: composeReviewNotes(fields),
+  };
+
+  try {
+    await apiClient.post<unknown>(
+      BASE,
+      API_ENDPOINTS.issue.submitReview(fields.reportId),
+      body,
+      { authenticated: true },
+    );
+  } catch (error) {
+    if (isServerRefusal(error, REVIEW_REFUSAL)) {
+      throw asConflict(error);
+    }
+    throw error;
+  }
 }
 
-/** Whoever wires this once the endpoint exists: pass `timeoutMs: UPLOAD_TIMEOUT_MS`, not
- * API_TIMEOUT_MS - aborting a multipart body mid-write is what makes duplicates. */
-export async function confirmRepair(_fields: ConfirmRepairFields): Promise<void> {
-  throw new Error(NO_EXPERT_ENDPOINT);
+/** T5. No status guard server-side, so a reschedule reaches it - but every call inserts a new
+ * RepairSchedule row rather than updating the existing one. See REFERENCE-NOTES.md. */
+export async function confirmAppointment(fields: ConfirmAppointmentFields): Promise<void> {
+  const body: ScheduleRepairBody = {
+    scheduledDate: fields.date,
+    ...SLOT_TIMES[fields.slot],
+    farmerNotified: true,
+    notes: fields.noteToFarmer ?? null,
+  };
+
+  await apiClient.post<unknown>(BASE, API_ENDPOINTS.issue.schedule(fields.reportId), body, {
+    authenticated: true,
+  });
+}
+
+/** T6. multipart/form-data, parts named `Photo` and `Notes`. Refused unless the status is
+ * exactly `Scheduled`. */
+export async function confirmRepair(fields: ConfirmRepairFields): Promise<void> {
+  // Reused rather than rebuilt: buildAnalyzeFormData owns the MIME map both uploads share.
+  const formData = buildAnalyzeFormData(fields.photo);
+  formData.append('Notes', fields.notes);
+
+  try {
+    await apiClient.post<unknown>(
+      BASE,
+      API_ENDPOINTS.issue.resolution(fields.reportId),
+      formData,
+      {
+        authenticated: true,
+        // Aborting a multipart body the server is still writing is what makes duplicates.
+        timeoutMs: UPLOAD_TIMEOUT_MS,
+      },
+    );
+  } catch (error) {
+    if (isServerRefusal(error, RESOLUTION_REFUSAL)) {
+      throw asConflict(error);
+    }
+    throw error;
+  }
 }

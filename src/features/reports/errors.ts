@@ -73,7 +73,7 @@ export function describeError(error: unknown, fallback: string): ReportError {
   return { ...base, kind: 'unknown' };
 }
 
-/** IssueService throws InvalidOperationException for both business refusals, which the middleware sends as this. */
+/** ReportService's code only. IssueService registers no exception middleware, so its own refusals arrive as a bare 500 - see expertService's isServerRefusal. */
 const INVALID_OPERATION = 'INVALID_OPERATION';
 
 /** The server's own Arabic reason when it sent one, e.g. the vision service's "الصورة لا تظهر مشكلة ري واضحة." */
