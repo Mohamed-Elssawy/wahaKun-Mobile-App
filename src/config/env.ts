@@ -25,7 +25,7 @@ export const API_GATEWAY_URL = normalizeOrigin(
 
 export const PORTS = {
     auth: 5090, user: 5256, notification: 5140, report: 5173,
-    media: 5230, community: 5087, map: 5249,
+    media: 5230, community: 5087, map: 5249, issue: 5195,
 } as const;
 
 type ServiceName = keyof typeof PORTS;
@@ -45,6 +45,7 @@ export const API_BASE_URLS = {
     community: baseUrlFor('community'),
     media: baseUrlFor('media'),
     map: baseUrlFor('map'),
+    issue: baseUrlFor('issue'),
 } as const;
 
 export const APP_URL_SCHEME = 'wahakun';
