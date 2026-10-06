@@ -5,6 +5,8 @@ import {
   MOCK_ROLE,
   MOCK_SCENARIO,
   USE_MOCK_COMMUNITY,
+  USE_MOCK_EXPERT_CHATS,
+  USE_MOCK_EXPERT_QUEUE,
   USE_MOCK_REPORTS,
   USE_MOCK_ROLE,
   USE_MOCK_TRACKER,
@@ -43,6 +45,13 @@ describe('committed feature flag defaults', () => {
   // to read expert, appointment or repair data from, or to send a confirm/reject write to.
   it('still serves the tracker from the mock, because no read endpoint exists', () => {
     expect(USE_MOCK_TRACKER).toBe(true);
+  });
+
+  // Off since the expert service was wired: ExpertController serves the inbox, the case review
+  // and all three writes. Chat keeps its own flag because ChatService has no controller at all.
+  it('serves the expert queue from the real endpoint, and chat from the mock', () => {
+    expect(USE_MOCK_EXPERT_QUEUE).toBe(false);
+    expect(USE_MOCK_EXPERT_CHATS).toBe(true);
   });
 
   // A product stance, not a gap: SYSTEM-SPEC T2 keeps uncertainty language away from farmers.
