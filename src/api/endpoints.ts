@@ -26,8 +26,9 @@ export const API_ENDPOINTS = {
   },
   /** IssueService on PORTS.issue (5195), not ReportService: expert and farmer issue routes. */
   issue: {
-    /** Query only - `pageIndex` is lowercase and PageSize is clamped server-side to [5, 10]. */
-    inbox: '/Expert/inbox',
+    /** `pageIndex` is lowercase and PageSize is clamped server-side to [5, 10]. */
+    inbox: (pageSize: number, pageIndex: number, sortingOptions: number) =>
+      `/Expert/inbox?PageSize=${pageSize}&pageIndex=${pageIndex}&SortingOptions=${sortingOptions}`,
     /** An empty inbox throws KeyNotFoundException rather than returning an empty page. */
     review: (issueId: string) => `/Expert/${issueId}/review`,
     submitReview: (issueId: string) => `/Expert/${issueId}/review`,
