@@ -72,7 +72,7 @@ export const SEED_POSTS: readonly FeedPost[] = [
     description: 'تشقق في جدار القناة الرئيسية — قرب نقطة التحويل',
     photoUrl: photo('wahakun-crack'),
     hasVoice: false,
-    status: 'Completed',
+    status: 'completed',
     tier: 'resolved',
     createdAt: hoursAgo(72),
     latitude: 29.199,

@@ -73,7 +73,7 @@ const STATUS_BY_CODE: Record<IssueStatusCode, ReportStatus> = {
   3: 'Assigned',
   4: 'Scheduled',
   5: 'Repaired',
-  6: 'Completed',
+  6: 'completed',
 };
 
 export function describeStatus(status: IssueStatusCode | ReportStatus): ReportStatus {

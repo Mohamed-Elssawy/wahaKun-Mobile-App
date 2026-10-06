@@ -200,7 +200,7 @@ const SEED: Report[] = [
   {
     id: '1020',
     title: 'تسريب في القناة الفرعية الغربية',
-    status: 'Completed',
+    status: 'completed',
     createdAt: '2026-06-08T05:48:00Z',
     updatedAt: '2026-06-11T08:00:00Z',
     reporterId: REPORTER_ID,

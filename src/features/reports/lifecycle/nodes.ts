@@ -49,7 +49,8 @@ export function currentNode(facts: LifecycleFacts): LifecycleNode {
 }
 
 /** The facts a bare wire status can support, for a list row that has no detail payload yet. */
-// hasExpertReview is always false here: node 3 and node 4 are the same IssueStatus value.
+// Reviewed is the only wire value hasExpertReview can read off: it is what separates node 3
+// (Assigned) from node 4 (Reviewed), since both land on the UnderReview lifecycle status.
 export function factsFromWireStatus(status: ReportStatus): LifecycleFacts {
   const lifecycle = fromWireStatus(status);
   const isClosed = isClosedStatus(lifecycle);
@@ -57,7 +58,7 @@ export function factsFromWireStatus(status: ReportStatus): LifecycleFacts {
   return {
     status: lifecycle,
     hasAiAnalysis: status !== 'Reported',
-    hasExpertReview: false,
+    hasExpertReview: status === 'Reviewed',
     hasAppointment: lifecycle === 'Scheduled' || isClosed,
     hasRepairConfirmation: status === 'Repaired' || isClosed,
   };

@@ -56,7 +56,7 @@ describe('trackerFacts', () => {
   it('treats a closed case as having an appointment and a repair even without the fields', () => {
     // Defensive: a future real payload might stop sending nodes 4-5's detail once the case is
     // closed, and a closed status alone must still place the case at node 6.
-    const details: ReportTrackerDetails = { reportId: '1', status: 'Completed' };
+    const details: ReportTrackerDetails = { reportId: '1', status: 'completed' };
     const facts = trackerFacts(details);
     expect(facts.hasAppointment).toBe(true);
     expect(facts.hasRepairConfirmation).toBe(true);

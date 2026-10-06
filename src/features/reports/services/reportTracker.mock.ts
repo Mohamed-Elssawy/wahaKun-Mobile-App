@@ -87,7 +87,7 @@ const FIXTURES: Record<string, ReportTrackerDetails> = {
   // resolved - node 6, closed by the farmer's own tap (T7).
   '1020': {
     reportId: '1020',
-    status: 'Completed',
+    status: 'completed',
     hasExpertReview: true,
     expert: { name: 'عمر الشريف', specialty: 'خبير صيانة قنوات' },
     assignedAt: '2026-06-08T08:00:00Z',
@@ -145,7 +145,7 @@ export async function confirmResolution(reportId: string): Promise<void> {
 
   trackers.set(reportId, {
     ...current,
-    status: 'Completed',
+    status: 'completed',
     closedBy: 'farmer',
     closedAt: new Date().toISOString(),
   });

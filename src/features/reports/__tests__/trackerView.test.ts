@@ -90,7 +90,7 @@ describe('buildTrackerView', () => {
   it('never shows the approval control once the case is closed', () => {
     const closed: ReportTrackerDetails = {
       reportId: '1020',
-      status: 'Completed',
+      status: 'completed',
       closedBy: 'farmer',
       closedAt: '2026-06-11T08:00:00Z',
     };
@@ -126,7 +126,7 @@ describe('buildActiveCardSlot (F-07)', () => {
   });
 
   it('shows nothing once the case is closed', () => {
-    const closed: ReportTrackerDetails = { reportId: '1020', status: 'Completed' };
+    const closed: ReportTrackerDetails = { reportId: '1020', status: 'completed' };
     expect(buildActiveCardSlot(closed)).toBeNull();
   });
 });

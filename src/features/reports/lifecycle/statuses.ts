@@ -39,9 +39,12 @@ const WIRE_STATUSES: Record<ReportStatus, LifecycleStatus> = {
   // Verified has no §3.2 home, and nothing in §3.5 verifies before routing, so it stays جديدة.
   Verified: 'New',
   Assigned: 'UnderReview',
+  // The expert's own review submission. Node 4, not node 3 - see factsFromWireStatus.
+  Reviewed: 'UnderReview',
   Scheduled: 'Scheduled',
   Repaired: 'Scheduled',
-  Completed: 'Resolved',
+  // Lowercase in the C# source - `.ToString()` emits "completed", not "Completed".
+  completed: 'Resolved',
 };
 
 /** Falls back rather than throwing: the server can grow IssueStatus before this file does. */

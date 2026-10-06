@@ -58,8 +58,8 @@ describe('normalizeMapStatus', () => {
   });
 
   // IssueStatus 6 is declared `completed` in C#; every other member is capitalised.
-  it('capitalises the one status the server spells in lower case', () => {
-    expect(normalizeMapStatus('completed')).toBe('Completed');
+  it('passes through the one status the server spells in lower case', () => {
+    expect(normalizeMapStatus('completed')).toBe('completed');
   });
 
   it('falls back rather than throwing when the server grows the enum', () => {
@@ -85,7 +85,7 @@ describe('describeTier', () => {
   });
 
   it('reads a closed problem as resolved whatever its severity was', () => {
-    expect(describeTier('4', 'Completed')).toBe('resolved');
+    expect(describeTier('4', 'completed')).toBe('resolved');
   });
 
   // T6 leaves a repaired case at مجدولة: the pin only goes green once the farmer confirms,

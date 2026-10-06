@@ -124,7 +124,7 @@ describe('describeStatus', () => {
     expect(describeStatus(1)).toBe('Diagnosed');
     expect(describeStatus(4)).toBe('Scheduled');
     expect(describeStatus(5)).toBe('Repaired');
-    expect(describeStatus(6)).toBe('Completed');
+    expect(describeStatus(6)).toBe('completed');
   });
 
   it('falls back rather than throwing on a step this build does not know', () => {

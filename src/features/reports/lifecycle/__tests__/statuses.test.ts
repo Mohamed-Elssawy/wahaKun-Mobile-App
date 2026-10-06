@@ -14,9 +14,10 @@ const WIRE_STATUSES: readonly ReportStatus[] = [
   'Diagnosed',
   'Verified',
   'Assigned',
+  'Reviewed',
   'Scheduled',
   'Repaired',
-  'Completed',
+  'completed',
 ];
 
 describe('ReportService IssueStatus onto §3.2', () => {
@@ -26,10 +27,14 @@ describe('ReportService IssueStatus onto §3.2', () => {
     // Verified has no §3.2 home at all; nothing in §3.5 verifies before routing.
     ['Verified', 'New'],
     ['Assigned', 'UnderReview'],
+    // The expert's own review submission. Same lifecycle bucket as Assigned - node 3 vs 4
+    // is only distinguished by factsFromWireStatus's hasExpertReview, not by this map.
+    ['Reviewed', 'UnderReview'],
     ['Scheduled', 'Scheduled'],
     // The one that was wrong before: T6 leaves the status at مجدولة, so this is node 6, not closed.
     ['Repaired', 'Scheduled'],
-    ['Completed', 'Resolved'],
+    // Lowercase on the wire - the one that was wrong before.
+    ['completed', 'Resolved'],
   ] as const)('maps %s to %s', (wire, lifecycle) => {
     expect(fromWireStatus(wire)).toBe(lifecycle);
   });
@@ -74,8 +79,13 @@ describe('factsFromWireStatus', () => {
     expect(currentNode(facts)).toBe(3);
   });
 
-  it('closes a Completed row', () => {
-    expect(isClosedStatus(factsFromWireStatus('Completed').status)).toBe(true);
+  it('closes a completed row', () => {
+    expect(isClosedStatus(factsFromWireStatus('completed').status)).toBe(true);
+  });
+
+  it('is the only wire value that sets hasExpertReview', () => {
+    expect(factsFromWireStatus('Reviewed').hasExpertReview).toBe(true);
+    expect(currentNode(factsFromWireStatus('Reviewed'))).toBe(4);
   });
 });
 

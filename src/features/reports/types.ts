@@ -10,11 +10,14 @@ export type IssueStatusCode = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 export type ReportStatus =
   | 'Reported'
   | 'Diagnosed'
+  // No backend sends this; nothing in the solution ever assigns it.
   | 'Verified'
   | 'Assigned'
+  | 'Reviewed'
   | 'Scheduled'
   | 'Repaired'
-  | 'Completed';
+  // Lowercase in the C# source - `.ToString()` emits "completed", not "Completed".
+  | 'completed';
 
 /** The vision service's SeverityLevel values, which ReportService stores verbatim. */
 export type ArabicSeverity =

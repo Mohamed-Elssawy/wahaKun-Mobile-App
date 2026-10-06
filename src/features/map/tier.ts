@@ -4,27 +4,19 @@ import type { ColorToken } from '@/theme';
 
 import type { MapIssueTier, MapPriorityName } from './types';
 
-/** IssueStatus 6 is spelled `completed` server-side; every other name is capitalised. */
-const WIRE_STATUS_FIXUPS: Record<string, ReportStatus> = {
-  completed: 'Completed',
-};
-
 const STATUSES: readonly ReportStatus[] = [
   'Reported',
   'Diagnosed',
   'Verified',
   'Assigned',
+  'Reviewed',
   'Scheduled',
   'Repaired',
-  'Completed',
+  'completed',
 ];
 
 /** Falls back rather than throwing: the server can grow IssueStatus before this file does. */
 export function normalizeMapStatus(status: string): ReportStatus {
-  const fixed = WIRE_STATUS_FIXUPS[status];
-  if (fixed) {
-    return fixed;
-  }
   return STATUSES.find(known => known === status) ?? 'Reported';
 }
 

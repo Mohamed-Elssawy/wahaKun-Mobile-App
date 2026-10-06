@@ -27,7 +27,7 @@ describe('reportTracker mock:confirmResolution', () => {
     await confirmResolution('1037');
     const after = await getReportTracker('1037');
 
-    expect(after.status).toBe('Completed');
+    expect(after.status).toBe('completed');
     expect(after.closedBy).toBe('farmer');
     expect(new Date(after.closedAt as string).getTime()).toBeGreaterThanOrEqual(before);
   });
