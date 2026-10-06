@@ -59,28 +59,6 @@ export function useIssueContext(issueId: string) {
     setIssue(current => (current ? { ...current, ...change } : current));
   }, []);
 
-  /** Optimistic and self-inverse, the same as the feed card's: see useCommunityFeed. */
-  const confirm = useCallback(async (): Promise<void> => {
-    const flip = () =>
-      setIssue(current =>
-        current
-          ? {
-              ...current,
-              hasConfirmed: !current.hasConfirmed,
-              confirmations: current.confirmations + (current.hasConfirmed ? -1 : 1),
-            }
-          : current,
-      );
-
-    flip();
-
-    try {
-      patch(await communityApi.toggleConfirm(issueId));
-    } catch {
-      flip();
-    }
-  }, [issueId, patch]);
-
   const share = useCallback(async (): Promise<void> => {
     const bump = (delta: number) =>
       setIssue(current =>
@@ -96,5 +74,5 @@ export function useIssueContext(issueId: string) {
     }
   }, [issueId, patch]);
 
-  return { issue, origin, isLoading, error, retry: load, confirm, share };
+  return { issue, origin, isLoading, error, retry: load, share };
 }

@@ -3,7 +3,7 @@ import {
   getFeed,
   postComment,
   shareIssue,
-  toggleConfirm,
+  toggleConfirmation,
 } from '../services/communityService.mock';
 
 import type { FeedQuery } from '../types';
@@ -202,12 +202,12 @@ describe('writes', () => {
   it(
     'toggles a vote off again rather than counting it twice',
     async () => {
-      const on = await toggleConfirm('1045');
-      expect(on.hasConfirmed).toBe(true);
+      const on = await toggleConfirmation('1045');
+      expect(on.hasVoted).toBe(true);
 
-      const off = await toggleConfirm('1045');
-      expect(off.hasConfirmed).toBe(false);
-      expect(off.confirmations).toBe(on.confirmations - 1);
+      const off = await toggleConfirmation('1045');
+      expect(off.hasVoted).toBe(false);
+      expect(off.voteCount).toBe(on.voteCount - 1);
     },
     TIMEOUT,
   );
@@ -216,10 +216,10 @@ describe('writes', () => {
     'removes the vote the seed already holds instead of adding another',
     async () => {
       // i-1044 starts confirmed, which is the frame's filled button.
-      const first = await toggleConfirm('1044');
+      const first = await toggleConfirmation('1044');
 
-      expect(first.hasConfirmed).toBe(false);
-      await toggleConfirm('1044');
+      expect(first.hasVoted).toBe(false);
+      await toggleConfirmation('1044');
     },
     TIMEOUT,
   );

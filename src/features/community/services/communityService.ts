@@ -1,30 +1,15 @@
-/** GetCommentsByIssueId is [Authorize]; the feed is composed from MapService, which is not. */
-
-// IssueService.FarmerService.GetAllIssuesAsync already returns everything F-01 draws, but no
-// controller exposes it, so the feed still falls back to ShowIssueInMap and loses the author
-// and the counters. That is what USE_MOCK_COMMUNITY exists for.
+/** CommunityController has exactly one endpoint, GetCommentsByIssueId; everything else is the
+ * seeded mock - no feed, post, vote, share or comment-write endpoint exists (facts §4.6). */
+// Never add a path here that CommunityController does not declare: the gateway answers it with a bare 404.
 
 import { API_ENDPOINTS, apiClient } from '@/api';
-import { ApiError } from '@/api/errors';
 import { API_BASE_URLS } from '@/config/env';
-import { getMapIssueById, getMapIssues } from '@/features/map/services/mapService';
-import type { MapIssue } from '@/features/map/types';
 import { toUtcTimestamp } from '@/features/reports/services/reportService';
-import { userApi } from '@/features/user/services';
+import { getUserDetails, resolveProfilePictureUrl } from '@/features/user/services/userService';
 
-import { applyFeedQuery } from '../feedQuery';
+import * as mock from './communityService.mock';
 
-import type {
-  Comment,
-  CommentsPage,
-  CommentsPageWire,
-  CommunityApi,
-  FeedPage,
-  FeedPost,
-  FeedQuery,
-  IssueDetails,
-  VoteResult,
-} from '../types';
+import type { Comment, CommentsPage, CommentsPageWire, CommunityApi } from '../types';
 
 const BASE = API_BASE_URLS.community;
 
@@ -113,25 +98,13 @@ export async function getComments(
   };
 }
 
-// The three writes below exist on CommunityHub over SignalR at /hubs/community, not over REST,
-// and no SignalR client is installed. They throw so the seam is real and the failure is visible.
-export async function toggleConfirm(_issueId: string): Promise<VoteResult> {
-  return hubUnavailable('تأكيد المشكلة');
-}
-
-export async function shareIssue(_issueId: string): Promise<number> {
-  return hubUnavailable('مشاركة البلاغ');
-}
-
-export async function postComment(_issueId: string, _text: string): Promise<Comment> {
-  return hubUnavailable('إضافة تعليق');
-}
-
 export const communityApi: CommunityApi = {
-  getFeed,
-  getIssue,
+  // No GetFeed, GetPost, vote, share or comment-write endpoint exists in CommunityController yet.
+  getFeed: mock.getFeed,
+  getIssue: mock.getIssue,
+  getPost: mock.getIssue,
+  toggleConfirmation: mock.toggleConfirmation,
+  shareIssue: mock.shareIssue,
+  postComment: mock.postComment,
   getComments,
-  toggleConfirm,
-  shareIssue,
-  postComment,
 };

@@ -30,19 +30,6 @@ const INITIAL: FeedFilters = {
   sort: 'severity',
 };
 
-/** Flips one post's vote. Its own inverse, which is what makes the rollback a second call. */
-function flipVote(posts: FeedPost[], issueId: string): FeedPost[] {
-  return posts.map(post =>
-    post.issueId === issueId
-      ? {
-        ...post,
-        hasConfirmed: !post.hasConfirmed,
-        confirmations: post.confirmations + (post.hasConfirmed ? -1 : 1),
-      }
-      : post,
-  );
-}
-
 export function useCommunityFeed() {
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [filters, setFilters] = useState<FeedFilters>(INITIAL);
@@ -197,24 +184,6 @@ export function useCommunityFeed() {
     );
   }, []);
 
-  /**
-   * Optimistic, because a vote on a rural connection would otherwise sit unmoved for seconds.
-   * The service's answer is authoritative, so a rejected vote flips all the way back.
-   */
-  const confirm = useCallback(
-    async (issueId: string): Promise<void> => {
-      setPosts(current => flipVote(current, issueId));
-
-      try {
-        patchPost(issueId, await communityApi.toggleConfirm(issueId));
-      } catch {
-        // No error screen for a vote: the count snapping back is the whole message.
-        setPosts(current => flipVote(current, issueId));
-      }
-    },
-    [patchPost],
-  );
-
   /** Optimistic: flips the card at once, then settles on the server's count (or rolls back). */
   const toggleConfirmation = useCallback(
     async (issueId: string): Promise<string | null> => {
@@ -282,7 +251,6 @@ export function useCommunityFeed() {
     changeSort,
     toggleNearby,
     toggleSeverity,
-    confirm,
     share,
     isLoading,
     isRefreshing,

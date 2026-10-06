@@ -80,8 +80,8 @@ export async function getComments(
   };
 }
 
-/** Toggles, matching CommunityHub.VoteIssue: a second vote deletes the first rather than erroring. */
-export async function toggleConfirm(issueId: string): Promise<VoteResult> {
+/** Toggles: a second call undoes the first rather than erroring. */
+export async function toggleConfirmation(issueId: string): Promise<VoteResult> {
   await mockDelay(LATENCY.write);
   failOnErrorScenario(WRITE_ERROR);
 
@@ -89,8 +89,7 @@ export async function toggleConfirm(issueId: string): Promise<VoteResult> {
   post.hasConfirmed = !post.hasConfirmed;
   post.confirmations += post.hasConfirmed ? 1 : -1;
 
-  const result = { hasConfirmed: post.hasConfirmed, confirmations: post.confirmations };
-  return result;
+  return { issueId, hasVoted: post.hasConfirmed, voteCount: post.confirmations };
 }
 
 export async function shareIssue(issueId: string): Promise<number> {
@@ -138,8 +137,7 @@ export const communityApi: CommunityApi = {
   getIssue,
   getPost: getIssue,
   getComments,
-  toggleConfirm,
-  toggleConfirmation: toggleConfirm,
+  toggleConfirmation,
   shareIssue,
   postComment,
 };

@@ -19,7 +19,14 @@ beforeEach(() => mockGet.mockReset());
 // CommunityController declares GetCommentsByIssueId and nothing else.
 describe('communityService', () => {
   it('serves the feed from the seed and never calls the server for it', async () => {
-    const page = await communityApi.getFeed({ page: 1, pageSize: 10, filter: 'all' });
+    const page = await communityApi.getFeed({
+      page: 1,
+      pageSize: 10,
+      tab: 'all',
+      severities: [],
+      nearbyOnly: false,
+      sort: 'newest',
+    });
 
     expect(page.posts.length).toBeGreaterThan(0);
     expect(mockGet).not.toHaveBeenCalled();
@@ -52,7 +59,7 @@ describe('communityService', () => {
   });
 
   it('keeps a seeded card on the seed, since its id would bind to no Guid', async () => {
-    const page = await communityApi.getComments('i-1043', 1, 10);
+    const page = await communityApi.getComments('1043', 1, 10);
 
     expect(mockGet).not.toHaveBeenCalled();
     expect(page.comments.length).toBeGreaterThan(0);
@@ -60,6 +67,6 @@ describe('communityService', () => {
 
   it('tells Guids from seed ids', () => {
     expect(isServerIssueId(ISSUE_ID)).toBe(true);
-    expect(isServerIssueId('i-1043')).toBe(false);
+    expect(isServerIssueId('1043')).toBe(false);
   });
 });

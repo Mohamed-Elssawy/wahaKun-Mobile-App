@@ -165,12 +165,11 @@ export type CommunityApi = {
   getFeed: (query: FeedQuery) => Promise<FeedPage>;
   /** Null rather than a throw when the feed does not list it: F-04 still draws the report. */
   getIssue: (issueId: string) => Promise<IssueDetails | null>;
-  /** CommunityHub.VoteIssue. Toggles: the hub deletes an existing vote rather than erroring. */
-  toggleConfirm: (issueId: string) => Promise<VoteResult>;
   /** CommunityHub.ShareIssue. Resolves to the new share count. */
   shareIssue: (issueId: string) => Promise<number>;
   /** CommunityHub.SendComment. Rejects when moderation blocks the text. */
   postComment: (issueId: string, text: string) => Promise<Comment>;
+  /** Toggles: a second call undoes the first rather than erroring. */
   toggleConfirmation: (issueId: string) => Promise<VoteResult>;
   getComments: (issueId: string, page: number, pageSize: number) => Promise<CommentsPage>;
   /** One seeded post by id, so F-04 can open a feed card the server has never heard of. */

@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 
-import { AppHeader, EmptyState, SegmentedTabs } from '@/components/ui';
+import { AppHeader, EmptyState, SegmentedTabs, Text } from '@/components/ui';
 import { ReportErrorView } from '@/features/reports/components/ReportErrorView';
 import { useIdentity } from '@/features/user/hooks/useIdentity';
 import { colors, radii, screenPadding, shadows, spacing } from '@/theme';
@@ -58,7 +58,6 @@ export default function CommunityFeedScreen() {
     changeSort,
     toggleNearby,
     toggleSeverity,
-    confirm,
     share,
     isLoading,
     isRefreshing,
@@ -74,7 +73,7 @@ export default function CommunityFeedScreen() {
   } = useCommunityFeed();
   const [actionError, setActionError] = useState('');
 
-  const confirm = async (issueId: string) => {
+  const confirm = async (issueId: string): Promise<void> => {
     setActionError('');
     const message = await toggleConfirmation(issueId);
     if (message) {
@@ -176,6 +175,16 @@ export default function CommunityFeedScreen() {
         onToggleNearby={toggleNearby}
         onToggleSeverity={toggleSeverity}
       />
+
+      {/* No error screen for a vote on the card itself: the count snapping back on failure is
+          the card's own message. This banner is only for the message a rejected vote carries. */}
+      {actionError ? (
+        <View style={styles.banner}>
+          <Text variant="body14" color="error" align="right">
+            {actionError}
+          </Text>
+        </View>
+      ) : null}
 
       {renderBody()}
 
