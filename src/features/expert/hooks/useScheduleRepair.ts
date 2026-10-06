@@ -78,8 +78,14 @@ export function useScheduleRepair(reportId: string) {
       return false;
     }
 
-    const result = attempt({ event: 'confirmAppointment', actor: 'expert', facts: detail });
+    // T11, not T5: a case already at Scheduled fails confirmAppointment's `from` clause, which
+    // is what made إعادة الجدولة return false without ever reaching the server.
+    const event = detail.status === 'Scheduled' ? 'reschedule' : 'confirmAppointment';
+
+    const result = attempt({ event, actor: 'expert', facts: detail });
     if (!result.ok) {
+      // A refusal used to be silent. Same channel as a failed request, which the screen draws.
+      setSubmitError(describeError(result.refusal, SUBMIT_ERROR));
       return false;
     }
 
