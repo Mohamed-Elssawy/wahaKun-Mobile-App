@@ -27,7 +27,7 @@ export function mockDelay(baseMs: number): Promise<void> {
  */
 export function failOnErrorScenario(message: string): void {
   if (MOCK_SCENARIO === 'error') {
-    throw new ApiError(message, NETWORK_ERROR_STATUS);
+    throw new ApiError(NETWORK_ERROR_STATUS, 'network', message);
   }
 }
 
