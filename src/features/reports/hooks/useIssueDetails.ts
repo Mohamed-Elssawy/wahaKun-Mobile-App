@@ -5,6 +5,7 @@ import { isServerIssueId } from '@/features/community/services/communityService'
 import type { FeedPost } from '@/features/community/types';
 import { getMapIssueById } from '@/features/map/services/mapService';
 import type { MapIssue } from '@/features/map/types';
+import { useIdentity } from '@/features/user/hooks/useIdentity';
 
 import { describeError } from '../errors';
 import { isReportOwner } from '../ownership';
@@ -15,23 +16,21 @@ import type { Report } from '../types';
 
 const LOAD_ERROR = 'تعذر تحميل البلاغ، حاول مرة أخرى';
 
-/** Everything the feed can tell us. No analysis: no read endpoint returns one. */
-function fromIssueDetails(issue: IssueDetails): Report {
+/** A map pin, resolved for a server issue this device did not file. No analysis and no
+ * reporterId: MapResponseDto carries neither, and isReportOwner fails closed on the empty string. */
+function fromMapIssue(issue: MapIssue): Report {
   return {
-    id: issue.issueId,
+    id: issue.id,
     title: issue.title,
-    description: issue.description,
     status: issue.status,
     createdAt: issue.createdAt,
-    // Empty on the real path, where MapResponseDto carries no reporterId. isReportOwner
-    // fails closed on that, which is the point.
-    reporterId: issue.reporterId ?? '',
+    reporterId: '',
     latitude: issue.latitude,
     longitude: issue.longitude,
     attachments: issue.photoUrl
       ? [
           {
-            id: `${issue.issueId}-photo`,
+            id: `${issue.id}-photo`,
             type: 'Photo',
             url: issue.photoUrl,
             createdAt: issue.createdAt,
@@ -120,7 +119,6 @@ export function useIssueDetails(issueId: string) {
 
       if (issue) {
         setReport(issue);
-        setIsOwnReport(false);
       } else {
         setError({ kind: 'unknown', message: LOAD_ERROR });
       }
