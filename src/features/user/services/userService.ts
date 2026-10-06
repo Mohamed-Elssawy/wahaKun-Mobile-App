@@ -13,10 +13,16 @@ import type {
 
 const BASE = API_BASE_URLS.user;
 
-/** No argument reads the signed-in farmer; an id reads anyone, which the feed needs. */
+const NO_USER_BY_ID_ENDPOINT =
+  'GET /User/GetUser/{userId} does not exist; there is no way to resolve another account by id.';
+
+/** No argument reads the signed-in farmer. An id used to read anyone for the feed's author
+ * line, but that endpoint was never real - see BACKEND-INTEGRATION-FACTS.md §4.4. */
 export function getUserDetails(userId?: string) {
-  const path = userId ? API_ENDPOINTS.user.byId(userId) : API_ENDPOINTS.user.details;
-  return apiClient.get<UserDetails>(BASE, path, { authenticated: true });
+  if (userId) {
+    return Promise.reject(new Error(NO_USER_BY_ID_ENDPOINT));
+  }
+  return apiClient.get<UserDetails>(BASE, API_ENDPOINTS.user.details, { authenticated: true });
 }
 
 export function updateUserDetails(payload: UserUpdateRequest) {

@@ -12,7 +12,6 @@ export const API_ENDPOINTS = {
   },
   user: {
     details: '/User/details',
-    byId: (userId: string) => `/User/GetUser/${userId}`,
     all: '/User/all',
     update: '/User/update',
     block: (userId: string) => `/User/Block/${userId}`,
@@ -21,11 +20,24 @@ export const API_ENDPOINTS = {
   },
   /** IssueController, not ReportController: the service was renamed with the model. */
   report: {
-    /** Multipart. Uploads the photo and runs the model in one call, so it is the slow one. */
+    /** Multipart. Uploads the photo, runs the model and enqueues issue creation as a
+     * background job; no issue is created when the mapped priority is Low or Unknown. */
     analyze: '/Issue/analyze',
-    /** JSON, and it takes analyze's whole response back. Nothing exists server-side until this. */
-    create: '/Issue/create',
-    delete: (issueId: string) => `/Issue/${issueId}`,
+  },
+  /** IssueService on PORTS.issue (5195), not ReportService: expert and farmer issue routes. */
+  issue: {
+    /** Query only - `pageIndex` is lowercase and PageSize is clamped server-side to [5, 10]. */
+    inbox: '/Expert/inbox',
+    /** An empty inbox throws KeyNotFoundException rather than returning an empty page. */
+    review: (issueId: string) => `/Expert/${issueId}/review`,
+    submitReview: (issueId: string) => `/Expert/${issueId}/review`,
+    schedule: (issueId: string) => `/Expert/${issueId}/schedule`,
+    /** Multipart; refuses unless the issue's status is exactly Scheduled. */
+    resolution: (issueId: string) => `/Expert/${issueId}/resolution`,
+    /** ReporterId must be sent in the query string too - the route segment is read but unused. */
+    farmerIssues: (reporterId: string) => `/Farmer/issues/${reporterId}?ReporterId=${reporterId}`,
+    /** DO NOT WIRE: the service ANDs three contradictory filters and always throws 404/500. */
+    communityFeed: '/Farmer/issues',
   },
   map: {
     /** Both values are required: the server defaults them to 0 and then pages by zero. */

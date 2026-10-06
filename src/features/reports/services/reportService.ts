@@ -1,22 +1,17 @@
 /** Every IssueController endpoint is [Authorize], hence `authenticated: true` throughout. */
 
-// analyze uploads the photo and runs the model; create then files it. Nothing exists until create.
+// analyze now uploads the photo, runs the model AND enqueues issue creation itself (a
+// background job) - see BACKEND-INTEGRATION-FACTS.md §0.1. createIssue/deleteReport below
+// are stubs awaiting the S5b rewrite onto that one-call flow.
 
 import { API_ENDPOINTS, apiClient } from '@/api';
 import { API_BASE_URLS, UPLOAD_TIMEOUT_MS, USE_LOCAL_REPORT_MIRROR } from '@/config/env';
 import type { PickedImage } from '@/types/image';
 
-import { emitIssueChange } from './issueEvents';
-import {
-  getMirroredReport,
-  listMirroredReports,
-  removeMirroredReport,
-  saveMirroredReport,
-} from './reportStore';
+import { getMirroredReport, listMirroredReports } from './reportStore';
 
 import type {
   AiAnalysisResult,
-  CreatedIssue,
   CreateIssueFields,
   IssueStatusCode,
   Report,
@@ -132,57 +127,14 @@ export async function analyzeIssue(photo: PickedImage): Promise<AiAnalysisResult
   });
 }
 
-/** Files the issue and returns a whole Report: create's own response carries neither photo nor analysis. */
-export async function createIssue(fields: CreateIssueFields): Promise<Report> {
-  const { description, latitude, longitude } = fields;
-  // Again here: a queue item checkpointed by an older build still holds problemName: null.
-  const analysis = toCreatableAnalysis(fields.analysis);
+const NO_CREATE_ENDPOINT =
+  'POST /Issue/create was removed on 3 Oct; analyze now enqueues issue creation itself. ' +
+  'See BACKEND-INTEGRATION-FACTS.md §0.1/§4.1 - S5b rebuilds this onto the one-call flow.';
 
-  const created = await apiClient.post<CreatedIssue>(
-    BASE,
-    API_ENDPOINTS.report.create,
-    {
-      // Sent back whole; create reads FilePath and Severity straight off it.
-      aiAnalysisResponse: analysis,
-      // 0 is a real coordinate, so these need undefined checks rather than truthiness.
-      latitude: latitude === undefined ? undefined : String(latitude),
-      longitude: longitude === undefined ? undefined : String(longitude),
-    },
-    { authenticated: true },
-  );
-
-  const createdAt = toUtcTimestamp(created.createdAt);
-
-  const report: Report = {
-    id: created.id,
-    // Server-side these come off the analysis too, so the farmer's own description is dropped.
-    title: analysis.problemArabic || analysis.problemName,
-    description: created.description ?? description,
-    status: describeStatus(created.status),
-    createdAt,
-    reporterId: created.reporterId,
-    latitude,
-    longitude,
-    attachments: [
-      {
-        id: `${created.id}-photo`,
-        type: 'Photo',
-        url: resolveAttachmentUrl(analysis.filePath),
-        createdAt,
-      },
-    ],
-    analysis: { ...analysis, modelVersion: '', createdAt },
-  };
-
-  // Assigned, not spread: writing `updatedAt: undefined` over the server's null re-adds the key.
-  if (created.updatedAt) {
-    report.updatedAt = toUtcTimestamp(created.updatedAt);
-  }
-
-  await saveMirroredReport(report);
-  emitIssueChange({ kind: 'created', issueId: report.id });
-
-  return report;
+/** Dead on the wire: kept only so the signature survives until S5b rebuilds this against
+ * the one-call /Issue/analyze flow. */
+export async function createIssue(_fields: CreateIssueFields): Promise<Report> {
+  throw new Error(NO_CREATE_ENDPOINT);
 }
 
 const NO_READ_ENDPOINT =
@@ -208,12 +160,11 @@ export async function getReportById(reportId: string): Promise<Report> {
   return report;
 }
 
-export async function deleteReport(reportId: string): Promise<void> {
-  await apiClient.delete<void>(BASE, API_ENDPOINTS.report.delete(reportId), {
-    authenticated: true,
-  });
-  await removeMirroredReport(reportId);
-  emitIssueChange({ kind: 'deleted', issueId: reportId });
+const NO_DELETE_ENDPOINT = 'DELETE /Issue/{id} was removed on 3 Oct. See BACKEND-INTEGRATION-FACTS.md §0.1.';
+
+/** Dead on the wire, same as createIssue above. */
+export async function deleteReport(_reportId: string): Promise<void> {
+  throw new Error(NO_DELETE_ENDPOINT);
 }
 
 const NO_TRACKER_ENDPOINT =
