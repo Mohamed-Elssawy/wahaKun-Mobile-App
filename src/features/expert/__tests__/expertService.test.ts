@@ -152,8 +152,20 @@ describe('expertFacts', () => {
     });
   });
 
-  it('falls back to New on a status the server grew after this file', () => {
-    expect(expertFacts('Escalated' as ReportStatus, 0).status).toBe('New');
+  it('falls back to New on a status the server grew after this file, warning once', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    try {
+      expect(expertFacts('Escalated' as ReportStatus, 0).status).toBe('New');
+      expect(expertFacts('Escalated' as ReportStatus, 0).status).toBe('New');
+      // Once per distinct value, so an unknown status on a 50-row inbox is not 50 lines.
+      expect(warn).toHaveBeenCalledTimes(1);
+
+      expect(expertFacts('Quarantined' as ReportStatus, 0).status).toBe('New');
+      expect(warn).toHaveBeenCalledTimes(2);
+    } finally {
+      warn.mockRestore();
+    }
   });
 });
 
