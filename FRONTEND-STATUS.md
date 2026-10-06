@@ -428,9 +428,9 @@ to match; `npx tsc` caught all three.
 **Design source:** the local V2 exports under `Waha KUN Figma Designs V2\`, per
 the session's own prompt; now also committed under `design/figma-exports/`
 with the `<id> · <name> · state=<x>` naming.
-**Per-feature flag:** `USE_MOCK_EXPERT_QUEUE` (`DEMO_MODE || true`)
-**State:** running on the mock, except `ملاحظات الخبير`'s public-comment post,
-which is real.
+**Per-feature flag:** `USE_MOCK_EXPERT_QUEUE` (`DEMO_MODE || false` since S5a)
+**State:** running on `ExpertController` — see S5a. This section describes the
+screens as built; the service behind them was replaced wholesale.
 
 ### What it runs on now
 
@@ -488,8 +488,9 @@ never opened. Worth a pixel check against `design/figma-exports/E-03` through
 `E-06` before calling this pixel-complete.
 **Per-feature flag:** `USE_MOCK_EXPERT_QUEUE` (same flag as S3, extended with
 `confirmAppointment`/`confirmRepair`)
-**State:** running on the mock, same backend gap as S3 - appointment, repair
-proof and the farmer notification are all in-memory only, on both sides.
+**State:** running on `ExpertController` — see S5a. The appointment and the
+repair proof are real writes now; neither can be read back, so E-05 and E-06
+still show what this session wrote. The farmer notification is still unbuilt.
 
 ### What it runs on now
 
@@ -663,3 +664,90 @@ filters them, so nothing above the mock needs to change.
 2. Once a chat endpoint exists, implement `chatService.ts`'s `getThreads`
    for real and set `USE_MOCK_EXPERT_CHATS = false`. E-10, the row renderer
    and the rest of chat are the next unit, not this one.
+
+---
+
+## S5a - the expert service against IssueService
+
+**Screens:** none. This is the service layer behind E-01 through E-06; not one
+file under `features/expert/screens`, `components` or `hooks` changed in the
+five integration commits.
+**Branch:** `feature/s5-expert-integration`
+**Per-feature flag:** `USE_MOCK_EXPERT_QUEUE` (`DEMO_MODE || false`)
+**Contract source:** REAL — `ExpertController` on `IssueService`, `PORTS.issue`
+(5195), read from `BACKEND-INTEGRATION-FACTS.md` §4.2 against backend
+`7e8a8b2`.
+**State:** wired and flag off. **Not yet walked against a running server** —
+see "What is still unverified" below.
+
+### What it runs on now
+
+| Piece | Source | Real? |
+| --- | --- | --- |
+| Assigned-cases list (E-01) | `GET /Expert/inbox`, paged, + a detail call per row | real |
+| Case detail (E-02, E-04, E-05, E-06) | `GET /Expert/{id}/review` | real |
+| Review submission and the override (T4) | `POST /Expert/{id}/review` | real transport; the correction is encoded into `notes` — G3 |
+| Appointment confirm (T5) | `POST /Expert/{id}/schedule` | real |
+| Repair confirm (T6) | `POST /Expert/{id}/resolution`, multipart | real |
+| `ملاحظات الخبير` → public comment | `communityApi.postComment` | unchanged from S3 |
+| Chat threads (E-09) | `chatService.mock.ts` | mock — `ChatService` has no controller at all |
+
+### Why the inbox costs eleven requests, not one
+
+`ExpertInboxResponse` carries no AI confidence, no severity string, no reporter
+and no photo, so a card cannot be drawn from a row alone. Each page of rows is
+followed by a `GET /Expert/{id}/review` per row, ten at a time. The inbox also
+has no server-side status filter, so closed cases stay in it forever and a single
+page would have shown a long-serving expert ten resolved cases with the live work
+invisible below; `fetchAssignedRows` pages to a 50-row cap instead. The four tabs
+filter client-side, as they already did.
+
+### Known gaps, deliberate
+
+- **`appointment` and `repair` cannot be read back.** `CaseReviewResponse`
+  carries neither the repair schedule nor an attachment `purpose`, so E-05 and
+  E-06 show what the hook holds from this session's own writes and lose it on
+  restart. `BACKEND-GAP G4/G9`.
+- **`reporterName` is the placeholder `مزارع` and there is no avatar.** No
+  endpoint resolves a user by id. `BACKEND-GAP G7`.
+- **`corroborationCount` is always 0.** No endpoint counts it. `BACKEND-GAP G5`.
+- **A failed detail call degrades its own card**, to confidence 0 and a severity
+  derived from `priority`. Zero reads as the amber low-confidence chip, which
+  tells the expert to look for themselves; inventing a high number would not.
+- **`previousReview` is built but unreachable.** It needs a second review cycle,
+  which needs a reopen, which has no `IssueStatus` value. `BACKEND-GAP G2`.
+  `currentOverride` is live and does fill E-03's `قرار الخبير` card.
+- **The app branches on server message text in three places.** `IssueService`
+  registers no exception middleware, so every refusal is a bare 500. See
+  REFERENCE-NOTES.md, "Where this repo branches on server message text, and why",
+  for the three phrases and the condition that deletes all of them.
+
+### What is still unverified
+
+The unit is typecheck-, lint- and test-clean (`npm run verify`, 390 tests), but
+no part of it has been exercised against a running `IssueService`. Three things
+can only be settled on a device against the real server:
+
+1. **Whether the empty inbox actually reads as empty.** `isEmptyResultError`
+   needs the 500's body to carry `No issues were found`, which holds only under
+   `ASPNETCORE_ENVIRONMENT=Development`.
+2. **Whether `attachments[].url` carries the `reportimage/` key.**
+   `resolveAttachmentUrl` returns its input unchanged when it does not, which
+   would leave E-01's photos pointing at a URL that 403s or hardcodes
+   `127.0.0.1`.
+3. **Whether `INVALID_OPERATION` really never arrives**, which is what the two
+   409 rebuilds assume.
+
+### Wiring it to the real backend — the checklist
+
+1. `API_MODE` must be `direct`. The default is `gateway`, which sends every
+   service to `http://HOST:30000/api`, and there is no gateway in
+   `scripts/start-stack.ps1` — it starts each service on its own port. Set
+   `API_MODE_OVERRIDE = 'direct'` in `src/config/env.local.ts`.
+2. The backend checkout must be on a commit that has `ExpertController`.
+3. `scripts/start-stack.ps1 -WithIssueService` — the switch is opt-in and
+   `IssueService` does not start without it.
+4. `IssueService` must bind plain HTTP on 5195. It calls
+   `app.UseHttpsRedirection()`, so a profile that also binds 7101 will 307 every
+   emulator call to `https://localhost:7101`, which from inside the emulator is
+   the emulator itself.

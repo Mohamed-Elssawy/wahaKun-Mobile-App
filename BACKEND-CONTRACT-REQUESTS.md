@@ -4,7 +4,8 @@ Plain notes for the backend teammate. Nothing here is urgent enough to block the
 app — every screen works today on mock data — but each item is something the
 phone cannot do on its own.
 
-Checked against `origin/master` of the backend repo on **2026-09-28**.
+Checked against `origin/master` of the backend repo on **2026-09-28**;
+items 12-15 added 2026-10-06 against `7e8a8b2`, after `ExpertController` landed.
 
 A longer, field-by-field version of the feed and issue shapes is already in
 `docs/issue-service-response-spec.md`. This file is the short list of what
@@ -176,3 +177,61 @@ issue.
 It sits between `Diagnosed` and `Assigned`, and nothing in our spec verifies an
 issue before routing it to an expert. The app currently treats it the same as
 `Diagnosed`. If it means something specific, we would rather draw it properly.
+
+## 12. `IssueService` has no exception handling, so every refusal is a 500
+
+`IssueService/Program.cs` is `AddControllers()` → `UseAuthentication` →
+`UseAuthorization` → `MapControllers`. There is no `UseExceptionHandler`, no
+`IExceptionHandler`, and the controllers have no `try/catch`. So each of these
+reaches the phone as a bare 500 with a stack trace in the body:
+
+| thrown by `ExpertService` | should be | is |
+| --- | --- | --- |
+| `KeyNotFoundException("No issues were found.")` | 404, or better an empty list | 500 |
+| `InvalidOperationException("Only assigned issues can be reviewed.")` | 409 | 500 |
+| `InvalidOperationException("Resolution action can only be created for a scheduled issue.")` | 409 | 500 |
+| `UnauthorizedAccessException("You are not assigned to this issue.")` | 403 | 500 |
+
+The phone cannot tell a refusal from an outage, because the status carries
+nothing. `expertService.ts` therefore matches on the exception text in the body,
+in three places, each marked and each deletable the day this changes. Those
+matches only work at all because `ASPNETCORE_ENVIRONMENT=Development` makes the
+developer exception page echo the message; under any other environment the body
+is empty and they stop matching silently.
+
+The full request, with the `Program.cs` change that fixes every row above, is
+item 6 of `BACKEND-GAPS-FOR-TEAMMATE.md`.
+
+**Separately: an empty result is not an error.** `ExpertService.GetAllInboxAsync`
+throws rather than returning an empty page, so a new expert with no assigned
+cases looks identical to a failure. Returning an empty list with `totalCount: 0`
+would mean nothing has to be interpreted at all.
+
+## 13. The expert's review has nowhere to put the correction
+
+`SubmitExpertReviewRequest` is `(Decision, Notes)`. When an expert overrides the
+AI they supply a corrected severity *and* a corrected diagnosis, and neither has
+a field. The app currently encodes both into `Notes` and parses them back out on
+read — see the `BACKEND-GAP G3` comments on `composeReviewNotes` and
+`parseReviewNotes`. Two nullable columns on the request and the response would
+delete that encoding and both halves of the parser.
+
+## 14. `CaseReviewResponse` cannot be read back into the expert's own screens
+
+Two fields are missing for E-05 and E-06, which show the expert what they sent
+the farmer:
+
+- **the repair schedule** — `scheduledDate`, `slotStart`, `slotEnd` and the note
+  are written by `POST /Expert/{id}/schedule` and never come back on any read.
+- **`attachments[].purpose`** — the farmer's problem photo and the expert's
+  repair proof are indistinguishable, so the only heuristic left is insertion
+  order.
+
+Both screens currently show what the app itself wrote during that session, which
+is lost the moment the app restarts.
+
+## 15. `PaginatedResult.PageCount` is the item count
+
+`pageCount` carries the number of items on the page, not the number of pages, so
+nothing can paginate off it. The app pages off `totalCount` instead. Worth
+renaming or fixing before another client reads it the way the name suggests.
