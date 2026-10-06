@@ -34,7 +34,7 @@ export default function EmailLoginScreen({ navigation }: ScreenProps<'EmailLogin
     setValidationError('');
 
     if (await signInWithEmail(email.trim(), password)) {
-      navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+      await routeAfterLogin();
     }
   };
 
