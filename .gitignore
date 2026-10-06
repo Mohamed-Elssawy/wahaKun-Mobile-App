@@ -101,6 +101,9 @@ AGENTS.md
 # documents only: the requirements and the system overview.
 REFERENCE-NOTES.md
 BACKEND-BLOCKERS.md
+BACKEND-INTEGRATION-FACTS.md
+BACKEND-GAPS-FOR-TEAMMATE.md
+SPRINT-S5-PROMPTS.md
 docs/*.md
 
 # Local dev tooling. These drive the .NET stack and the demo data on one machine,
