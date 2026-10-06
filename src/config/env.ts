@@ -102,9 +102,9 @@ export const MOCK_ROLE: MockRole = 'farmer';
 
 export const MOCK_EXPERT_APPROVAL: MockApproval = 'approved';
 
-/** §8.3. On by backend gap, not choice: IssueController has no assigned-cases list, no
- * review-submit and no override write, so the whole expert queue has nowhere real to go. */
-export const USE_MOCK_EXPERT_QUEUE = DEMO_MODE || true;
+/** §8.3. Off: ExpertController on PORTS.issue serves the inbox, the case review and all three
+ * writes. The corrected severity and diagnosis ride inside `notes` - see BACKEND-GAP G3. */
+export const USE_MOCK_EXPERT_QUEUE = DEMO_MODE || false;
 
 /** §8.3's E-09. On by backend gap: no chat endpoint exists at all yet. Independent of
  * USE_MOCK_EXPERT_QUEUE - E-10 and the rest of chat are a separate unit from the case queue. */
