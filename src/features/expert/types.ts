@@ -1,5 +1,5 @@
 import type { LifecycleFacts } from '@/features/reports/lifecycle';
-import type { Severity } from '@/features/reports/types';
+import type { ReportStatus, Severity } from '@/features/reports/types';
 import type { PickedImage } from '@/types/image';
 
 /**
@@ -138,4 +138,94 @@ export type ChatThread = {
 
 export type ChatApi = {
   getThreads: () => Promise<ChatThread[]>;
+};
+
+/**
+ * ExpertController's wire shapes, camelCase as the Web defaults rename them. Declared here
+ * beside the domain types, same split community/types.ts and map/types.ts already keep.
+ */
+// No JsonStringEnumConverter is registered, so a C# enum arrives as an int while a string the
+// AutoMapper profile filled with .ToString() arrives as a string. Each field below says which.
+
+/** IssuePriority.ToString(). IssueService numbers it Low=0..Critical=3; the string hides that. */
+export type WirePriority = 'Low' | 'Medium' | 'High' | 'Critical';
+
+/** PaginatedResult<T>. `pageCount` is the item count on this page, not the number of pages. */
+// Community declares an identical shape, but as a PROPOSED feed contract; this one is real.
+export type ExpertPaginatedWire<T> = {
+  pageIndex: number;
+  pageCount: number;
+  totalCount: number;
+  results: T[];
+};
+
+/** ExpertInboxResponse. No confidence, no reporter, no photo - see BACKEND-GAPS G5/G6/G7. */
+export type ExpertInboxRowWire = {
+  id: string;
+  title: string;
+  description?: string | null;
+  status: ReportStatus;
+  priority: WirePriority;
+  createdAt: string;
+  assignedExpertId?: string | null;
+};
+
+/** IssueAttachmentType as an int, and no `purpose` field at all - BACKEND-GAP G4. */
+export type IssueAttachmentWire = {
+  id: string;
+  type: 0 | 1;
+  url: string;
+};
+
+/** AiAnalysisResponse. `severity` is typed as the union so the server's raw Arabic lands in it. */
+export type ExpertAiAnalysisWire = {
+  problemName: string;
+  problemArabic?: string | null;
+  confidence: number;
+  severity: Severity;
+  recommendation: string;
+  explanation?: string | null;
+  repairSteps: string[];
+};
+
+/** ReviewDecision as an int: 0 = ConfirmAi, 1 = Override. */
+export type ExpertReviewWire = {
+  id: string;
+  decision: 0 | 1;
+  notes: string | null;
+  expertId: string;
+  reviewedAt: string;
+};
+
+export type CaseReviewWire = {
+  id: string;
+  title: string;
+  description?: string | null;
+  status: ReportStatus;
+  priority: WirePriority;
+  reporterId: string;
+  assignedExpertId?: string | null;
+  /** Strings on the wire, not numbers. Nothing in the expert feature reads them, so nothing maps them. */
+  latitude: string | null;
+  longitude: string | null;
+  createdAt: string;
+  attachments: IssueAttachmentWire[];
+  /** Null when the issue has no analysed attachment. */
+  aiAnalysis: ExpertAiAnalysisWire | null;
+  expertReviews: ExpertReviewWire[];
+};
+
+/** SubmitExpertReviewRequest. Severity and the corrected diagnosis ride inside `notes` - G3. */
+export type SubmitReviewBody = {
+  decision: 0 | 1;
+  notes: string | null;
+};
+
+/** ScheduleRepairRequest. `scheduledDate` is a DateOnly, the two slots are TimeOnly. */
+export type ScheduleRepairBody = {
+  scheduledDate: string;
+  slotStart: string;
+  slotEnd: string;
+  farmerNotified: boolean;
+  notes: string | null;
 };
