@@ -133,3 +133,12 @@ export const everyNullableNull: unknown = caseReview({
   attachments: [],
   aiAnalysis: null,
 });
+
+/** Two overrides in a row, which only a reopen could produce - and G2/F10 means nothing can. */
+export const twoOverrides: unknown = caseReview({
+  status: 'Reviewed',
+  expertReviews: [
+    review({ id: 'review-old', decision: 1, notes: '[تصحيح] انسداد جزئي | متوسطة\nملاحظة قديمة' }),
+    review({ id: 'review-new', decision: 1, notes: OVERRIDE_NOTES, reviewedAt: '2026-10-05T21:30:00' }),
+  ],
+});
