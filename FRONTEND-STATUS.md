@@ -266,17 +266,17 @@ off the server. All of it is filed in BACKEND-CONTRACT-REQUESTS.md, items 8–11
 
 | Flag                      | Default  | Effect                                   |
 | ------------------------- | -------- | ---------------------------------------- |
-| `USE_MOCK_ROLE`           | `true`   | serve the account role from `MOCK_ROLE`  |
+| `USE_MOCK_ROLE`           | `false`  | serve the account role from `MOCK_ROLE`  |
 | `MOCK_ROLE`               | farmer   | which role the mock serves               |
 | `MOCK_EXPERT_APPROVAL`    | approved | which §4.1 row an expert takes           |
 | `ESCALATE_LOW_CONFIDENCE` | `true`   | hide a sub-80% diagnosis from the farmer |
 
-`USE_MOCK_ROLE` is on by backend gap, the way `USE_MOCK_COMMUNITY` is, so the
-committed build boots the farmer shell exactly as it did before. Set `MOCK_ROLE`
-to `'expert'` to walk the expert shell on a device. `env.test.ts` asserts all
-four, because an expert default would send every account to a shell of empty
-placeholders and turning the escalation off would put uncertainty language back
-in front of farmers without failing anything.
+`USE_MOCK_ROLE` went `false` in S5b: the role comes from the access token's role
+claim, so which shell an account boots into now depends on the account. The two
+`MOCK_*` values remain for `DEMO_MODE`, which has no AuthService to get a token
+from. `env.test.ts` asserts all four, because an expert default would send every
+account to a shell of empty placeholders and turning the escalation off would put
+uncertainty language back in front of farmers without failing anything.
 
 ### The escalation, reinstated
 
@@ -319,10 +319,14 @@ numeric pill where §8.3 asks for a green dot.
 
 ### Wiring it to the real backend
 
-Deleting one branch in `features/user/role.ts` and setting `USE_MOCK_ROLE` to
-`false`, once `UserDetailsResponse` carries the two fields. `roleFromDetails`
-is already written and tested against both the names and the ints, since
-`UserStatus` would arrive as a number the way `IssueStatus` does.
+**Done in S5b**, but not the way this section predicted. `UserDetailsResponse`
+still carries neither field; the role came from the access token's role claim
+instead, which was already there. `USE_MOCK_ROLE` is `false` and `roleFromDetails`
+stays wired behind the token for the day the DTO does grow them — it is still
+written and tested against both the names and the ints, since `UserStatus` would
+arrive as a number the way `IssueStatus` does. Approval is inferred from the
+presence of the `Expert` role; see S5b for why that is sound and when it stops
+being.
 
 ---
 
@@ -751,3 +755,75 @@ can only be settled on a device against the real server:
    `app.UseHttpsRedirection()`, so a profile that also binds 7101 will 307 every
    emulator call to `https://localhost:7101`, which from inside the emulator is
    the emulator itself.
+
+---
+
+## S5b — the real role, the farmer's issue list, and one-call filing
+
+**Branch:** `feature/s5-role-and-farmer`, three commits off `develop`.
+**Screens touched:** none. No file under `screens/`, `components/` or `hooks/` is
+in the diff.
+
+### What it runs on now
+
+| Call                      | Runs on                                        | Service |
+| ------------------------- | ---------------------------------------------- | ------- |
+| the account role          | the access token's `role` claim                | —       |
+| the farmer's own guid     | the access token's `nameid` claim              | —       |
+| `getMyReports`            | `GET /Farmer/issues/{reporterId}` + the mirror | 5195    |
+| `getReportById`           | the mirror, then that same list                | 5195    |
+| `analyzeIssue`            | `POST /Issue/analyze`                          | 5173    |
+| `createIssue`             | nothing — local only                           | —       |
+| `deleteReport`            | nothing — throws, no endpoint                  | —       |
+| `getReportTracker` + T7/T8| the mock                                       | —       |
+
+Filing a report is now **one** network call. `POST /Issue/create` was deleted on
+3 October and `analyze` already enqueues the creation as a background job, so
+`createIssue` is the local commit of what `analyze` caused.
+
+### The flags that stayed mocked, and why
+
+| Flag                           | State  | Why                                                           |
+| ------------------------------ | ------ | ------------------------------------------------------------- |
+| `USE_LOCAL_REPORT_MIRROR`      | `true` | holds the reports §4.1 declines to create — new meaning        |
+| `USE_MOCK_TRACKER`             | `true` | the farmer row has no analysis, attachments or history (G9)    |
+| `USE_MOCK_COMMUNITY`           | `true` | `GET /Farmer/issues` ANDs three contradictory filters          |
+| `USE_MOCK_EXPERT_CHATS`        | `true` | ChatService has no controller                                  |
+| `ENABLE_COMMENT_POSTING`       | `false`| no endpoint                                                    |
+| `confirmResolution` / `reject` | mocked | nothing ever sets `completed`, and there is no reopen (G1/G2)  |
+
+### Known gaps, deliberate
+
+- **A Low or Unknown severity creates no issue server-side**, so those reports
+  live only in the local mirror on the phone that filed them. `BACKEND-CONTRACT-
+  REQUESTS.md` item 16, which also carries the mirror's deletion condition.
+- **One Medium+ report is addressable two ways** — by local id with the analysis
+  and photo, by server guid without either — and cannot be reconciled. Item 17.
+- **The mirror grows without bound.** Text only; a cap is a later unit.
+- **The farmer tracker shows a mock appointment** that will not match what the
+  expert actually scheduled, even though the real schedule is on the row.
+- **Opening any map or feed issue now costs one extra `GET /Farmer/issues`**,
+  because `getReportById` has to ask whether the report is the farmer's own.
+
+### What `npm run verify` covers, and what it does not
+
+Green: 39 suites, 440 tests. Covered by test — the claim readers and all five
+malformed-token shapes, the role cache and its clearing, the double-guid URL, the
+int status mapping, the server/mirror concatenation, and both halves of the
+severity allow-list.
+
+**Not covered by test:** the queue draining through the *real* `createIssue`.
+`reportQueue.test.ts` mocks `reportApi` wholesale, by design — it tests retry
+policy, not the service. The two sides meet in the middle (the queue needs a
+`report.id`, and `createIssue` is tested to return one and to make no network
+call), but nothing exercises the composition. That is what the emulator walk is
+for.
+
+### Wiring it to the real backend — the checklist
+
+Everything S5a's checklist says, unchanged, plus:
+
+1. The account you log in as decides the shell. An `Expert` account lands on
+   `ExpertHome`, anything else on `Home`. There is no flag to flip any more.
+2. `UserService` on 5256 may be down without breaking boot — the token is enough.
+   `GET /Farmer/issues` on 5195 may not: بلاغاتي shows its error state without it.

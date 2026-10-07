@@ -235,3 +235,57 @@ is lost the moment the app restarts.
 `pageCount` carries the number of items on the page, not the number of pages, so
 nothing can paginate off it. The app pages off `totalCount` instead. Worth
 renaming or fixing before another client reads it the way the name suggests.
+
+## 16. Filing a report should always create a record
+
+This is the one that changes what the farmer sees, so it is the one worth reading
+first.
+
+`POST /Issue/analyze` maps the vision service's Arabic severity onto an
+`IssuePriority` and then enqueues the issue creation **only when that priority is
+Medium or higher**. The four minor severities — `بسيطة`, `بسيطة جداً`,
+`غير مؤثرة`, `غير معروفة` — produce a diagnosis and no issue at all. So does any
+severity the mapping does not recognise, because it ends in
+`_ => IssuePriority.Unknown`.
+
+From the phone this looks like data loss. The farmer photographs a problem, reads
+a real diagnosis, and the report never appears in بلاغاتي, because on the server
+it does not exist. Nothing failed and nothing said so.
+
+We think discarding those reports is a bug rather than a filter. A low-severity
+problem is still a problem the farmer reported, it is still worth a record, and
+the severity is already on the issue if anything later wants to sort or hide by
+it. **Please create the issue for every severity** and let the client decide what
+to show.
+
+Until then the app keeps those reports in a local mirror on the device, so the
+farmer is not told their own submission vanished. That mirror is the only thing
+holding them, so it is lost with the app's data, and it is only on the phone that
+filed them.
+
+**The deletion condition, which matters if you change this.** بلاغاتي shows the
+server's list concatenated with the mirror's rows, and it does no matching
+between them, because today the two sets cannot overlap: the mirror holds only
+what the server refuses to create. The moment `analyze` starts creating issues
+for Low and Unknown, every such report appears **twice** — once from each half.
+So tell us when this lands and the mirror comes out in the same change. The
+invariant is written on both halves of `reportService.ts`.
+
+## 17. The farmer's issue list carries no photo and no diagnosis
+
+`GetFarmerIssues` returns `issueId`, `title`, `description`, `createdAt`,
+`status`, the schedule fields and the expert's name — but **no `attachments[]`
+and no AI analysis**. Two consequences:
+
+- A report card in بلاغاتي has no photo to draw, and no severity, because there
+  is no priority on the row either.
+- Opening a report the farmer filed on this device shows the diagnosis, and
+  opening the same report after the app restarts does not, because the analysis
+  only ever existed in the local mirror.
+
+That split is unfixable client-side. Creation is asynchronous and returns no id,
+and the row carries no photo URL, so there is nothing to join the local record to
+the server's on — one report ends up addressable two ways, with different data on
+each. **The attachment URL and the AI analysis on `GetFarmerIssues` would close
+it**, and it is the same analysis `GET /Expert/{id}/review` already returns, so
+the mapping exists.
