@@ -92,9 +92,10 @@ export type MockRole = 'farmer' | 'expert';
 /** §4.1's four expert destinations. The backend's UserStatus has exactly these, numbered 1-4. */
 export type MockApproval = 'approved' | 'pending' | 'rejected' | 'suspended';
 
-/** On by backend gap: UserDetailsResponse carries no role, so there is nothing real to read. */
-// Identity roles do exist in AuthService, but only inside the JWT, which is a separate request.
-export const USE_MOCK_ROLE = DEMO_MODE || true;
+/** Off: the role comes from the access token. UserDetailsResponse still carries no role field,
+ * but AuthService writes a ClaimTypes.Role claim into every token it issues - §4.5 - so
+ * api/jwt.ts reads it from there. MOCK_ROLE below is what DEMO_MODE falls back to. */
+export const USE_MOCK_ROLE = DEMO_MODE || false;
 
 /** Farmer by default, so the committed build and DEMO_MODE both boot the farmer shell. */
 // Set to 'expert' with MOCK_EXPERT_APPROVAL 'approved' to walk the expert shell on a device.

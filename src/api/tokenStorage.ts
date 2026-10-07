@@ -23,6 +23,21 @@ export async function getRefreshToken(): Promise<string | null> {
   return AsyncStorage.getItem(REFRESH_TOKEN_KEY);
 }
 
+type Listener = () => void;
+const clearedListeners = new Set<Listener>();
+
+/** Fired once the session's tokens are gone, which is both logout (useLogout) and an expired
+ * session (expireSession). features/user/role.ts subscribes to drop its cached JWT identity.
+ * The listener lives here rather than this file importing role.ts, because api/ reaching into
+ * features/ would close a cycle: role.ts -> user/services -> userService.ts -> @/api -> here. */
+export function onTokensCleared(listener: Listener): () => void {
+  clearedListeners.add(listener);
+  return () => {
+    clearedListeners.delete(listener);
+  };
+}
+
 export async function clearTokens(): Promise<void> {
   await AsyncStorage.removeMany([ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY]);
+  clearedListeners.forEach(listener => listener());
 }

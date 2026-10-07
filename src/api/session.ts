@@ -10,7 +10,10 @@ const expiredListeners = new Set<Listener>();
 const refreshedListeners = new Set<Listener>();
 let refreshing: Promise<RefreshOutcome> | null = null;
 
-function decodeJwtPayload(token: string): Record<string, unknown> | null {
+/** The payload only, and no signature check: the server validates what it issued, so this
+ * just reads a claim back out. Exported because api/jwt.ts - and through it the role
+ * resolution in features/user/role.ts - is now a second consumer. One decoder, not two. */
+export function decodeJwtPayload(token: string): Record<string, unknown> | null {
   try {
     const part = token.split('.')[1];
     if (!part) return null;

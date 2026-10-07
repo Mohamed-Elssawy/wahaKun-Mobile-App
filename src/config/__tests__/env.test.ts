@@ -34,10 +34,11 @@ describe('committed feature flag defaults', () => {
     expect(USE_MOCK_COMMUNITY).toBe(true);
   });
 
-  // On by backend gap: UserDetailsResponse carries no role. Asserted with the role it serves,
-  // because an expert default here would send every account to a shell of empty placeholders.
-  it('mocks the account role, and mocks it as a farmer', () => {
-    expect(USE_MOCK_ROLE).toBe(true);
+  // Off since the role was wired to the JWT: AuthService writes a role claim into every token,
+  // so there is a real answer to read. MOCK_ROLE is still asserted as the farmer, because it is
+  // what DEMO_MODE falls back to and an expert default would boot into other people's cases.
+  it('reads the account role from the token, and still demos as a farmer', () => {
+    expect(USE_MOCK_ROLE).toBe(false);
     expect(MOCK_ROLE).toBe('farmer');
   });
 
