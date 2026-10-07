@@ -9,8 +9,8 @@ function exceptionBody(message: string, frames: string[]): string {
 
 /** Deliberately past parseErrorBody's 300-character slice, so the test proves the head survives. */
 const DEEP_STACK = [
-  'Issue.Service.Services.ExpertService.GetAllInboxAsync(IssueQueryParameters parameters, Guid expertId) in C:\Grad-Project\Graduation-Project\IssueService\Core\Issue.Service\Services\ExpertService.cs:line 48',
-  'Issue.Api.Controllers.ExpertController.GetInbox(IssueQueryParameters parameters) in C:\Grad-Project\Graduation-Project\IssueService\Issue.Api\Controllers\ExpertController.cs:line 31',
+  'Issue.Service.Services.ExpertService.GetAllInboxAsync(IssueQueryParameters parameters, Guid expertId) in C:\\Grad-Project\\Graduation-Project\\IssueService\\Core\\Issue.Service\\Services\\ExpertService.cs:line 48',
+  'Issue.Api.Controllers.ExpertController.GetInbox(IssueQueryParameters parameters) in C:\\Grad-Project\\Graduation-Project\\IssueService\\Issue.Api\\Controllers\\ExpertController.cs:line 31',
   'Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, object controller, object[] arguments)',
 ];
 
