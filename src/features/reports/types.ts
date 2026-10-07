@@ -106,6 +106,29 @@ export type CreatedIssue = {
   reporterId: string;
 };
 
+/**
+ * `GetFarmerIssues`, the one row shape `GET /Farmer/issues/{reporterId}` returns - §4.3.
+ * Much narrower than a `Report`: no severity or priority, no attachments, no AI analysis and
+ * no status history, which is why F-06 still reads from the mock (§6 G9).
+ */
+export type GetFarmerIssuesWire = {
+  issueId: string;
+  title: string;
+  description: string;
+  createdAt: string;
+  /** An int. No JsonStringEnumConverter is registered anywhere in the solution. */
+  status: IssueStatusCode;
+  slotStart: string | null;
+  slotEnd: string | null;
+  /** Spelled this way on the wire. A backend typo, and routes and fields are matched verbatim. */
+  sceduleDate: string | null;
+  reporterId: string;
+  expertName: string;
+  expertUrl: string;
+  expertId: string;
+  teamName: string | null;
+};
+
 /** What create needs beyond the analysis the farmer just got back. */
 export type CreateIssueFields = {
   analysis: AiAnalysisResult;

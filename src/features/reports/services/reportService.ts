@@ -1,10 +1,16 @@
-/** Every IssueController endpoint is [Authorize], hence `authenticated: true` throughout. */
+/**
+ * One farmer-facing surface, two services behind it - BACKEND-INTEGRATION-FACTS.md §1:
+ *
+ * - `BASE`, ReportService on 5173, serves `POST /Issue/analyze` and nothing else. It has no
+ *   `GET` of any kind left, and `POST /Issue/create` and `DELETE /Issue/{id}` were removed
+ *   from it on 3 October (§0.1).
+ * - `ISSUE_BASE`, IssueService on 5195, serves `GET /Farmer/issues/{reporterId}`, which is
+ *   the only read the farmer has (§4.3).
+ *
+ * Every endpoint on both is `[Authorize]`, hence `authenticated: true` throughout.
+ */
 
-// analyze now uploads the photo, runs the model AND enqueues issue creation itself (a
-// background job) - see BACKEND-INTEGRATION-FACTS.md §0.1. createIssue/deleteReport below
-// are stubs awaiting the S5b rewrite onto that one-call flow.
-
-import { API_ENDPOINTS, apiClient } from '@/api';
+import { API_ENDPOINTS, apiClient, getTokenUserId } from '@/api';
 import { API_BASE_URLS, UPLOAD_TIMEOUT_MS, USE_LOCAL_REPORT_MIRROR } from '@/config/env';
 import type { PickedImage } from '@/types/image';
 
@@ -13,6 +19,7 @@ import { getMirroredReport, listMirroredReports } from './reportStore';
 import type {
   AiAnalysisResult,
   CreateIssueFields,
+  GetFarmerIssuesWire,
   IssueStatusCode,
   Report,
   ReportStatus,
@@ -20,6 +27,7 @@ import type {
 } from '../types';
 
 const BASE = API_BASE_URLS.report;
+const ISSUE_BASE = API_BASE_URLS.issue;
 
 /** A fallback filename only. ReportService validates no content types on upload. */
 const PHOTO_EXTENSIONS: Record<string, string> = {
@@ -60,12 +68,18 @@ export function normalizeConfidence(confidence: number): number {
   return confidence > 1 ? Math.min(confidence / 100, 1) : confidence;
 }
 
-/** No JsonStringEnumConverter is registered, so IssueStatus crosses the wire as an int. */
+/**
+ * `IssueStatus`, verbatim from §3. No JsonStringEnumConverter is registered anywhere in the
+ * solution, so it crosses the wire as an int - and `GET /Farmer/issues` is the first caller
+ * that actually sends one, which is how 2 and 3 were wrong here unnoticed.
+ *
+ * `Verified` is deliberately absent: nothing in the backend ever assigns it.
+ */
 const STATUS_BY_CODE: Record<IssueStatusCode, ReportStatus> = {
   0: 'Reported',
   1: 'Diagnosed',
-  2: 'Verified',
-  3: 'Assigned',
+  2: 'Assigned',
+  3: 'Reviewed',
   4: 'Scheduled',
   5: 'Repaired',
   6: 'completed',
@@ -137,27 +151,76 @@ export async function createIssue(_fields: CreateIssueFields): Promise<Report> {
   throw new Error(NO_CREATE_ENDPOINT);
 }
 
-const NO_READ_ENDPOINT =
-  'IssueController exposes no read endpoint; see USE_LOCAL_REPORT_MIRROR in config/env.';
+const NO_REPORTER_ID =
+  'No user id in the access token, so GET /Farmer/issues has no ReporterId to send.';
 
-/** Newest first. Local while the mirror is on, since GetMyIssues is commented out server-side. */
-export async function getMyReports(): Promise<Report[]> {
-  if (!USE_LOCAL_REPORT_MIRROR) {
-    throw new Error(NO_READ_ENDPOINT);
-  }
-  return listMirroredReports();
+/**
+ * §4.3's row onto a `Report`. The scheduling fields - `sceduleDate`, `slotStart`, `slotEnd`,
+ * `expertName`, `expertUrl`, `expertId`, `teamName` - are real data this deliberately drops,
+ * because F-06 is still served by the mock; see REFERENCE-NOTES.md.
+ */
+// BACKEND-GAP: the row carries no priority and no attachments, so there is no severity to read
+// and no photo to show. Neither is invented: `analysis` stays undefined and `attachments` empty.
+export function fromFarmerIssue(row: GetFarmerIssuesWire): Report {
+  return {
+    id: row.issueId,
+    title: row.title,
+    description: row.description,
+    status: describeStatus(row.status),
+    // `datetime2` carries no offset, so this is the difference between today and yesterday.
+    createdAt: toUtcTimestamp(row.createdAt),
+    reporterId: row.reporterId,
+    attachments: [],
+  };
 }
 
-export async function getReportById(reportId: string): Promise<Report> {
-  if (!USE_LOCAL_REPORT_MIRROR) {
-    throw new Error(NO_READ_ENDPOINT);
+/** The guid goes in the path *and* the query string: `farmerIssues` spells it twice because
+ * the service authorises against the query value and ignores the route segment (§4.3). */
+async function fetchServerReports(): Promise<Report[]> {
+  const reporterId = await getTokenUserId();
+  if (!reporterId) {
+    throw new Error(NO_REPORTER_ID);
   }
 
-  const report = await getMirroredReport(reportId);
-  if (!report) {
-    throw new Error(`No mirrored report for ${reportId}`);
+  const rows = await apiClient.get<GetFarmerIssuesWire[]>(
+    ISSUE_BASE,
+    API_ENDPOINTS.issue.farmerIssues(reporterId),
+    { authenticated: true },
+  );
+
+  return rows.map(fromFarmerIssue);
+}
+
+/**
+ * Newest first, from both halves: the issues the backend created, plus the mirror's own rows.
+ * A failed server read is allowed to throw - بلاغاتي has an error state and showing a
+ * half-empty list as if it were the whole one would be the worse answer.
+ */
+export async function getMyReports(): Promise<Report[]> {
+  const server = await fetchServerReports();
+  const mirrored = USE_LOCAL_REPORT_MIRROR ? await listMirroredReports() : [];
+
+  return [...server, ...mirrored].sort(
+    (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt),
+  );
+}
+
+// BACKEND-GAP: there is no `GET /Farmer/issues/{issueId}`. The route that looks like one is the
+// list, and it filters on the query string, so a single issue has no endpoint of its own.
+/** The mirror first: it is local, free, and for a report filed seconds ago it is the only
+ * place the row exists at all. Only then the server's list. */
+export async function getReportById(reportId: string): Promise<Report> {
+  const mirrored = USE_LOCAL_REPORT_MIRROR ? await getMirroredReport(reportId) : null;
+  if (mirrored) {
+    return mirrored;
   }
-  return report;
+
+  const found = (await fetchServerReports()).find(report => report.id === reportId);
+  if (!found) {
+    throw new Error(`No report with id ${reportId}`);
+  }
+
+  return found;
 }
 
 const NO_DELETE_ENDPOINT = 'DELETE /Issue/{id} was removed on 3 Oct. See BACKEND-INTEGRATION-FACTS.md §0.1.';

@@ -5,17 +5,26 @@ import {
   createIssue,
   describeStatus,
   getMyReports,
+  getReportById,
   normalizeConfidence,
   resolveAttachmentUrl,
   toUtcTimestamp,
 } from '../reportService';
 import { resetReportMirror, saveMirroredReport } from '../reportStore';
 
+import type { GetFarmerIssuesWire } from '../../types';
+
 const mockPost = jest.fn();
+const mockGet = jest.fn();
+const mockGetTokenUserId = jest.fn<Promise<string | null>, []>();
 
 jest.mock('@/api', () => ({
-  apiClient: { post: (...args: unknown[]) => mockPost(...args) },
+  apiClient: {
+    post: (...args: unknown[]) => mockPost(...args),
+    get: (...args: unknown[]) => mockGet(...args),
+  },
   API_ENDPOINTS: jest.requireActual('@/api/endpoints').API_ENDPOINTS,
+  getTokenUserId: () => mockGetTokenUserId(),
 }));
 
 // jest.setup's stub never returns what it stored, and the mirror is the read path here.
@@ -117,10 +126,14 @@ describe('toUtcTimestamp', () => {
 });
 
 // IssueStatus crosses the wire as an int, and a wrong mapping is invisible to the compiler.
+// The table below is complete: every value of §3's enum, 0 through 6. 2 and 3 used to be
+// missing from it and were also wrong in the map - do not skip them again.
 describe('describeStatus', () => {
   it('names every IssueStatus the server can send', () => {
     expect(describeStatus(0)).toBe('Reported');
     expect(describeStatus(1)).toBe('Diagnosed');
+    expect(describeStatus(2)).toBe('Assigned');
+    expect(describeStatus(3)).toBe('Reviewed');
     expect(describeStatus(4)).toBe('Scheduled');
     expect(describeStatus(5)).toBe('Repaired');
     expect(describeStatus(6)).toBe('completed');
@@ -197,30 +210,151 @@ describe('the analysis create receives', () => {
 
 });
 
-// The mirror stands in for GetMyIssues, which IssueController no longer exposes. createIssue
-// no longer writes it (see the createIssue describe above), so this seeds it directly.
+const REPORTER_ID = 'f86295b1-6d2e-4a6f-9d2a-0c1b3e5a7d91';
+
+/** One GetFarmerIssues row, with every field §4.3 says is on it. */
+function row(overrides: Partial<GetFarmerIssuesWire> = {}): GetFarmerIssuesWire {
+  return {
+    issueId: 'i-1',
+    title: 'تسريب في الأنبوب',
+    description: 'ماء على السطح',
+    createdAt: '2026-10-05T19:47:30',
+    status: 2,
+    slotStart: '09:00:00',
+    slotEnd: '11:00:00',
+    sceduleDate: '2026-10-09T00:00:00',
+    reporterId: REPORTER_ID,
+    expertName: 'سيد حسن',
+    expertUrl: 'profile-pictures/sayed.jpg',
+    expertId: 'e-1',
+    teamName: null,
+    ...overrides,
+  };
+}
+
 describe('getMyReports', () => {
   beforeEach(async () => {
+    mockGet.mockReset();
+    mockGetTokenUserId.mockReset();
+    mockGetTokenUserId.mockResolvedValue(REPORTER_ID);
     await resetReportMirror();
   });
 
-  it('puts the newest report first', async () => {
-    for (const [id, createdAt] of [
-      ['oldest', '2026-08-09T13:01:13.4206342Z'],
-      ['newest', '2026-08-10T12:45:58.0923551Z'],
-      ['middle', '2026-08-09T13:37:59.6010209Z'],
-    ]) {
-      await saveMirroredReport({
-        id,
-        status: 'Diagnosed',
-        createdAt,
-        reporterId: 'f86295b1',
-        attachments: [],
-      });
-    }
+  // Send it in one place only and GetAllIssuesByReporterIdAsync throws Unauthorized every time.
+  it('sends the reporter guid in the path and in the query string', async () => {
+    mockGet.mockResolvedValue([]);
+
+    await getMyReports();
+
+    expect(mockGet).toHaveBeenCalledWith(
+      API_BASE_URLS.issue,
+      `/Farmer/issues/${REPORTER_ID}?ReporterId=${REPORTER_ID}`,
+      { authenticated: true },
+    );
+  });
+
+  it('maps a row onto a Report', async () => {
+    mockGet.mockResolvedValue([row()]);
+
+    const [report] = await getMyReports();
+
+    expect(report).toEqual({
+      id: 'i-1',
+      title: 'تسريب في الأنبوب',
+      description: 'ماء على السطح',
+      // The int, through the corrected table: 2 is Assigned, not Verified.
+      status: 'Assigned',
+      createdAt: '2026-10-05T19:47:30Z',
+      reporterId: REPORTER_ID,
+      attachments: [],
+    });
+    // Nothing invented for what the payload does not carry.
+    expect(report.analysis).toBeUndefined();
+  });
+
+  it('reads the status as an int, not a string', async () => {
+    mockGet.mockResolvedValue([row({ status: 3 }), row({ issueId: 'i-2', status: 6 })]);
 
     const reports = await getMyReports();
 
-    expect(reports.map(report => report.id)).toEqual(['newest', 'middle', 'oldest']);
+    expect(reports.map(report => report.status)).toEqual(
+      expect.arrayContaining(['Reviewed', 'completed']),
+    );
+  });
+
+  it('merges the mirror into the server rows, newest first', async () => {
+    mockGet.mockResolvedValue([
+      row({ issueId: 'server-old', createdAt: '2026-08-09T13:01:13.4206342' }),
+      row({ issueId: 'server-new', createdAt: '2026-08-10T12:45:58.0923551' }),
+    ]);
+    await saveMirroredReport({
+      id: 'mirrored-middle',
+      status: 'Diagnosed',
+      createdAt: '2026-08-09T13:37:59.6010209Z',
+      reporterId: REPORTER_ID,
+      attachments: [],
+    });
+
+    const reports = await getMyReports();
+
+    expect(reports.map(report => report.id)).toEqual([
+      'server-new',
+      'mirrored-middle',
+      'server-old',
+    ]);
+  });
+
+  // Sending `undefined` as the guid would collect an Unauthorized and read as a session problem.
+  it('refuses to call the server without a reporter id', async () => {
+    mockGetTokenUserId.mockResolvedValue(null);
+
+    await expect(getMyReports()).rejects.toThrow(/ReporterId/);
+    expect(mockGet).not.toHaveBeenCalled();
+  });
+
+  // بلاغاتي has an error state; a half list presented as the whole one would be worse.
+  it('lets a failed server read reach the screen', async () => {
+    mockGet.mockRejectedValue(new Error('connection refused'));
+
+    await expect(getMyReports()).rejects.toThrow('connection refused');
+  });
+});
+
+describe('getReportById', () => {
+  beforeEach(async () => {
+    mockGet.mockReset();
+    mockGetTokenUserId.mockReset();
+    mockGetTokenUserId.mockResolvedValue(REPORTER_ID);
+    await resetReportMirror();
+  });
+
+  // The only place a report filed seconds ago exists, and it costs no request.
+  it('answers from the mirror without calling the server', async () => {
+    await saveMirroredReport({
+      id: 'local-1',
+      status: 'Diagnosed',
+      createdAt: '2026-10-05T19:47:30Z',
+      reporterId: REPORTER_ID,
+      attachments: [],
+    });
+
+    await expect(getReportById('local-1')).resolves.toMatchObject({ id: 'local-1' });
+    expect(mockGet).not.toHaveBeenCalled();
+  });
+
+  it('falls back to the server list for a report the mirror never held', async () => {
+    mockGet.mockResolvedValue([row({ issueId: 'i-9' })]);
+
+    await expect(getReportById('i-9')).resolves.toMatchObject({
+      id: 'i-9',
+      status: 'Assigned',
+    });
+  });
+
+  // useIssueDetails treats this as "not mine" and falls through to the map.
+  it('throws when neither half has it', async () => {
+    mockGet.mockResolvedValue([row()]);
+
+    await expect(getReportById('someone-elses')).rejects.toThrow(/someone-elses/);
   });
 });
