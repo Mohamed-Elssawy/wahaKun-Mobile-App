@@ -65,7 +65,14 @@ export const DEMO_MODE = false;
 /** Flip to true to work on the diagnosis screens with no backend running. */
 export const USE_MOCK_REPORTS = DEMO_MODE || false;
 
-/** Mirrors this device's reports locally. On because IssueController has no GetMyIssues/GetIssueById. */
+/**
+ * On, and no longer for the reason it was added. It does not mean "there is no read endpoint"
+ * any more - `GET /Farmer/issues/{reporterId}` is wired. It means **the mirror holds the
+ * reports the backend declines to create**: §4.1 maps a Low or Unknown severity, produces a
+ * diagnosis and then creates no issue at all, so without this those reports would vanish from
+ * بلاغاتي the moment the farmer left the screen. It also holds every other report by local id
+ * for the diagnosis screen to read back, since creation is asynchronous and returns no id.
+ */
 export const USE_LOCAL_REPORT_MIRROR = true;
 
 /** F-06. On by backend gap, not choice: IssueController has no read endpoint at all yet, so

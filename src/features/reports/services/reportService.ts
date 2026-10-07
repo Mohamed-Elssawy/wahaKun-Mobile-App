@@ -14,7 +14,11 @@ import { API_ENDPOINTS, apiClient, getTokenUserId } from '@/api';
 import { API_BASE_URLS, UPLOAD_TIMEOUT_MS, USE_LOCAL_REPORT_MIRROR } from '@/config/env';
 import type { PickedImage } from '@/types/image';
 
-import { getMirroredReport, listMirroredReports } from './reportStore';
+import {
+  getMirroredReport,
+  listMirroredReports,
+  saveMirroredReport,
+} from './reportStore';
 
 import type {
   AiAnalysisResult,
@@ -141,14 +145,79 @@ export async function analyzeIssue(photo: PickedImage): Promise<AiAnalysisResult
   });
 }
 
-const NO_CREATE_ENDPOINT =
-  'POST /Issue/create was removed on 3 Oct; analyze now enqueues issue creation itself. ' +
-  'See BACKEND-INTEGRATION-FACTS.md §0.1/§4.1 - S5b rebuilds this onto the one-call flow.';
+/** Deliberately not guid-shaped, so `isServerIssueId` reads it as local and nothing asks the
+ * map or the feed for a report only this device knows about. */
+function createLocalReportId(): string {
+  return `local-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
 
-/** Dead on the wire: kept only so the signature survives until S5b rebuilds this against
- * the one-call /Issue/analyze flow. */
-export async function createIssue(_fields: CreateIssueFields): Promise<Report> {
-  throw new Error(NO_CREATE_ENDPOINT);
+/**
+ * Files nothing. `POST /Issue/create` was deleted on 3 October and `POST /Issue/analyze` has
+ * already uploaded the photo, run the model and enqueued the issue creation as a Hangfire job
+ * (§0.1/§4.1) - so filing a report is one network call, and this is its local half.
+ *
+ * Creation is asynchronous and the response carries no id, so the row written here keeps a
+ * local id of its own and is never reconciled with the server's: see `getReportById`.
+ *
+ * Every report is mirrored, not just the untracked ones. `getMyReports` is where the list is
+ * narrowed - the diagnosis screen reads this row back by id immediately after filing, and for
+ * a Medium+ report the server may not have created anything yet.
+ */
+export async function createIssue(fields: CreateIssueFields): Promise<Report> {
+  const { analysis, description, latitude, longitude } = fields;
+  const now = new Date().toISOString();
+  const id = createLocalReportId();
+
+  // The queue only drains with a usable session, so this is always set in practice. Empty
+  // rather than invented otherwise - isReportOwner fails closed on it, same as a map row.
+  const reporterId = (await getTokenUserId()) ?? '';
+
+  const report: Report = {
+    id,
+    title: analysis.problemArabic || analysis.problemName,
+    description,
+    // Node 2, not node 1: factsFromWireStatus reads hasAiAnalysis off `status !== 'Reported'`,
+    // and the farmer has just been shown the diagnosis, so it is true.
+    status: 'Diagnosed',
+    createdAt: now,
+    reporterId,
+    latitude,
+    longitude,
+    attachments: [
+      { id: `${id}-photo`, type: 'Photo', url: analysis.filePath, createdAt: now },
+    ],
+    analysis: { ...analysis, modelVersion: '', createdAt: now },
+  };
+
+  if (USE_LOCAL_REPORT_MIRROR) {
+    await saveMirroredReport(report);
+  }
+
+  return report;
+}
+
+/**
+ * The six severities ReportService maps to Medium or above, and so the only six that cause an
+ * issue to be created at all (§4.1). `منخفضة` - "low" - maps to **Medium**, not Low. That
+ * reads backwards and it is not a mistake, so do not "fix" it.
+ *
+ * An allow-list rather than a list of the four minor severities, because ReportService's own
+ * mapping ends in `_ => IssuePriority.Unknown`: a severity it does not recognise creates
+ * nothing. Naming what *does* create therefore fails toward "the mirror lists it", which is
+ * the direction that cannot duplicate a row.
+ */
+const BACKEND_CREATES_ISSUE_FOR: ReadonlySet<string> = new Set([
+  'حرجة جداً',
+  'حرجة',
+  'عالية جداً',
+  'عالية',
+  'متوسطة',
+  'منخفضة',
+]);
+
+/** True for a report the backend will never create, which is the only kind the list shows. */
+function isUntrackedByBackend(report: Report): boolean {
+  return !BACKEND_CREATES_ISSUE_FOR.has(report.analysis?.severity ?? '');
 }
 
 const NO_REPORTER_ID =
@@ -192,23 +261,43 @@ async function fetchServerReports(): Promise<Report[]> {
 }
 
 /**
- * Newest first, from both halves: the issues the backend created, plus the mirror's own rows.
- * A failed server read is allowed to throw - بلاغاتي has an error state and showing a
- * half-empty list as if it were the whole one would be the worse answer.
+ * Newest first, from two sets that cannot intersect: the issues the backend created, and the
+ * reports it declined to create. §4.1 maps a Low or Unknown severity and then creates nothing
+ * at all, so those rows exist only in the mirror and no report can be in both halves. That is
+ * what lets this concatenate with no matching and still never duplicate a row.
+ *
+ * THE INVARIANT, and it is the whole design: if the backend ever starts creating Low-severity
+ * issues, the two sets overlap and this begins showing every such report twice. That is the
+ * deletion condition for the mirror - see BACKEND-CONTRACT-REQUESTS.md.
+ *
+ * A failed server read is allowed to throw: بلاغاتي has an error state, and presenting half a
+ * list as if it were the whole one would be the worse answer.
  */
 export async function getMyReports(): Promise<Report[]> {
   const server = await fetchServerReports();
-  const mirrored = USE_LOCAL_REPORT_MIRROR ? await listMirroredReports() : [];
+  const untracked = USE_LOCAL_REPORT_MIRROR
+    ? (await listMirroredReports()).filter(isUntrackedByBackend)
+    : [];
 
-  return [...server, ...mirrored].sort(
+  return [...server, ...untracked].sort(
     (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt),
   );
 }
 
 // BACKEND-GAP: there is no `GET /Farmer/issues/{issueId}`. The route that looks like one is the
 // list, and it filters on the query string, so a single issue has no endpoint of its own.
-/** The mirror first: it is local, free, and for a report filed seconds ago it is the only
- * place the row exists at all. Only then the server's list. */
+/**
+ * The mirror first: it is local, free, and for a report filed seconds ago it is the only place
+ * the row exists at all. Only then the server's list. Unlike `getMyReports` this sees the whole
+ * mirror, because the diagnosis screen reaches a just-filed report by the local id `createIssue`
+ * returned, whatever its severity.
+ *
+ * So two ids can address one Medium-or-above report: the local one, which carries the AI
+ * analysis and the photo, and the server guid, which carries neither, because GetFarmerIssues
+ * returns no analysis and no attachments. They are not reconciled, and cannot be - creation is
+ * asynchronous, no id comes back, and the payload has no photo URL to join on. The ask for both
+ * fields is in BACKEND-CONTRACT-REQUESTS.md; the consequence is in REFERENCE-NOTES.md.
+ */
 export async function getReportById(reportId: string): Promise<Report> {
   const mirrored = USE_LOCAL_REPORT_MIRROR ? await getMirroredReport(reportId) : null;
   if (mirrored) {

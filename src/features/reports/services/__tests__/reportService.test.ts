@@ -160,12 +160,63 @@ const ANALYSIS = {
   repairSteps: ['خطوة'],
 };
 
-// POST /Issue/create was removed server-side on 3 Oct; createIssue is a stub until S5b
-// rebuilds it onto the one-call /Issue/analyze flow (BACKEND-INTEGRATION-FACTS.md §0.1).
+// POST /Issue/create was removed server-side on 3 Oct, and analyze already enqueued the
+// creation, so filing a report is one call and createIssue is its local half (§0.1/§4.1).
 describe('createIssue', () => {
-  it('throws rather than posting to a route the server no longer has', async () => {
-    await expect(createIssue({ analysis: ANALYSIS })).rejects.toThrow(/Issue\/create/);
+  beforeEach(async () => {
+    mockPost.mockReset();
+    mockGet.mockReset();
+    mockGetTokenUserId.mockReset();
+    mockGetTokenUserId.mockResolvedValue(REPORTER_ID);
+    await resetReportMirror();
+  });
+
+  it('makes no network call at all', async () => {
+    await createIssue({ analysis: ANALYSIS });
+
     expect(mockPost).not.toHaveBeenCalled();
+    expect(mockGet).not.toHaveBeenCalled();
+  });
+
+  it('builds the report out of the analysis the farmer was just shown', async () => {
+    const report = await createIssue({
+      analysis: ANALYSIS,
+      description: 'ماء على السطح',
+      latitude: 29.2,
+      longitude: 25.5,
+    });
+
+    expect(report).toMatchObject({
+      title: 'تسريب في الأنبوب',
+      description: 'ماء على السطح',
+      // Node 2: the diagnosis exists, so hasAiAnalysis has to read true.
+      status: 'Diagnosed',
+      reporterId: REPORTER_ID,
+      latitude: 29.2,
+      longitude: 25.5,
+    });
+    expect(report.analysis).toMatchObject({ severity: 'حرجة جداً', modelVersion: '' });
+    expect(report.attachments).toEqual([
+      expect.objectContaining({ type: 'Photo', url: ANALYSIS.filePath }),
+    ]);
+  });
+
+  // Not guid-shaped on purpose: isServerIssueId must read it as local, not ask the map for it.
+  it('mints a local id that cannot be mistaken for a server guid', async () => {
+    const report = await createIssue({ analysis: ANALYSIS });
+
+    expect(report.id).toMatch(/^local-/);
+    expect(report.id).not.toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+    );
+  });
+
+  // Whatever the severity: the diagnosis screen reads this row back by id straight after filing.
+  it('mirrors the report so getReportById can find it', async () => {
+    const report = await createIssue({ analysis: ANALYSIS });
+
+    await expect(getReportById(report.id)).resolves.toMatchObject({ id: report.id });
+    expect(mockGet).not.toHaveBeenCalled();
   });
 
   // Folded once, at the boundary: analyze is handed its own un-normalised server response.
@@ -175,6 +226,61 @@ describe('createIssue', () => {
     const analysis = await analyzeIssue({ uri: 'file:///photo.jpg' });
 
     expect(analysis.confidence).toBeCloseTo(0.9598);
+  });
+});
+
+/**
+ * The invariant the concatenation in getMyReports rests on: the mirror lists only what §4.1
+ * refuses to create, so the two halves cannot hold the same report and no matching is needed.
+ */
+describe('what the list shows from the mirror', () => {
+  beforeEach(async () => {
+    mockGet.mockReset();
+    mockGet.mockResolvedValue([]);
+    mockGetTokenUserId.mockReset();
+    mockGetTokenUserId.mockResolvedValue(REPORTER_ID);
+    await resetReportMirror();
+  });
+
+  const listedIds = async () => (await getMyReports()).map(report => report.id);
+
+  // The four §4.1 maps to Low or Unknown. The server creates nothing for any of them.
+  it.each(['بسيطة', 'بسيطة جداً', 'غير مؤثرة', 'غير معروفة'] as const)(
+    'lists a %s report, because the backend never created one',
+    async severity => {
+      const report = await createIssue({ analysis: { ...ANALYSIS, severity } });
+
+      await expect(listedIds()).resolves.toEqual([report.id]);
+    },
+  );
+
+  // The six that map to Medium or above. The server has these, so listing them would duplicate.
+  it.each(['حرجة جداً', 'حرجة', 'عالية جداً', 'عالية', 'متوسطة', 'منخفضة'] as const)(
+    'hides a %s report, because the server is creating one',
+    async severity => {
+      await createIssue({ analysis: { ...ANALYSIS, severity } });
+
+      await expect(listedIds()).resolves.toEqual([]);
+    },
+  );
+
+  // ReportService's mapping ends in `_ => Unknown`, so an unlisted severity creates nothing.
+  it('lists a report whose severity it does not recognise', async () => {
+    const report = await createIssue({
+      analysis: { ...ANALYSIS, severity: 'Critical' },
+    });
+
+    await expect(listedIds()).resolves.toEqual([report.id]);
+  });
+
+  // A Medium+ report is addressable by its local id even though the list hides it.
+  it('still resolves a hidden report by id', async () => {
+    const report = await createIssue({ analysis: { ...ANALYSIS, severity: 'عالية' } });
+
+    await expect(getReportById(report.id)).resolves.toMatchObject({
+      id: report.id,
+      status: 'Diagnosed',
+    });
   });
 });
 
