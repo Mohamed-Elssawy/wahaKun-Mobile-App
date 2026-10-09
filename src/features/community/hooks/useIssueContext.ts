@@ -59,6 +59,29 @@ export function useIssueContext(issueId: string) {
     setIssue(current => (current ? { ...current, ...change } : current));
   }, []);
 
+  // The counters move while F-04 is open. Every event carries the server's new total, so each
+  // one replaces the number rather than adding to it, and a missed event heals on the next.
+  useEffect(
+    () =>
+      communityApi.subscribeToIssue(issueId, event => {
+        if (!isMounted.current) {
+          return;
+        }
+        if (event.type === 'votes') {
+          patch(
+            event.byMe
+              ? { confirmations: event.count, hasConfirmed: event.voted }
+              : { confirmations: event.count },
+          );
+        } else if (event.type === 'shares') {
+          patch({ shareCount: event.count });
+        } else {
+          patch({ commentCount: event.total });
+        }
+      }),
+    [issueId, patch],
+  );
+
   const share = useCallback(async (): Promise<void> => {
     const bump = (delta: number) =>
       setIssue(current =>

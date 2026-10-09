@@ -23,6 +23,31 @@ export type CommentsPageWire = {
   count: number;
 };
 
+/** CommunityHub's CommentEventDto: SendComment's return value and the comment in its events. */
+export type CommentEventWire = {
+  id: string;
+  issueId: string;
+  userId: string;
+  text: string | null;
+  voiceUrl: string | null;
+  createdAt: string;
+};
+
+/** CommunityHub's VoteStateDto: where VoteIssue left the caller's vote. */
+export type VoteStateWire = {
+  issueId: string;
+  hasVoted: boolean;
+  count: number;
+};
+
+/** One issue's hub events, already filtered to that issue by communityHub.watchIssue. */
+export type IssueLiveWireHandlers = {
+  onCommentAdded?: (comment: CommentEventWire, total: number) => void;
+  onCommentDeleted?: (commentId: string, total: number) => void;
+  onVotes?: (count: number, voterId: string, voted: boolean) => void;
+  onShares?: (count: number) => void;
+};
+
 /**
  * GetIssuesREsponseDto verbatim, from IssueService/Issue.Shared/DTOS/FarmerDtos. The lowercase
  * `userName` is the C# property name, not a rename; FarmerService fills it over gRPC.
@@ -87,7 +112,7 @@ export type CommentsPage = {
   hasMore: boolean;
 };
 
-/** A confirmation's outcome. CommunityController has no vote endpoint yet, so only the mock answers it. */
+/** A confirmation's outcome: CommunityHub.VoteIssue's VoteStateDto, or the mock's. */
 export type VoteResult = {
   issueId: string;
   hasVoted: boolean;
@@ -160,6 +185,14 @@ export type IssueDetails = FeedPost & {
   transcript?: string;
 };
 
+/** A change someone else - or this farmer on another phone - made to the issue on screen. */
+export type IssueLiveEvent =
+  | { type: 'commentAdded'; comment: Comment; total: number }
+  | { type: 'commentDeleted'; commentId: string; total: number }
+  /** `byMe` is whether the voter is the signed-in farmer, which moves the button's state too. */
+  | { type: 'votes'; count: number; byMe: boolean; voted: boolean }
+  | { type: 'shares'; count: number };
+
 /** Typing services/index.ts as this is what stops the mock promising data the server won't. */
 export type CommunityApi = {
   getFeed: (query: FeedQuery) => Promise<FeedPage>;
@@ -174,4 +207,6 @@ export type CommunityApi = {
   getComments: (issueId: string, page: number, pageSize: number) => Promise<CommentsPage>;
   /** One seeded post by id, so F-04 can open a feed card the server has never heard of. */
   getPost: (issueId: string) => Promise<FeedPost | null>;
+  /** Live changes to one issue until the returned cleanup runs. Never throws: offline is silence. */
+  subscribeToIssue: (issueId: string, listener: (event: IssueLiveEvent) => void) => () => void;
 };

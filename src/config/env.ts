@@ -48,6 +48,22 @@ export const API_BASE_URLS = {
     issue: baseUrlFor('issue'),
 } as const;
 
+/**
+ * SignalR hubs sit at the service root, not under /api. Same origin as the REST calls, so a
+ * physical device follows HOST_OVERRIDE and the gateway follows API_GATEWAY_URL_OVERRIDE; in
+ * gateway mode the gateway must route /hubs/* to CommunityService and pass WebSocket upgrades.
+ */
+function hubUrlFor(service: ServiceName, path: string): string {
+    if (API_MODE === 'direct') {
+        return `http://${HOST}:${PORTS[service]}${path}`;
+    }
+    return `${API_GATEWAY_URL}${path}`;
+}
+
+export const HUB_URLS = {
+    community: hubUrlFor('community', '/hubs/community'),
+} as const;
+
 export const APP_URL_SCHEME = 'wahakun';
 export const RESET_PASSWORD_PATH = 'reset-password';
 export const RESET_PASSWORD_CLIENT_URL = `${APP_URL_SCHEME}://${RESET_PASSWORD_PATH}`;

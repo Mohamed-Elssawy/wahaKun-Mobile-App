@@ -132,6 +132,11 @@ export async function postComment(issueId: string, text: string): Promise<Commen
   return comment;
 }
 
+/** Nothing pushes to a single-user seed; the mock's own writes already return their result. */
+export function subscribeToIssue(): () => void {
+  return () => undefined;
+}
+
 export const communityApi: CommunityApi = {
   getFeed,
   getIssue,
@@ -140,4 +145,5 @@ export const communityApi: CommunityApi = {
   toggleConfirmation,
   shareIssue,
   postComment,
+  subscribeToIssue,
 };

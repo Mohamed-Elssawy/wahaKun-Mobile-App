@@ -25,6 +25,8 @@ export function useIssueComments(issueId: string) {
   const [postError, setPostError] = useState<ReportError | null>(null);
 
   const page = useRef(1);
+  /** Ids appended since the last load, by post() or by the hub; read synchronously to dedupe. */
+  const appended = useRef(new Set<string>());
   const isMounted = useRef(true);
 
   // Its own empty dependency list: lifetime is a separate question from which load is live.
@@ -42,6 +44,7 @@ export function useIssueComments(issueId: string) {
       const result = await communityApi.getComments(issueId, 1, PAGE_SIZE);
       if (isMounted.current) {
         page.current = 1;
+        appended.current = new Set();
         setComments(result.comments);
         setTotal(result.total);
         setHasMore(result.hasMore);
@@ -60,6 +63,32 @@ export function useIssueComments(issueId: string) {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Other farmers' comments, live. The poster's own comment arrives here too, after post() has
+  // already appended it, so both paths dedupe by id and the hub's count is the one kept.
+  useEffect(
+    () =>
+      communityApi.subscribeToIssue(issueId, event => {
+        if (!isMounted.current) {
+          return;
+        }
+        if (event.type === 'commentAdded') {
+          if (!appended.current.has(event.comment.id)) {
+            appended.current.add(event.comment.id);
+            setComments(current =>
+              current.some(comment => comment.id === event.comment.id)
+                ? current
+                : [...current, event.comment],
+            );
+          }
+          setTotal(event.total);
+        } else if (event.type === 'commentDeleted') {
+          setComments(current => current.filter(comment => comment.id !== event.commentId));
+          setTotal(event.total);
+        }
+      }),
+    [issueId],
+  );
 
   const loadMore = useCallback(async (): Promise<void> => {
     if (!hasMore || isLoadingMore || isLoading) {
@@ -110,8 +139,12 @@ export function useIssueComments(issueId: string) {
         const comment = await communityApi.postComment(issueId, trimmed);
         if (isMounted.current) {
           // Appended rather than reloaded: a reload would lose every page already scrolled.
-          setComments(current => [...current, comment]);
-          setTotal(current => current + 1);
+          // Skipped when the hub's broadcast of this same comment got here first.
+          if (!appended.current.has(comment.id)) {
+            appended.current.add(comment.id);
+            setComments(current => [...current, comment]);
+            setTotal(current => current + 1);
+          }
         }
         return true;
       } catch (err) {

@@ -20,3 +20,5 @@ export { getTokenUserId, loadTokenClaims, readTokenClaims } from './jwt';
 export type { TokenClaims } from './jwt';
 export { expireSession, getValidAccessToken, isTokenExpired, onSessionExpired, onSessionRefreshed, refreshSession, refreshSessionOutcome } from './session';
 export type { RefreshOutcome } from './session';
+export { createHubClient } from './hubClient';
+export type { HubClient, HubClientOptions, HubErrorMapping } from './hubClient';
