@@ -110,13 +110,21 @@ export function describeStatus(status: IssueStatusCode | ReportStatus): ReportSt
 // The MinIO bucket is also called `reportimage`, so the word appears twice in a direct URL.
 const OBJECT_KEY_PREFIX = 'reportimage/';
 
+/** A scheme (`http:`, `file:`) or a leading slash: something to load as it is, not an object key. */
+const NOT_A_KEY = /^([a-z][a-z0-9+.-]*:|\/)/i;
+
 /** Re-points the object key at MediaStorageService; the server's own URLs 403 and hardcode 127.0.0.1. */
+// Media.Grpc's UploadMedia, which analyze now uploads through, returns the bare key
+// (`issues/<file>`) rather than a URL, and the storage endpoint takes exactly that key.
 export function resolveAttachmentUrl(url: string): string {
   const keyStart = url.lastIndexOf(OBJECT_KEY_PREFIX);
-  if (keyStart === -1) {
-    return url;
+  if (keyStart !== -1) {
+    return `${API_BASE_URLS.media}${API_ENDPOINTS.storage.download(url.slice(keyStart))}`;
   }
-  return `${API_BASE_URLS.media}${API_ENDPOINTS.storage.download(url.slice(keyStart))}`;
+  if (url && !NOT_A_KEY.test(url)) {
+    return `${API_BASE_URLS.media}${API_ENDPOINTS.storage.download(url)}`;
+  }
+  return url;
 }
 
 /** What IssueService stores when the model names no severity; GetPriority reads it as Unknown. */

@@ -94,6 +94,13 @@ describe('resolveAttachmentUrl', () => {
     );
   });
 
+  // Media.Grpc's UploadMedia answers with the object key alone, under the `issues` folder.
+  it('points the gRPC upload\'s bare key at the storage endpoint too', () => {
+    expect(resolveAttachmentUrl('issues/8d1f-photo.jpg')).toBe(
+      `${API_BASE_URLS.media}/storage?objectName=issues%2F8d1f-photo.jpg`,
+    );
+  });
+
   it('leaves anything that is not a stored photo alone', () => {
     // The mock's seeds and a local capture, neither of which is in MinIO.
     const picsum = 'https://picsum.photos/seed/wahakun-canal/900/675';

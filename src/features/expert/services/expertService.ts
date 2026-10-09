@@ -102,12 +102,12 @@ export function severityFromPriority(priority: string): Severity {
   return SEVERITY_FOR_PRIORITY[priority as WirePriority] ?? UNKNOWN_SEVERITY;
 }
 
-const PHOTO_ATTACHMENT = 0;
+const PHOTO_ATTACHMENT = new Set<IssueAttachmentWire['type']>([0, 'Photo']);
 
 /** The farmer's own photo. First, not last: the repair proof is appended at resolution time and
  * attachments carry no `purpose` to tell the two apart - BACKEND-GAP G4. */
 function problemPhotoUrl(attachments: IssueAttachmentWire[]): string | undefined {
-  const photo = attachments.find(attachment => attachment.type === PHOTO_ATTACHMENT);
+  const photo = attachments.find(attachment => PHOTO_ATTACHMENT.has(attachment.type));
   return photo ? resolveAttachmentUrl(photo.url) : undefined;
 }
 
@@ -172,7 +172,10 @@ export function parseReviewNotes(notes: string | null | undefined): ParsedReview
   };
 }
 
+/** Sent as the integer, which the converter still binds; read back in either form. */
 const OVERRIDE_DECISION = 1;
+const isOverride = (review: ExpertReviewWire) =>
+  review.decision === OVERRIDE_DECISION || review.decision === 'Override';
 
 /**
  * Newest last. `currentOverride` is this cycle's decision, which E-03's `قرار الخبير` card reads
@@ -192,12 +195,12 @@ function toReviewHistory(reviews: ExpertReviewWire[]): {
   const prior = ordered.length > 1 ? ordered[ordered.length - 2] : undefined;
 
   const current =
-    latest && latest.decision === OVERRIDE_DECISION
+    latest && isOverride(latest)
       ? parseReviewNotes(latest.notes).override
       : undefined;
 
   const before =
-    prior && prior.decision === OVERRIDE_DECISION ? parseReviewNotes(prior.notes) : undefined;
+    prior && isOverride(prior) ? parseReviewNotes(prior.notes) : undefined;
 
   return {
     currentOverride: current,

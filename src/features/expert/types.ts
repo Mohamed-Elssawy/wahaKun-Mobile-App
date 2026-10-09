@@ -170,10 +170,13 @@ export type ExpertInboxRowWire = {
   assignedExpertId?: string | null;
 };
 
-/** IssueAttachmentType as an int, and no `purpose` field at all - BACKEND-GAP G4. */
+/**
+ * IssueAttachmentType. By name since IssueService registered JsonStringEnumConverter (0a99c72);
+ * the integer stays in the union for a build without it. No `purpose` field - BACKEND-GAP G4.
+ */
 export type IssueAttachmentWire = {
   id: string;
-  type: 0 | 1;
+  type: 0 | 1 | 'Photo' | 'Voice';
   url: string;
 };
 
@@ -188,10 +191,10 @@ export type ExpertAiAnalysisWire = {
   repairSteps: string[];
 };
 
-/** ReviewDecision as an int: 0 = ConfirmAi, 1 = Override. */
+/** ReviewDecision, by name in a response for the same reason: 0 = ConfirmAi, 1 = Override. */
 export type ExpertReviewWire = {
   id: string;
-  decision: 0 | 1;
+  decision: 0 | 1 | 'ConfirmAi' | 'Override';
   notes: string | null;
   expertId: string;
   reviewedAt: string;

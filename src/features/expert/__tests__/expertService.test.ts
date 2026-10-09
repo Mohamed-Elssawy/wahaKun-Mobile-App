@@ -7,7 +7,10 @@ import {
   isEmptyResultError,
   isServerRefusal,
   parseReviewNotes,
+  toCaseDetail,
 } from '../services/expertService';
+
+import type { CaseReviewWire } from '../types';
 
 const REVIEW_REFUSAL = 'Only assigned issues can be reviewed';
 
@@ -211,5 +214,74 @@ describe('isEmptyResultError', () => {
 
   it('rejects the other IssueService refusals', () => {
     expect(isEmptyResultError(serverError(500, REVIEW_REFUSAL))).toBe(false);
+  });
+});
+
+// IssueService registered JsonStringEnumConverter on 9 October (0a99c72), so every enum in a
+// response arrives by name. Requests still bind integers, so only the reads had to move.
+describe('toCaseDetail enum names', () => {
+  const wire = (overrides: Partial<CaseReviewWire>): CaseReviewWire => ({
+    id: '3f2b8c1e-5d4a-4b7e-9c2a-1e6f8d0a7b3c',
+    title: 'تسريب',
+    status: 'Assigned',
+    priority: 'High',
+    reporterId: 'u1',
+    latitude: null,
+    longitude: null,
+    createdAt: '2026-10-09T08:00:00',
+    attachments: [],
+    aiAnalysis: null,
+    expertReviews: [],
+    ...overrides,
+  });
+
+  it('finds the farmer\'s photo when the attachment type arrives as "Photo"', () => {
+    const detail = toCaseDetail(
+      wire({
+        attachments: [
+          { id: 'a2', type: 'Voice', url: 'issues/note.m4a' },
+          { id: 'a1', type: 'Photo', url: 'issues/photo.jpg' },
+        ],
+      }),
+    );
+
+    expect(detail.photoUrl).toContain('objectName=issues%2Fphoto.jpg');
+  });
+
+  it('still reads the integer form, should the converter ever be removed', () => {
+    const detail = toCaseDetail(
+      wire({ attachments: [{ id: 'a1', type: 0, url: 'issues/photo.jpg' }] }),
+    );
+
+    expect(detail.photoUrl).toContain('objectName=issues%2Fphoto.jpg');
+  });
+
+  it('reads back an override whose decision arrives as "Override"', () => {
+    const notes = composeReviewNotes({
+      reportId: 'r1',
+      override: { severity: 'عالية', correctedDiagnosis: 'كسر في الماسورة' },
+    });
+
+    const detail = toCaseDetail(
+      wire({
+        expertReviews: [
+          { id: 'v1', decision: 'Override', notes, expertId: 'e1', reviewedAt: '2026-10-09T09:00:00' },
+        ],
+      }),
+    );
+
+    expect(detail.currentOverride).toEqual({ severity: 'عالية', correctedDiagnosis: 'كسر في الماسورة' });
+  });
+
+  it('reads no override from a "ConfirmAi" review', () => {
+    const detail = toCaseDetail(
+      wire({
+        expertReviews: [
+          { id: 'v1', decision: 'ConfirmAi', notes: null, expertId: 'e1', reviewedAt: '2026-10-09T09:00:00' },
+        ],
+      }),
+    );
+
+    expect(detail.currentOverride).toBeUndefined();
   });
 });
