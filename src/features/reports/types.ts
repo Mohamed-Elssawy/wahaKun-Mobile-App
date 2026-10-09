@@ -5,6 +5,10 @@ import type { PickedImage } from '@/types/image';
 import type { ReportErrorKind } from './errors';
 
 /** IssueStatus in C#. No JsonStringEnumConverter is registered, so it arrives as an int. */
+
+/** Where the farmer stood when filing. Both or neither: half a coordinate places nothing. */
+export type ReportLocation = { latitude: number; longitude: number };
+
 export type IssueStatusCode = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 export type ReportStatus =
@@ -232,7 +236,8 @@ export type ReportTrackerDetails = {
 
 /** Typing services/index.ts as this is what stops the mock promising data the server won't. */
 export type ReportApi = {
-  analyzeIssue: (photo: PickedImage) => Promise<AiAnalysisResult>;
+  /** The coordinate rides on analyze: its Hangfire job is what files the issue's GPSLocation. */
+  analyzeIssue: (photo: PickedImage, location?: ReportLocation) => Promise<AiAnalysisResult>;
   /** Returns a whole Report: create's own response carries neither photo nor analysis. */
   createIssue: (fields: CreateIssueFields) => Promise<Report>;
   getMyReports: () => Promise<Report[]>;

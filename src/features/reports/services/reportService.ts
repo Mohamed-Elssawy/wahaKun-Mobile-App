@@ -26,6 +26,7 @@ import type {
   GetFarmerIssuesWire,
   IssueStatusCode,
   Report,
+  ReportLocation,
   ReportStatus,
   ReportTrackerDetails,
 } from '../types';
@@ -41,8 +42,12 @@ const PHOTO_EXTENSIONS: Record<string, string> = {
   'image/webp': 'webp',
 };
 
-/** The form field is `Photo`, capitalised: it binds to AnalyzeIssueRequest's property. */
-export function buildAnalyzeFormData(photo: PickedImage): FormData {
+/**
+ * AnalyzeIssueRequest is (Photo, Latitude, Longitude), field names capitalised to bind. The
+ * coordinate goes as strings because GPSLocation stores strings, and is left out entirely
+ * rather than sent empty when there is none.
+ */
+export function buildAnalyzeFormData(photo: PickedImage, location?: ReportLocation): FormData {
   const formData = new FormData();
   const mimeType = photo.type || 'image/jpeg';
   const extension = PHOTO_EXTENSIONS[mimeType.toLowerCase()] || 'jpg';
@@ -52,6 +57,11 @@ export function buildAnalyzeFormData(photo: PickedImage): FormData {
     type: mimeType,
     name: photo.fileName || `photo.${extension}`,
   } as unknown as Blob);
+
+  if (location) {
+    formData.append('Latitude', String(location.latitude));
+    formData.append('Longitude', String(location.longitude));
+  }
 
   return formData;
 }
@@ -126,11 +136,14 @@ export function toCreatableAnalysis(analysis: AiAnalysisResult): AiAnalysisResul
 }
 
 /** Uploads the photo and runs the model. Slow, so it carries the upload timeout. */
-export async function analyzeIssue(photo: PickedImage): Promise<AiAnalysisResult> {
+export async function analyzeIssue(
+  photo: PickedImage,
+  location?: ReportLocation,
+): Promise<AiAnalysisResult> {
   const analysis = await apiClient.post<AiAnalysisResult>(
     BASE,
     API_ENDPOINTS.report.analyze,
-    buildAnalyzeFormData(photo),
+    buildAnalyzeFormData(photo, location),
     {
       authenticated: true,
       // Aborting an upload the server is still writing leaves an orphan photo in MinIO.

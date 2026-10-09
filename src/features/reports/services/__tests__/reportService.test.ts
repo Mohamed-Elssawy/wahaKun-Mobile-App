@@ -2,6 +2,7 @@ import { API_BASE_URLS } from '@/config/env';
 
 import {
   analyzeIssue,
+  buildAnalyzeFormData,
   createIssue,
   describeStatus,
   getMyReports,
@@ -462,5 +463,26 @@ describe('getReportById', () => {
     mockGet.mockResolvedValue([row()]);
 
     await expect(getReportById('someone-elses')).rejects.toThrow(/someone-elses/);
+  });
+});
+
+describe('buildAnalyzeFormData', () => {
+  // Jest runs on Node's FormData, which has the standard accessors RN's own lacks in its types.
+  type Readable = { get: (name: string) => unknown; keys: () => Iterable<string> };
+  const read = (form: FormData) => form as unknown as Readable;
+
+  it('sends the coordinate as AnalyzeIssueRequest\'s Latitude and Longitude fields', () => {
+    const form = read(
+      buildAnalyzeFormData({ uri: 'file:///photo.jpg' }, { latitude: 25.4378, longitude: 30.5531 }),
+    );
+
+    expect(form.get('Latitude')).toBe('25.4378');
+    expect(form.get('Longitude')).toBe('30.5531');
+  });
+
+  it('sends only the photo when there is no coordinate, rather than a "undefined" string', () => {
+    const form = read(buildAnalyzeFormData({ uri: 'file:///photo.jpg' }));
+
+    expect([...form.keys()]).toEqual(['Photo']);
   });
 });

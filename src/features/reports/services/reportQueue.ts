@@ -197,7 +197,11 @@ async function uploadOne(item: QueuedReport): Promise<Outcome> {
     }
 
     try {
-      analysis = await reportApi.analyzeIssue(photo);
+      const location =
+        item.latitude !== undefined && item.longitude !== undefined
+          ? { latitude: item.latitude, longitude: item.longitude }
+          : undefined;
+      analysis = await reportApi.analyzeIssue(photo, location);
     } catch (error) {
       return handleFailure(item, describeAnalysisError(error, ''));
     }
