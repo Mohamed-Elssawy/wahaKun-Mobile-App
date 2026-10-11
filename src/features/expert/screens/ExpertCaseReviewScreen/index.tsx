@@ -4,6 +4,7 @@ import { Button, ProgressRing, ReportSummaryCard, TextField } from '@/components
 import { AiDiagnosisSummary } from '@/features/reports/components/AiDiagnosisSummary';
 import { ReportErrorView } from '@/features/reports/components/ReportErrorView';
 import { ReportHeader } from '@/features/reports/components/ReportHeader';
+import { formatReportReference } from '@/features/reports/format';
 import { formatRelativeTime } from '@/features/reports/relativeTime';
 import { describeSeverity } from '@/features/reports/severity';
 import type { ScreenProps } from '@/navigation/types';
@@ -80,7 +81,7 @@ export default function ExpertCaseReviewScreen({
       >
         <ReportSummaryCard
           title={detail.title}
-          reference={`#${detail.reportId}`}
+          reference={formatReportReference(detail.reportId)}
           timeLabel={formatRelativeTime(detail.createdAt)}
           borderColor={severity.color}
           photoUrl={detail.photoUrl}

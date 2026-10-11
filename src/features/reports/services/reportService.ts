@@ -24,6 +24,7 @@ import type {
   AiAnalysisResult,
   CreateIssueFields,
   GetFarmerIssuesWire,
+  IssueTrackingWire,
   IssueStatusCode,
   Report,
   ReportLocation,
@@ -249,18 +250,29 @@ const NO_REPORTER_ID =
  * `expertName`, `expertUrl`, `expertId`, `teamName` - are real data this deliberately drops,
  * because F-06 is still served by the mock; see REFERENCE-NOTES.md.
  */
-// BACKEND-GAP: the row carries no priority and no attachments, so there is no severity to read
-// and no photo to show. Neither is invented: `analysis` stays undefined and `attachments` empty.
+// The row carries no severity, so `analysis` stays undefined. The photo arrives as `imageUrl`
+// (an object key) and goes through the same resolver the map and expert screens use.
 export function fromFarmerIssue(row: GetFarmerIssuesWire): Report {
+  const createdAt = toUtcTimestamp(row.createdAt);
+
   return {
     id: row.issueId,
     title: row.title,
     description: row.description,
     status: describeStatus(row.status),
     // `datetime2` carries no offset, so this is the difference between today and yesterday.
-    createdAt: toUtcTimestamp(row.createdAt),
+    createdAt,
     reporterId: row.reporterId,
-    attachments: [],
+    attachments: row.imageUrl
+      ? [
+          {
+            id: `${row.issueId}-photo`,
+            type: 'Photo',
+            url: resolveAttachmentUrl(row.imageUrl),
+            createdAt,
+          },
+        ]
+      : [],
   };
 }
 
@@ -340,23 +352,92 @@ export async function deleteReport(_reportId: string): Promise<void> {
   throw new Error(NO_DELETE_ENDPOINT);
 }
 
-const NO_TRACKER_ENDPOINT =
-  'IssueController has no read endpoint for the tracker; see USE_MOCK_TRACKER in config/env.';
+const SERVER_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** F-06. Nothing to swap to yet - BACKEND-CONTRACT-REQUESTS item 3 is still open. */
-export async function getReportTracker(_reportId: string): Promise<ReportTrackerDetails> {
-  throw new Error(NO_TRACKER_ENDPOINT);
+/**
+ * F-06 from `GET /Farmer/{id}/tracking`. The response is a status history, not a schedule: it
+ * carries the expert's name and the repair photo, but no specialty, appointment window or repair
+ * notes, so those stay undefined rather than invented. A step's `note` is a server-written
+ * English audit line ("Issue Repaired by expert"), never farmer-facing copy, so it is not shown.
+ */
+export function fromTracking(wire: IssueTrackingWire): ReportTrackerDetails {
+  const status = describeStatus(wire.currentStatus);
+  const step = (code: IssueStatusCode) => wire.steps.find(s => s.status === code);
+  const at = (code: IssueStatusCode) => {
+    const changedAt = step(code)?.changedAt;
+    return changedAt ? toUtcTimestamp(changedAt) : undefined;
+  };
+
+  const assigned = step(2);
+  const repaired = step(5);
+  const details: ReportTrackerDetails = {
+    reportId: wire.issueId,
+    status,
+    // Reviewed (3) and everything after it: the expert has submitted a review.
+    hasExpertReview: wire.currentStatus >= 3,
+  };
+
+  if (assigned?.expertName) {
+    details.expert = { name: assigned.expertName, specialty: '' };
+  }
+  const assignedAt = at(2);
+  if (assignedAt) {
+    details.assignedAt = assignedAt;
+  }
+  const reviewedAt = at(3);
+  if (reviewedAt) {
+    details.reviewedAt = reviewedAt;
+  }
+  if (repaired?.repairPhoto) {
+    details.repair = {
+      confirmedAt: at(5) ?? toUtcTimestamp(repaired.changedAt ?? new Date().toISOString()),
+      notes: '',
+      photoUrl: resolveAttachmentUrl(repaired.repairPhoto),
+    };
+  }
+  const completedAt = at(6);
+  if (wire.currentStatus === 6) {
+    details.closedBy = 'farmer';
+    if (completedAt) {
+      details.closedAt = completedAt;
+    }
+  }
+
+  return details;
 }
 
-const NO_TRACKER_WRITE =
-  'IssueController has no write endpoint for a farmer confirmation or rejection yet.';
+/**
+ * F-06. A report only this device knows about (local id: the backend declined to create it) has
+ * no server tracker, so it reads as the Diagnosed node from the mirror instead of a 404.
+ */
+export async function getReportTracker(reportId: string): Promise<ReportTrackerDetails> {
+  if (!SERVER_ID.test(reportId)) {
+    const mirrored = USE_LOCAL_REPORT_MIRROR ? await getMirroredReport(reportId) : null;
+    if (!mirrored) {
+      throw new Error(`No report with id ${reportId}`);
+    }
+    return { reportId, status: mirrored.status };
+  }
 
-/** T7. */
-export async function confirmResolution(_reportId: string): Promise<void> {
-  throw new Error(NO_TRACKER_WRITE);
+  const wire = await apiClient.get<IssueTrackingWire>(
+    ISSUE_BASE,
+    API_ENDPOINTS.issue.tracking(reportId),
+    { authenticated: true },
+  );
+
+  return fromTracking(wire);
 }
 
-/** T8. */
-export async function rejectResolution(_reportId: string): Promise<void> {
-  throw new Error(NO_TRACKER_WRITE);
+/** T7. `POST /Farmer/{id}/complete` moves Repaired to completed; 409 for any other status. */
+export async function confirmResolution(reportId: string): Promise<void> {
+  await apiClient.post(ISSUE_BASE, API_ENDPOINTS.issue.complete(reportId), undefined, {
+    authenticated: true,
+  });
+}
+
+/** T8. `POST /Farmer/{id}/uncomplete` returns a Repaired issue to Scheduled. */
+export async function rejectResolution(reportId: string): Promise<void> {
+  await apiClient.post(ISSUE_BASE, API_ENDPOINTS.issue.uncomplete(reportId), undefined, {
+    authenticated: true,
+  });
 }

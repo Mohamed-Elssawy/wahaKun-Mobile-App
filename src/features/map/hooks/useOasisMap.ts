@@ -73,6 +73,8 @@ export function useOasisMap() {
   /** The query the camera was last framed for, so a refetch does not re-frame it. */
   const fittedQuery = useRef('');
   const { location } = useCurrentLocation();
+  /** The map opens on the oasis centre; the first fix moves it to the farmer exactly once. */
+  const centredOnFix = useRef(false);
 
   const load = useCallback(async (): Promise<void> => {
     setError(null);
@@ -141,6 +143,20 @@ export function useOasisMap() {
       setCameraTarget(stop);
     }
   }, [query, visible]);
+
+  // The camera used to wait for the recenter button, so the dot could be drawn off screen and the
+  // map looked as if it had no location. Once only, and never over a search the farmer has typed.
+  useEffect(() => {
+    if (!location || centredOnFix.current) {
+      return;
+    }
+    centredOnFix.current = true;
+
+    if (query.trim()) {
+      return;
+    }
+    setCameraTarget({ center: [location.longitude, location.latitude], zoom: CLOSE_ZOOM });
+  }, [location, query]);
 
   const clusters = useMemo(
     () => clusterIssues(visible, latitudeSpan),

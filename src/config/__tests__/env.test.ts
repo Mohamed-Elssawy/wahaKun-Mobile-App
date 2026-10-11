@@ -42,10 +42,10 @@ describe('committed feature flag defaults', () => {
     expect(MOCK_ROLE).toBe('farmer');
   });
 
-  // On by backend gap: IssueController has no read endpoint, so the tracker has nowhere real
-  // to read expert, appointment or repair data from, or to send a confirm/reject write to.
-  it('still serves the tracker from the mock, because no read endpoint exists', () => {
-    expect(USE_MOCK_TRACKER).toBe(true);
+  // Off since GET Farmer/{id}/tracking, POST complete and POST uncomplete exist: the tracker reads
+  // and writes the real service. Only DEMO_MODE (false in a build) brings the fixtures back.
+  it('serves the tracker from the real endpoint', () => {
+    expect(USE_MOCK_TRACKER).toBe(false);
   });
 
   // Off since the expert service was wired: ExpertController serves the inbox, the case review

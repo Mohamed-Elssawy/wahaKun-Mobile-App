@@ -37,6 +37,12 @@ export const API_ENDPOINTS = {
     resolution: (issueId: string) => `/Expert/${issueId}/resolution`,
     /** ReporterId must be sent in the query string too - the route segment is read but unused. */
     farmerIssues: (reporterId: string) => `/Farmer/issues/${reporterId}?ReporterId=${reporterId}`,
+    /** FarmerController. The id is the route segment; the service answers 404 ISSUE_NOT_FOUND. */
+    tracking: (issueId: string) => `/Farmer/${issueId}/tracking`,
+    /** Farmer accepts the repair: Repaired -> completed. 409 if the issue is in any other status. */
+    complete: (issueId: string) => `/Farmer/${issueId}/complete`,
+    /** Farmer rejects the repair: Repaired -> Scheduled. 204 with no body. */
+    uncomplete: (issueId: string) => `/Farmer/${issueId}/uncomplete`,
     /** DO NOT WIRE: the service ANDs three contradictory filters and always throws 404/500. */
     communityFeed: '/Farmer/issues',
   },

@@ -131,6 +131,26 @@ export type GetFarmerIssuesWire = {
   expertUrl: string;
   expertId: string;
   teamName: string | null;
+  /** Object key of the photo the farmer filed with. Absent on older servers. */
+  imageUrl?: string | null;
+};
+
+/** IssueService's IssueTrackingResponseDto. Enums arrive as ints, dates as naive `datetime2`. */
+export type IssueTrackingWire = {
+  issueId: string;
+  currentStatus: IssueStatusCode;
+  steps: {
+    status: IssueStatusCode;
+    name: string;
+    /** 0 Pending, 1 Current, 2 Completed. */
+    state: 0 | 1 | 2;
+    changedAt: string | null;
+    note: string | null;
+    expertId: string | null;
+    expertName: string | null;
+    expertPhoto: string | null;
+    repairPhoto: string | null;
+  }[];
 };
 
 /** What create needs beyond the analysis the farmer just got back. */

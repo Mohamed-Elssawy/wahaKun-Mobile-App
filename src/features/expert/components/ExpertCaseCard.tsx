@@ -9,6 +9,7 @@ import {
   Text,
 } from '@/components/ui';
 import { STATUS_ICONS } from '@/features/reports/components/statusIcon';
+import { formatReportReference } from '@/features/reports/format';
 import {
   CONFIDENCE_THRESHOLD,
   describeStatus,
@@ -101,12 +102,17 @@ export function ExpertCaseCard({
                 <User size={AVATAR_ICON} color={colors.textPrimary} />
               </View>
             )}
-            <Text variant="label14" color="textPrimary">
+            <Text
+              variant="label14"
+              color="textPrimary"
+              numberOfLines={1}
+              style={styles.reporterName}
+            >
               {summary.reporterName}
             </Text>
             <View style={styles.referencePill}>
-              <Text variant="label12" color="textSecondary">
-                {`#${summary.reportId}`}
+              <Text variant="label12" color="textSecondary" numberOfLines={1}>
+                {formatReportReference(summary.reportId)}
               </Text>
             </View>
           </View>
@@ -178,11 +184,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: spacing[8],
   },
+  // minWidth 0 lets the name shrink instead of pushing the status chip off the card.
   reporter: {
     flex: 1,
+    minWidth: 0,
     flexDirection: 'row-reverse',
     alignItems: 'center',
     gap: spacing[8],
+  },
+  reporterName: {
+    flexShrink: 1,
   },
   avatar: {
     width: AVATAR_SIZE,
@@ -195,6 +206,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceMuted,
   },
   referencePill: {
+    flexShrink: 0,
     paddingHorizontal: spacing[10],
     paddingVertical: spacing[4],
     borderRadius: radii.pill,

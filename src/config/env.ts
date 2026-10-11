@@ -91,9 +91,9 @@ export const USE_MOCK_REPORTS = DEMO_MODE || false;
  */
 export const USE_LOCAL_REPORT_MIRROR = true;
 
-/** F-06. On by backend gap, not choice: IssueController has no read endpoint at all yet, so
- * nothing - expert, appointment, repair, the confirm/reject writes - has anywhere real to go. */
-export const USE_MOCK_TRACKER = DEMO_MODE || true;
+/** F-06. Real now: IssueService exposes GET Farmer/{id}/tracking, POST complete and uncomplete.
+ * Only DEMO_MODE uses the fixtures. */
+export const USE_MOCK_TRACKER = DEMO_MODE;
 
 /** Seeded feed. CommunityService has no feed endpoint, and the MapService fallback has no author or counts. */
 export const USE_MOCK_COMMUNITY = DEMO_MODE || true;

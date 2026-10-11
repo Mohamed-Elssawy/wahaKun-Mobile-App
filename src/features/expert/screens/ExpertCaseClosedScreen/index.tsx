@@ -4,6 +4,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { Button, ProgressRing, ReportSummaryCard, Text } from '@/components/ui';
 import { ReportErrorView } from '@/features/reports/components/ReportErrorView';
 import { ReportHeader } from '@/features/reports/components/ReportHeader';
+import { formatReportReference } from '@/features/reports/format';
 import { formatRelativeTime } from '@/features/reports/relativeTime';
 import type { ScreenProps } from '@/navigation/types';
 import { colors, radii, screenPadding, spacing } from '@/theme';
@@ -64,7 +65,7 @@ export default function ExpertCaseClosedScreen({
       >
         <ReportSummaryCard
           title={detail.title}
-          reference={`#${detail.reportId}`}
+          reference={formatReportReference(detail.reportId)}
           timeLabel={formatRelativeTime(detail.createdAt)}
           borderColor="success"
           photoUrl={detail.photoUrl}
