@@ -6,7 +6,13 @@ import {
   View,
 } from 'react-native';
 
-import { Button, ProgressRing, ReportSummaryCard, Text, TextField } from '@/components/ui';
+import {
+  Button,
+  ProgressRing,
+  ReportSummaryCard,
+  Text,
+  TextField,
+} from '@/components/ui';
 import { ReportErrorView } from '@/features/reports/components/ReportErrorView';
 import { ReportHeader } from '@/features/reports/components/ReportHeader';
 import { formatRelativeTime } from '@/features/reports/relativeTime';
@@ -30,7 +36,11 @@ const LOAD_ERROR_TITLE = 'تعذر تحميل الحالة';
 function slotLabel(date: string): string {
   // "اختر موعداً — الأحد 14 يونيو" needs the chosen day written out; formatRelativeTime
   // doesn't do absolute dates, so this borrows the weekday straight off the Date.
-  return new Date(date).toLocaleDateString('ar-EG', { weekday: 'long', day: 'numeric', month: 'long' });
+  return new Date(date).toLocaleDateString('ar-EG', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
 }
 
 /** §8.3's E-03, node 4. `Flow G`: reached only from E-02's primary - never from a reschedule. */
@@ -97,7 +107,7 @@ export default function ExpertScheduleScreen({
         <ExpertStepper current={2} />
 
         <View style={styles.dayBlock}>
-          <Text variant="label14" color="textSecondary" align="right">
+          <Text variant="h5" color="textSecondary" align="right">
             {DAY_LABEL}
           </Text>
           <ScheduleCalendar

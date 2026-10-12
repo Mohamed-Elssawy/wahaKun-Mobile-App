@@ -102,7 +102,7 @@ export default function ExpertInboxScreen() {
           />
         )}
         renderSectionHeader={({ section }) => (
-          <Text variant="label14Bold" color="textSecondary" align="right">
+          <Text variant="h5" color="textSecondary" align="right">
             {section.title}
           </Text>
         )}

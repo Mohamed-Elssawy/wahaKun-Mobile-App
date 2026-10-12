@@ -1,8 +1,7 @@
-import { ChevronLeft } from 'lucide-react-native';
+import { ChevronRight } from 'lucide-react-native';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { Text } from '@/components/ui';
-import { describeSeverity } from '@/features/reports/severity';
 import { colors, radii, spacing } from '@/theme';
 
 import type { ExpertReviewOverride } from '../types';
@@ -21,8 +20,6 @@ const LINK_ICON_SIZE = 16;
 
 /** §8.3's E-03 `قرار الخبير` card - read-only, unlike E-02's editable `CaseOverrideSection`. */
 export function CaseDecisionSummary({ override, onReview }: CaseDecisionSummaryProps) {
-  const severity = override ? describeSeverity(override.severity) : null;
-
   return (
     <View style={styles.card}>
       <View style={styles.header}>
@@ -34,25 +31,14 @@ export function CaseDecisionSummary({ override, onReview }: CaseDecisionSummaryP
             {override ? SUBTITLE_ON : SUBTITLE_OFF}
           </Text>
         </View>
-
-        <TouchableOpacity style={styles.link} onPress={onReview} accessibilityRole="link">
-          <Text variant="label14Bold" color="primary">
-            {REVIEW_LABEL}
-          </Text>
-          <ChevronLeft size={LINK_ICON_SIZE} color={colors.primary} />
-        </TouchableOpacity>
       </View>
 
-      {override ? (
-        <View style={styles.details}>
-          <Text variant="label12" color="textSecondary" align="right">
-            {severity?.label}
-          </Text>
-          <Text variant="body14Bold" align="right">
-            {override.correctedDiagnosis}
-          </Text>
-        </View>
-      ) : null}
+      <TouchableOpacity style={styles.link} onPress={onReview} accessibilityRole="link">
+        <Text variant="label12" color="primary">
+          {REVIEW_LABEL}
+        </Text>
+        <ChevronRight size={LINK_ICON_SIZE} color={colors.primary} />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -64,7 +50,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing[16],
-    gap: spacing[12],
+    gap: spacing[16],
   },
   header: {
     flexDirection: 'row-reverse',
@@ -79,6 +65,7 @@ const styles = StyleSheet.create({
   link: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
+    alignSelf: 'flex-start',
     gap: spacing[4],
   },
   details: {

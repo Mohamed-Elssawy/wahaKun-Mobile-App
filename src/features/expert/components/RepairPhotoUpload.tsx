@@ -12,8 +12,8 @@ export type RepairPhotoUploadProps = {
   onPickFromGallery: () => void;
 };
 
-const CIRCLE_SIZE = 64;
-const GLYPH_SIZE = 28;
+const CIRCLE_SIZE = 80;
+const GLYPH_SIZE = 40;
 const PHOTO_HEIGHT = 180;
 const TITLE = 'أرفق صورة لإثبات إصلاح المشكلة';
 const SUBTITLE = 'اضغط لإضافة صورة من الكاميرا أو المعرض';
@@ -43,7 +43,12 @@ export function RepairPhotoUpload({
     return (
       <TouchableOpacity onPress={openChooser} accessibilityRole="button">
         <Image source={{ uri: photo.uri }} style={styles.photo} />
-        <Text variant="label14" color="primary" align="center" style={styles.replaceLabel}>
+        <Text
+          variant="label14"
+          color="primary"
+          align="center"
+          style={styles.replaceLabel}
+        >
           {REPLACE_LABEL}
         </Text>
       </TouchableOpacity>
@@ -51,12 +56,16 @@ export function RepairPhotoUpload({
   }
 
   return (
-    <TouchableOpacity style={styles.card} onPress={openChooser} accessibilityRole="button">
+    <TouchableOpacity
+      style={styles.card}
+      onPress={openChooser}
+      accessibilityRole="button"
+    >
       <View style={styles.circle}>
         <Camera size={GLYPH_SIZE} color={colors.primaryPressed} />
       </View>
 
-      <Text variant="h5" align="center">
+      <Text variant="h4" align="center">
         {TITLE}
       </Text>
       <Text variant="label14" color="textSecondary" align="center">
