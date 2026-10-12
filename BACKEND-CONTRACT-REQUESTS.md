@@ -5,7 +5,13 @@ app — every screen works today on mock data — but each item is something the
 phone cannot do on its own.
 
 Checked against `origin/master` of the backend repo on **2026-09-28**;
-items 12-15 added 2026-10-06 against `7e8a8b2`, after `ExpertController` landed.
+items 12-15 added 2026-10-06 against `7e8a8b2`, after `ExpertController` landed;
+item 18 and the measurement in item 12 added 2026-10-07 by the integration dry
+run, which fed every mapper the payloads from `BACKEND-INTEGRATION-FACTS.md` §4
+and the error bodies from `FARMER-BACKEND-REVIEW.md` F5 without a server.
+
+**Item 12 is the priority.** It is the only thing on this list the app cannot
+work around, and the dry run measured exactly what it costs.
 
 A longer, field-by-field version of the feed and issue shapes is already in
 `docs/issue-service-response-spec.md`. This file is the short list of what
@@ -199,6 +205,24 @@ matches only work at all because `ASPNETCORE_ENVIRONMENT=Development` makes the
 developer exception page echo the message; under any other environment the body
 is empty and they stop matching silently.
 
+**Measured, 2026-10-07.** `src/api/__tests__/wireErrors.test.ts` drives the real
+bodies through `client.ts`. With the Development body all three matches work, and
+an empty inbox reaches the screen as an empty list. With an **empty** body —
+which is what every other environment returns, because the developer exception
+page is the only thing that echoes the message at all — `serverMessage` stays
+`undefined`, all three matches fail at once, and:
+
+- a new expert's empty inbox becomes `حدث خطأ في الخادم، حاول مرة أخرى لاحقاً`,
+  a red error on the first screen they ever see;
+- a second review submission, and a resolution on an unscheduled case, both tell
+  the expert to try again later — for an action that will fail forever.
+
+Nothing crashes, and that is the whole of the good news. **This is why item 12 is
+the priority on this list**: deploying `IssueService` properly is what breaks it,
+so it gets worse the closer the project gets to done, and there is no signal left
+on the response for the app to branch on instead. That test is the thing that
+fails first if the server configuration changes.
+
 The full request, with the `Program.cs` change that fixes every row above, is
 item 6 of `BACKEND-GAPS-FOR-TEAMMATE.md`.
 
@@ -289,3 +313,25 @@ the server's on — one report ends up addressable two ways, with different data
 each. **The attachment URL and the AI analysis on `GetFarmerIssues` would close
 it**, and it is the same analysis `GET /Expert/{id}/review` already returns, so
 the mapping exists.
+
+## 18. Two fields on the write responses the app cannot act on
+
+Not a gap in the data — both are already returned. The app discards every one of
+the three write responses, because `submitReview`, `confirmAppointment` and
+`confirmRepair` are each `Promise<void>`. Worth writing down because two of the
+fields in them are the only copy of something:
+
+- **`SubmitExpertReviewResponse.status`** comes back as the string `"Reviewed"`.
+  The app currently *assumes* the transition succeeded and repaints E-03 from its
+  own state. Reading the status back would let it confirm instead of assume,
+  which matters because the endpoint refuses unless the issue is exactly
+  `Assigned` and the refusal is indistinguishable from an outage (item 12).
+- **`RepairScheduleResponse.id`** is the only handle on the `RepairSchedule` row
+  that call just inserted. Every `POST /Expert/{id}/schedule` inserts a new row
+  rather than updating the existing one, so the day there is a proper
+  reschedule-by-id — or any way to read a schedule back (item 14) — this id is
+  what it will need, and by then the ids of every row written before that day are
+  gone.
+
+Nothing is asked for here. Keep both fields on the response; the app will start
+reading them when items 12 and 14 make it worth doing.

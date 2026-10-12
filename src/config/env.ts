@@ -76,7 +76,7 @@ export const REPORT_QUEUE_MAX = 5;
 
 /** The master switch for a demo with no backend running. Forces every feature onto its mock. */
 // Deliberately above the per-feature flags: each ORs against it, so one edit moves the whole app.
-export const DEMO_MODE = false;
+export const DEMO_MODE = true;
 
 /** Flip to true to work on the diagnosis screens with no backend running. */
 export const USE_MOCK_REPORTS = DEMO_MODE || false;
@@ -122,7 +122,7 @@ export const USE_MOCK_ROLE = DEMO_MODE || false;
 
 /** Farmer by default, so the committed build and DEMO_MODE both boot the farmer shell. */
 // Set to 'expert' with MOCK_EXPERT_APPROVAL 'approved' to walk the expert shell on a device.
-export const MOCK_ROLE: MockRole = 'farmer';
+export const MOCK_ROLE: MockRole = 'expert';
 
 export const MOCK_EXPERT_APPROVAL: MockApproval = 'approved';
 

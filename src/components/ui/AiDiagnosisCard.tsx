@@ -15,7 +15,7 @@ export type AiDiagnosisCardProps = {
 export function AiDiagnosisCard({ title, children }: AiDiagnosisCardProps) {
   return (
     <View style={styles.card}>
-      <Text variant="h4" align="right">
+      <Text variant="h5" align="right">
         {title}
       </Text>
       {children}

@@ -16,10 +16,10 @@ import { useExpertCaseDetail } from '../../hooks/useExpertCaseDetail';
 const TITLE = 'تم إغلاق الحالة';
 const SUBTITLE = 'وافق المزارع على الحل، وتم إغلاق الحالة بنجاح.';
 const SUMMARY_TITLE = 'ملخص الإصلاح';
-const PRIMARY_LABEL = 'العودة للوارد ←';
+const PRIMARY_LABEL = 'العودة للوارد';
 const LOAD_ERROR_TITLE = 'تعذر تحميل الحالة';
-const CIRCLE_SIZE = 72;
-const ICON_SIZE = 32;
+const CIRCLE_SIZE = 100;
+const ICON_SIZE = 56;
 
 /** §8.3's E-06. `تم الحل` is terminal (`S-TERMINAL`) - reached only because the farmer
  * confirmed from F-06, never because the expert did anything. */
@@ -76,12 +76,12 @@ export default function ExpertCaseClosedScreen({
 
         <View style={styles.hero}>
           <View style={styles.circle}>
-            <CheckCircle2 size={ICON_SIZE} color={colors.successText} />
+            <CheckCircle2 size={ICON_SIZE} color={colors.primaryPressed} />
           </View>
-          <Text variant="h1" align="center">
+          <Text variant="h4" align="center">
             {TITLE}
           </Text>
-          <Text variant="label14" color="textSecondary" align="center">
+          <Text variant="body14" color="textSecondary" align="center">
             {SUBTITLE}
           </Text>
         </View>
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   },
   hero: {
     alignItems: 'center',
-    gap: spacing[12],
+    gap: spacing[8],
     paddingVertical: spacing[16],
   },
   circle: {
@@ -131,6 +131,6 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.successTint,
+    backgroundColor: colors.primaryTint,
   },
 });

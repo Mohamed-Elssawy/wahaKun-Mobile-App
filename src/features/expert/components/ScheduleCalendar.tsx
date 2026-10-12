@@ -80,7 +80,13 @@ export function ScheduleCalendar({
 
       <View style={styles.weekRow}>
         {SHORT_WEEKDAYS.map(day => (
-          <Text key={day} variant="label12" color="textSecondary" align="center" style={styles.cell}>
+          <Text
+            key={day}
+            variant="label12"
+            color="textSecondary"
+            align="center"
+            style={styles.cell}
+          >
             {day}
           </Text>
         ))}
@@ -177,5 +183,6 @@ const styles = StyleSheet.create({
   },
   daySelected: {
     backgroundColor: colors.primaryPressed,
+    borderRadius: radii.pill,
   },
 });

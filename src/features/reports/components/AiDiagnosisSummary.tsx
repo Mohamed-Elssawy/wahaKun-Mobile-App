@@ -37,7 +37,7 @@ export function AiDiagnosisSummary({
     <AiDiagnosisCard title={TITLE}>
       <View style={styles.summary}>
         <Text
-          variant="h5"
+          variant="h4"
           align="right"
           numberOfLines={2}
           ellipsizeMode="tail"
@@ -67,7 +67,7 @@ export function AiDiagnosisSummary({
           accessibilityRole="link"
           accessibilityLabel={FULL_DIAGNOSIS}
         >
-          <Text variant="label16Bold" color="primary">
+          <Text variant="label12" color="primary">
             {FULL_DIAGNOSIS}
           </Text>
           <ChevronLeft size={LINK_ICON_SIZE} color={colors.primary} />

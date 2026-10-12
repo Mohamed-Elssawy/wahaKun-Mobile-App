@@ -9,7 +9,7 @@ export type CaseResolutionSummaryCardProps = {
   notes: string;
 };
 
-const PHOTO_SIZE = 72;
+const PHOTO_SIZE = 100;
 
 /** §8.3's green-bordered `ملخص ما تم إرساله للمزارع` card, shared by E-05 and E-06. */
 export function CaseResolutionSummaryCard({
@@ -19,13 +19,13 @@ export function CaseResolutionSummaryCard({
 }: CaseResolutionSummaryCardProps) {
   return (
     <View style={styles.card}>
-      <Text variant="label14Bold" align="right">
+      <Text variant="h5" align="right" color="primaryPressed">
         {title}
       </Text>
 
       <View style={styles.row}>
         <Image source={{ uri: photoUrl }} style={styles.photo} />
-        <Text variant="label14" color="textSecondary" align="right" style={styles.notes}>
+        <Text variant="body16" color="primaryPressed" align="right" style={styles.notes}>
           {notes}
         </Text>
       </View>
@@ -37,8 +37,8 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: radii[16],
     borderWidth: 1.5,
-    borderColor: colors.success,
-    backgroundColor: colors.successTint,
+    borderColor: colors.primaryPressed,
+    backgroundColor: colors.primaryTint,
     padding: spacing[16],
     gap: spacing[12],
   },

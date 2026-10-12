@@ -37,7 +37,7 @@ export function TextField({
   return (
     <View style={[styles.group, containerStyle]}>
       {label ? (
-        <Text variant="label14" color="textSecondary" align="right">
+        <Text variant="h5" color="textSecondary" align="right">
           {label}
         </Text>
       ) : null}

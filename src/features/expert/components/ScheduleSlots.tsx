@@ -17,13 +17,18 @@ export type ScheduleSlotsProps = {
 export function ScheduleSlots({ label, value, onChange }: ScheduleSlotsProps) {
   return (
     <View style={styles.section}>
-      <Text variant="label14" color="textSecondary" align="right">
+      <Text variant="h5" color="textSecondary" align="right">
         {label}
       </Text>
 
       <View style={styles.grid}>
         {SCHEDULE_SLOTS.map(slot => (
-          <FilterChip key={slot} label={slot} isActive={value === slot} onPress={() => onChange(slot)} />
+          <FilterChip
+            key={slot}
+            label={slot}
+            isActive={value === slot}
+            onPress={() => onChange(slot)}
+          />
         ))}
       </View>
     </View>

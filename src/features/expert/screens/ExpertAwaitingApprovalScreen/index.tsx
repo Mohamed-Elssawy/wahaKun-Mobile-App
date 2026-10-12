@@ -15,12 +15,13 @@ import { ExpertStepper } from '../../components/ExpertStepper';
 import { useExpertCaseDetail } from '../../hooks/useExpertCaseDetail';
 
 const TITLE = 'بإنتظار موافقة المزارع';
-const SUBTITLE = 'تم إرسال تأكيد الإصلاح إلى المزارع. سيتم إغلاق الحالة تلقائياً بعد موافقته.';
+const SUBTITLE =
+  'تم إرسال تأكيد الإصلاح إلى المزارع. سيتم إغلاق الحالة تلقائياً بعد موافقته.';
 const SUMMARY_TITLE = 'ملخص ما تم إرساله للمزارع';
-const PRIMARY_LABEL = 'العودة للوارد ←';
+const PRIMARY_LABEL = 'العودة للوارد';
 const LOAD_ERROR_TITLE = 'تعذر تحميل الحالة';
-const CIRCLE_SIZE = 72;
-const ICON_SIZE = 32;
+const CIRCLE_SIZE = 100;
+const ICON_SIZE = 56;
 
 /**
  * §8.3's E-05, node 6. A snapshot taken once at entry, never live: a farmer rejection while the
@@ -82,10 +83,15 @@ export default function ExpertAwaitingApprovalScreen({
           <View style={styles.circle}>
             <Hourglass size={ICON_SIZE} color={colors.primaryPressed} />
           </View>
-          <Text variant="h1" align="center">
+          <Text variant="h4" align="center">
             {TITLE}
           </Text>
-          <Text variant="label14" color="textSecondary" align="center">
+          <Text
+            variant="body14"
+            color="textSecondary"
+            align="center"
+            style={styles.heroSubtitle}
+          >
             {SUBTITLE}
           </Text>
         </View>
@@ -126,8 +132,11 @@ const styles = StyleSheet.create({
   },
   hero: {
     alignItems: 'center',
-    gap: spacing[12],
+    gap: spacing[8],
     paddingVertical: spacing[16],
+  },
+  heroSubtitle: {
+    maxWidth: 310,
   },
   circle: {
     width: CIRCLE_SIZE,

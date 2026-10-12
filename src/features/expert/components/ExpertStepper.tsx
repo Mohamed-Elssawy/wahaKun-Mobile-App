@@ -15,8 +15,8 @@ export type ExpertStepperProps = {
 
 const LABELS: readonly string[] = ['مراجعة', 'الجدولة', 'تأكيد الحل', 'تأكيد المزارع'];
 
-const DOT_SIZE = 28;
-const CHECK_SIZE = 16;
+const DOT_SIZE = 42;
+const CHECK_SIZE = 24;
 const RAIL_HEIGHT = 2;
 
 /** Right to left, mirroring `ReportStatusTrack`'s dot-rail layout with a third, "current"
