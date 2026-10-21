@@ -1,0 +1,232 @@
+import { Clock, User, Users } from 'lucide-react-native';
+import { Image, StyleSheet, View } from 'react-native';
+
+import {
+  AiConfidenceChip,
+  Button,
+  SeverityBadge,
+  StatusChip,
+  Text,
+} from '@/components/ui';
+import { STATUS_ICONS } from '@/features/reports/components/statusIcon';
+import { formatReportReference } from '@/features/reports/format';
+import {
+  CONFIDENCE_THRESHOLD,
+  describeStatus,
+  RESCHEDULE_LABEL,
+  isClosedStatus,
+} from '@/features/reports/lifecycle';
+import type { ExpertCta } from '@/features/reports/lifecycle';
+import { formatRelativeTime } from '@/features/reports/relativeTime';
+import { describeSeverity } from '@/features/reports/severity';
+import { colors, radii, shadows, spacing } from '@/theme';
+
+import type { ExpertCaseSummary } from '../types';
+
+export type ExpertCaseCardProps = {
+  summary: ExpertCaseSummary;
+  cta: ExpertCta;
+  onPrimary: (cta: ExpertCta) => void;
+  /** §8.3: registered so the control exists, but entering reschedule is out of scope here. */
+  onReschedule: () => void;
+};
+
+const AVATAR_SIZE = 24;
+const AVATAR_ICON = 12;
+const CORROBORATION_ICON = 14;
+const STRIP_HEIGHT = 4;
+const STEP_LABEL: Record<ExpertCta['action'], string> = {
+  review: 'مراجعة',
+  continue: 'متابعة',
+  view: 'عرض',
+};
+
+/** E-01's card: the CTA comes from expertCtaFor alone, never a status switch of its own. */
+export function ExpertCaseCard({
+  summary,
+  cta,
+  onPrimary,
+  onReschedule,
+}: ExpertCaseCardProps) {
+  const severity = describeSeverity(summary.severity);
+  const status = describeStatus(summary.status);
+  const isConfident = summary.confidence >= CONFIDENCE_THRESHOLD;
+  // §6.2: severity disappears once a case is closed and the green تم الحل border replaces it.
+  const isClosed = isClosedStatus(summary.status);
+
+  return (
+    <View style={styles.card}>
+      <View
+        style={[
+          styles.strip,
+          { backgroundColor: isClosed ? colors.success : colors[severity.color] },
+        ]}
+      />
+
+      <View style={styles.body}>
+        <View style={styles.header}>
+          <Text variant="body14" align="right" numberOfLines={2} style={styles.title}>
+            {summary.title}
+          </Text>
+
+          {isClosed ? null : (
+            <SeverityBadge
+              level={severity.tier}
+              label={severity.label}
+              color={severity.color}
+            />
+          )}
+        </View>
+
+        <View style={styles.meta}>
+          <View style={styles.metaItem}>
+            <Clock size={CORROBORATION_ICON} color={colors.textSecondary} />
+            <Text variant="label12" color="textSecondary">
+              {formatRelativeTime(summary.createdAt)}
+            </Text>
+          </View>
+
+          {summary.corroborationCount > 0 ? (
+            <View style={styles.metaItem}>
+              <Users size={CORROBORATION_ICON} color={colors.primary} />
+              <Text variant="label12" color="primary">
+                {`${summary.corroborationCount} نفس المشكلة`}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+
+        <AiConfidenceChip
+          diagnosis={summary.title}
+          confidence={summary.confidence}
+          isConfident={isConfident}
+        />
+
+        <View style={styles.identity}>
+          <View style={styles.reporter}>
+            {summary.reporterAvatar ? (
+              <Image source={{ uri: summary.reporterAvatar }} style={styles.avatar} />
+            ) : (
+              <View style={[styles.avatar, styles.avatarEmpty]}>
+                <User size={AVATAR_ICON} color={colors.textPrimary} />
+              </View>
+            )}
+            <Text
+              variant="label14"
+              color="textPrimary"
+              numberOfLines={1}
+              style={styles.reporterName}
+            >
+              {summary.reporterName}
+            </Text>
+            <View style={styles.referencePill}>
+              <Text variant="label12" color="textSecondary" numberOfLines={1}>
+                {formatReportReference(summary.reportId)}
+              </Text>
+            </View>
+          </View>
+
+          <StatusChip
+            icon={STATUS_ICONS[status.icon]}
+            label={status.label}
+            color={status.color}
+          />
+        </View>
+
+        <View style={styles.footer}>
+          {cta.secondaryAction === 'reschedule' ? (
+            <Button
+              label={RESCHEDULE_LABEL}
+              variant="secondary"
+              onPress={onReschedule}
+              style={styles.footerButton}
+            />
+          ) : null}
+
+          <Button
+            label={STEP_LABEL[cta.action]}
+            onPress={() => onPrimary(cta)}
+            style={styles.footerButton}
+          />
+        </View>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: radii[16],
+    overflow: 'hidden',
+    ...shadows.card,
+  },
+  strip: {
+    height: STRIP_HEIGHT,
+  },
+  body: {
+    padding: spacing[16],
+    gap: spacing[12],
+  },
+  header: {
+    flexDirection: 'row-reverse',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: spacing[12],
+  },
+  title: {
+    flex: 1,
+  },
+  meta: {
+    flexDirection: 'row-reverse',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  metaItem: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: spacing[4],
+  },
+  identity: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing[8],
+  },
+  // minWidth 0 lets the name shrink instead of pushing the status chip off the card.
+  reporter: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: spacing[8],
+  },
+  reporterName: {
+    flexShrink: 1,
+  },
+  avatar: {
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+    borderRadius: radii.pill,
+  },
+  avatarEmpty: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surfaceMuted,
+  },
+  referencePill: {
+    flexShrink: 0,
+    paddingHorizontal: spacing[10],
+    paddingVertical: spacing[4],
+    borderRadius: radii.pill,
+    backgroundColor: colors.surfaceMuted,
+  },
+  footer: {
+    flexDirection: 'row-reverse',
+    gap: spacing[12],
+  },
+  footerButton: {
+    flex: 1,
+    width: undefined,
+  },
+});

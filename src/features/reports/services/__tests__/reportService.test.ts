@@ -2,20 +2,30 @@ import { API_BASE_URLS } from '@/config/env';
 
 import {
   analyzeIssue,
+  buildAnalyzeFormData,
   createIssue,
   describeStatus,
   getMyReports,
+  getReportById,
   normalizeConfidence,
   resolveAttachmentUrl,
   toUtcTimestamp,
 } from '../reportService';
-import { resetReportMirror } from '../reportStore';
+import { resetReportMirror, saveMirroredReport } from '../reportStore';
+
+import type { GetFarmerIssuesWire } from '../../types';
 
 const mockPost = jest.fn();
+const mockGet = jest.fn();
+const mockGetTokenUserId = jest.fn<Promise<string | null>, []>();
 
 jest.mock('@/api', () => ({
-  apiClient: { post: (...args: unknown[]) => mockPost(...args) },
+  apiClient: {
+    post: (...args: unknown[]) => mockPost(...args),
+    get: (...args: unknown[]) => mockGet(...args),
+  },
   API_ENDPOINTS: jest.requireActual('@/api/endpoints').API_ENDPOINTS,
+  getTokenUserId: () => mockGetTokenUserId(),
 }));
 
 // jest.setup's stub never returns what it stored, and the mirror is the read path here.
@@ -65,7 +75,7 @@ describe('normalizeConfidence', () => {
 
 // Both inputs are real values this backend has served, a day apart.
 describe('resolveAttachmentUrl', () => {
-  const EXPECTED = `${API_BASE_URLS.media}/storage?objectName=reportimage%2Fabc-123.jpg`;
+  const EXPECTED = `${API_BASE_URLS.media}/Storage?objectName=reportimage%2Fabc-123.jpg`;
 
   it('points a bare object key at the storage endpoint', () => {
     expect(resolveAttachmentUrl('reportimage/abc-123.jpg')).toBe(EXPECTED);
@@ -78,9 +88,26 @@ describe('resolveAttachmentUrl', () => {
     ).toBe(EXPECTED);
   });
 
-  it('also handles the URL the server would build if it stopped doubling', () => {
+  // objectName is relative to the bucket, so the segment after the host is not part of the key.
+  it('drops the bucket segment from a URL that carries it once', () => {
     expect(resolveAttachmentUrl('http://192.168.1.29:9000/reportimage/abc-123.jpg')).toBe(
-      EXPECTED,
+      `${API_BASE_URLS.media}/Storage?objectName=abc-123.jpg`,
+    );
+  });
+
+  // PROBE H3's verbatim value: an in-cluster DNS name, no scheme, and the key under `issues`.
+  it('drops the bucket segment from the scheme-less URL the storage service returns', () => {
+    expect(
+      resolveAttachmentUrl(
+        'minio.data-services.svc.cluster.local:9000/reportimage/issues/8d1f.jpg',
+      ),
+    ).toBe(`${API_BASE_URLS.media}/Storage?objectName=issues%2F8d1f.jpg`);
+  });
+
+  // Media.Grpc's UploadMedia answers with the object key alone, under the `issues` folder.
+  it("points the gRPC upload's bare key at the storage endpoint too", () => {
+    expect(resolveAttachmentUrl('issues/8d1f-photo.jpg')).toBe(
+      `${API_BASE_URLS.media}/Storage?objectName=issues%2F8d1f-photo.jpg`,
     );
   });
 
@@ -116,14 +143,16 @@ describe('toUtcTimestamp', () => {
   });
 });
 
-// IssueStatus crosses the wire as an int, and a wrong mapping is invisible to the compiler.
+// Every value of §3's enum, 0 through 6: 2 and 3 were once missing here and wrong in the map.
 describe('describeStatus', () => {
   it('names every IssueStatus the server can send', () => {
     expect(describeStatus(0)).toBe('Reported');
     expect(describeStatus(1)).toBe('Diagnosed');
+    expect(describeStatus(2)).toBe('Assigned');
+    expect(describeStatus(3)).toBe('Reviewed');
     expect(describeStatus(4)).toBe('Scheduled');
     expect(describeStatus(5)).toBe('Repaired');
-    expect(describeStatus(6)).toBe('Completed');
+    expect(describeStatus(6)).toBe('completed');
   });
 
   it('falls back rather than throwing on a step this build does not know', () => {
@@ -135,18 +164,178 @@ describe('describeStatus', () => {
   });
 });
 
-// create returns neither the photo nor the analysis, so the client assembles the Report.
+const ANALYSIS = {
+  filePath: 'http://127.0.0.1:9000/reportimage/reportimage/f8086949.jpg',
+  problemName: 'Pipe_Damage',
+  problemArabic: 'تسريب في الأنبوب',
+  // The vision service formats confidence as "95.98%", so ParseConfidence stores 95.98.
+  confidence: 95.98,
+  severity: 'حرجة جداً' as const,
+  recommendation: 'أوقف مصدر المياه',
+  explanation: 'شرح',
+  repairSteps: ['خطوة'],
+};
+
+// Analyze already enqueues the creation, so createIssue is only the local half.
 describe('createIssue', () => {
-  const ANALYSIS = {
-    filePath: 'http://127.0.0.1:9000/reportimage/reportimage/f8086949.jpg',
-    problemName: 'Pipe_Damage',
+  beforeEach(async () => {
+    mockPost.mockReset();
+    mockGet.mockReset();
+    mockGetTokenUserId.mockReset();
+    mockGetTokenUserId.mockResolvedValue(REPORTER_ID);
+    await resetReportMirror();
+  });
+
+  it('makes no network call at all', async () => {
+    await createIssue({ analysis: ANALYSIS });
+
+    expect(mockPost).not.toHaveBeenCalled();
+    expect(mockGet).not.toHaveBeenCalled();
+  });
+
+  it('builds the report out of the analysis the farmer was just shown', async () => {
+    const report = await createIssue({
+      analysis: ANALYSIS,
+      description: 'ماء على السطح',
+      latitude: 29.2,
+      longitude: 25.5,
+    });
+
+    expect(report).toMatchObject({
+      title: 'تسريب في الأنبوب',
+      description: 'ماء على السطح',
+      // Node 2: the diagnosis exists, so hasAiAnalysis has to read true.
+      status: 'Diagnosed',
+      reporterId: REPORTER_ID,
+      latitude: 29.2,
+      longitude: 25.5,
+    });
+    expect(report.analysis).toMatchObject({ severity: 'حرجة جداً', modelVersion: '' });
+    // No local file for this key, so the attachment carries the storage url instead.
+    expect(report.attachments).toEqual([
+      expect.objectContaining({
+        type: 'Photo',
+        url: resolveAttachmentUrl(ANALYSIS.filePath),
+      }),
+    ]);
+  });
+
+  // Analyze names the key; the file is still on this device, so the mirrored row carries it.
+  it('mirrors the local file analyze uploaded, under the key analyze named', async () => {
+    const analysisWire = { ...ANALYSIS, filePath: 'issues/8d1f-photo.jpg' };
+    mockPost.mockResolvedValue(analysisWire);
+
+    const analysis = await analyzeIssue({ uri: 'file:///cache/report.jpg' });
+    const report = await createIssue({ analysis });
+
+    expect(report.attachments).toEqual([
+      expect.objectContaining({ type: 'Photo', url: 'file:///cache/report.jpg' }),
+    ]);
+  });
+
+  // A key this device never uploaded under falls back to storage rather than to no photo.
+  it('mirrors the storage url for a key this device has no file for', async () => {
+    const report = await createIssue({
+      analysis: { ...ANALYSIS, filePath: 'issues/other.jpg' },
+    });
+
+    expect(report.attachments).toEqual([
+      expect.objectContaining({ url: resolveAttachmentUrl('issues/other.jpg') }),
+    ]);
+  });
+
+  // Not guid-shaped on purpose: isServerIssueId must read it as local, not ask the map for it.
+  it('mints a local id that cannot be mistaken for a server guid', async () => {
+    const report = await createIssue({ analysis: ANALYSIS });
+
+    expect(report.id).toMatch(/^local-/);
+    expect(report.id).not.toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+    );
+  });
+
+  // Whatever the severity: the diagnosis screen reads this row back by id straight after filing.
+  it('mirrors the report so getReportById can find it', async () => {
+    const report = await createIssue({ analysis: ANALYSIS });
+
+    await expect(getReportById(report.id)).resolves.toMatchObject({ id: report.id });
+    expect(mockGet).not.toHaveBeenCalled();
+  });
+
+  // Folded once, at the boundary: analyze is handed its own un-normalised server response.
+  it('folds the percentage confidence in analyzeIssue', async () => {
+    mockPost.mockResolvedValue({ ...ANALYSIS, confidence: 95.98 });
+
+    const analysis = await analyzeIssue({ uri: 'file:///photo.jpg' });
+
+    expect(analysis.confidence).toBeCloseTo(0.9598);
+  });
+});
+
+// The mirror lists only what §4.1 refuses to create, so no matching is needed.
+describe('what the list shows from the mirror', () => {
+  beforeEach(async () => {
+    mockGet.mockReset();
+    mockGet.mockResolvedValue([]);
+    mockGetTokenUserId.mockReset();
+    mockGetTokenUserId.mockResolvedValue(REPORTER_ID);
+    await resetReportMirror();
+  });
+
+  const listedIds = async () => (await getMyReports()).map(report => report.id);
+
+  // The four §4.1 maps to Low or Unknown. The server creates nothing for any of them.
+  it.each(['بسيطة', 'بسيطة جداً', 'غير مؤثرة', 'غير معروفة'] as const)(
+    'lists a %s report, because the backend never created one',
+    async severity => {
+      const report = await createIssue({ analysis: { ...ANALYSIS, severity } });
+
+      await expect(listedIds()).resolves.toEqual([report.id]);
+    },
+  );
+
+  // The six that map to Medium or above. The server has these, so listing them would duplicate.
+  it.each(['حرجة جداً', 'حرجة', 'عالية جداً', 'عالية', 'متوسطة', 'منخفضة'] as const)(
+    'hides a %s report, because the server is creating one',
+    async severity => {
+      await createIssue({ analysis: { ...ANALYSIS, severity } });
+
+      await expect(listedIds()).resolves.toEqual([]);
+    },
+  );
+
+  // ReportService's mapping ends in `_ => Unknown`, so an unlisted severity creates nothing.
+  it('lists a report whose severity it does not recognise', async () => {
+    const report = await createIssue({
+      analysis: { ...ANALYSIS, severity: 'Critical' },
+    });
+
+    await expect(listedIds()).resolves.toEqual([report.id]);
+  });
+
+  // A Medium+ report is addressable by its local id even though the list hides it.
+  it('still resolves a hidden report by id', async () => {
+    const report = await createIssue({ analysis: { ...ANALYSIS, severity: 'عالية' } });
+
+    await expect(getReportById(report.id)).resolves.toMatchObject({
+      id: report.id,
+      status: 'Diagnosed',
+    });
+  });
+});
+
+// A null in any non-optional field of AiAnalysisResponse is a 400 on create.
+describe('the analysis create receives', () => {
+  // What analyze really returns: the vision service's success body has no problem_code.
+  const FROM_SERVER = {
+    filePath: 'reportimage/f8086949.jpg',
+    problemName: null,
     problemArabic: 'تسريب في الأنبوب',
-    // The vision service formats confidence as "95.98%", so ParseConfidence stores 95.98.
-    confidence: 95.98,
-    severity: 'حرجة جداً' as const,
-    recommendation: 'أوقف مصدر المياه',
+    confidence: 92.5,
+    severity: 'عالية',
+    recommendation: null,
     explanation: 'شرح',
-    repairSteps: ['خطوة'],
+    repairSteps: null,
   };
 
   beforeEach(async () => {
@@ -154,105 +343,190 @@ describe('createIssue', () => {
     await resetReportMirror();
   });
 
-  it('reads create timestamps as the UTC the server meant', async () => {
-    mockPost.mockResolvedValue({
-      id: '05533e56',
-      status: 1,
-      createdAt: '2026-08-09T13:01:13.4206342',
-      updatedAt: '2026-08-09T13:10:25.8708138',
-      reporterId: 'f86295b1',
-    });
-
-    const report = await createIssue({ analysis: ANALYSIS });
-
-    // The instant, not the string: what went wrong was the parse, not the format.
-    expect(Date.parse(report.createdAt)).toBe(Date.UTC(2026, 7, 9, 13, 1, 13, 420));
-    expect(Date.parse(report.updatedAt as string)).toBe(
-      Date.UTC(2026, 7, 9, 13, 10, 25, 870),
-    );
-  });
-
-  it('resolves the analysed photo onto MediaStorage', async () => {
-    mockPost.mockResolvedValue({
-      id: '05533e56',
-      status: 1,
-      createdAt: '2026-08-09T13:01:13.42Z',
-      updatedAt: null,
-      reporterId: 'f86295b1',
-    });
-
-    const report = await createIssue({ analysis: ANALYSIS });
-
-    expect(report.attachments).toHaveLength(1);
-    expect(report.attachments[0].url).toBe(
-      `${API_BASE_URLS.media}/storage?objectName=reportimage%2Ff8086949.jpg`,
-    );
-    expect(report.status).toBe('Diagnosed');
-    // Assigned, not spread: writing over the server's null would re-add the key.
-    expect(report).not.toHaveProperty('updatedAt');
-  });
-
-  // Folded once, at the boundary: create is handed an analysis analyze already normalised.
-  it('folds the percentage confidence in analyzeIssue, not again in create', async () => {
-    mockPost.mockResolvedValue({ ...ANALYSIS, confidence: 95.98 });
+  it('fills every required field analyze can leave null', async () => {
+    mockPost.mockResolvedValue(FROM_SERVER);
 
     const analysis = await analyzeIssue({ uri: 'file:///photo.jpg' });
 
-    expect(analysis.confidence).toBeCloseTo(0.9598);
-  });
-
-  it('posts the analysis back whole, with coordinates as the strings create expects', async () => {
-    mockPost.mockResolvedValue({
-      id: '05533e56',
-      status: 1,
-      createdAt: '2026-08-09T13:01:13.42Z',
-      reporterId: 'f86295b1',
-    });
-
-    // 0 is a real coordinate, so it must survive rather than being dropped as falsy.
-    await createIssue({ analysis: ANALYSIS, latitude: 0, longitude: 25.5195 });
-
-    expect(mockPost).toHaveBeenCalledWith(
-      expect.anything(),
-      '/Issue/create',
-      expect.objectContaining({
-        aiAnalysisResponse: ANALYSIS,
-        latitude: '0',
-        longitude: '25.5195',
-      }),
-      expect.anything(),
-    );
+    expect(analysis.problemName).toBe('تسريب في الأنبوب');
+    expect(analysis.recommendation).toBe('');
+    expect(analysis.repairSteps).toEqual([]);
+    expect(analysis.severity).toBe('عالية');
   });
 });
 
-// The mirror stands in for GetMyIssues, which IssueController no longer exposes.
+const REPORTER_ID = 'f86295b1-6d2e-4a6f-9d2a-0c1b3e5a7d91';
+
+/** One GetFarmerIssues row: the thirteen fields the probe's row C2 really returned. */
+function row(overrides: Partial<GetFarmerIssuesWire> = {}): GetFarmerIssuesWire {
+  return {
+    issueId: 'i-1',
+    title: 'تسريب في الأنبوب',
+    description: 'ماء على السطح',
+    createdAt: '2026-10-05T19:47:30',
+    status: 2,
+    priority: 'Critical',
+    longitude: '33',
+    latiude: '21',
+    reporterId: REPORTER_ID,
+    // G12: null, null and the all-zero guid on every row the probe saw.
+    expertName: null,
+    expertUrl: null,
+    expertId: '00000000-0000-0000-0000-000000000000',
+    ...overrides,
+  };
+}
+
 describe('getMyReports', () => {
   beforeEach(async () => {
-    mockPost.mockReset();
+    mockGet.mockReset();
+    mockGetTokenUserId.mockReset();
+    mockGetTokenUserId.mockResolvedValue(REPORTER_ID);
     await resetReportMirror();
   });
 
-  it('puts the newest report first', async () => {
-    const analysis = {
-      filePath: 'reportimage/a.jpg',
-      problemName: 'Blockage',
-      confidence: 0.9,
-      severity: 'حرجة' as const,
-      recommendation: '',
-      repairSteps: [],
-    };
+  // R1: the blanked-three shape, the only one of the three with evidence behind it (PROBE C2).
+  it('blanks the three IssueFiltration filters rather than sending a reporter id', async () => {
+    mockGet.mockResolvedValue([]);
 
-    for (const [id, createdAt] of [
-      ['oldest', '2026-08-09T13:01:13.4206342'],
-      ['newest', '2026-08-10T12:45:58.0923551'],
-      ['middle', '2026-08-09T13:37:59.6010209'],
-    ]) {
-      mockPost.mockResolvedValue({ id, status: 1, createdAt, reporterId: 'f86295b1' });
-      await createIssue({ analysis });
-    }
+    await getMyReports();
+
+    expect(mockGet).toHaveBeenCalledWith(
+      API_BASE_URLS.issue,
+      `/Farmer/issues/${REPORTER_ID}?Completed=&Critical=&Assigend=`,
+      { authenticated: true },
+    );
+  });
+
+  it('maps a row onto a Report', async () => {
+    mockGet.mockResolvedValue([row()]);
+
+    const [report] = await getMyReports();
+
+    expect(report).toEqual({
+      id: 'i-1',
+      title: 'تسريب في الأنبوب',
+      description: 'ماء على السطح',
+      // `priority`, mapped: the only severity this row has, and what paints its 4px top border.
+      severity: 'حرجة',
+      // The int, through the corrected table: 2 is Assigned, not Verified.
+      status: 'Assigned',
+      createdAt: '2026-10-05T19:47:30Z',
+      reporterId: REPORTER_ID,
+      attachments: [],
+    });
+    // Nothing invented for what the payload does not carry.
+    expect(report.analysis).toBeUndefined();
+  });
+
+  // Both vocabularies: the deployment sends names today and sent integers earlier.
+  it('reads the status as an int, which the deployment no longer sends', async () => {
+    mockGet.mockResolvedValue([row({ status: 3 }), row({ issueId: 'i-2', status: 6 })]);
 
     const reports = await getMyReports();
 
-    expect(reports.map(report => report.id)).toEqual(['newest', 'middle', 'oldest']);
+    expect(reports.map(report => report.status)).toEqual(
+      expect.arrayContaining(['Reviewed', 'completed']),
+    );
+  });
+
+  it('merges the mirror into the server rows, newest first', async () => {
+    mockGet.mockResolvedValue([
+      row({ issueId: 'server-old', createdAt: '2026-08-09T13:01:13.4206342' }),
+      row({ issueId: 'server-new', createdAt: '2026-08-10T12:45:58.0923551' }),
+    ]);
+    await saveMirroredReport({
+      id: 'mirrored-middle',
+      status: 'Diagnosed',
+      createdAt: '2026-08-09T13:37:59.6010209Z',
+      reporterId: REPORTER_ID,
+      attachments: [],
+    });
+
+    const reports = await getMyReports();
+
+    expect(reports.map(report => report.id)).toEqual([
+      'server-new',
+      'mirrored-middle',
+      'server-old',
+    ]);
+  });
+
+  // Sending `undefined` as the guid would collect an Unauthorized and read as a session problem.
+  it('refuses to call the server without a reporter id', async () => {
+    mockGetTokenUserId.mockResolvedValue(null);
+
+    await expect(getMyReports()).rejects.toThrow(/ReporterId/);
+    expect(mockGet).not.toHaveBeenCalled();
+  });
+
+  // بلاغاتي has an error state; a half list presented as the whole one would be worse.
+  it('lets a failed server read reach the screen', async () => {
+    mockGet.mockRejectedValue(new Error('connection refused'));
+
+    await expect(getMyReports()).rejects.toThrow('connection refused');
+  });
+});
+
+describe('getReportById', () => {
+  beforeEach(async () => {
+    mockGet.mockReset();
+    mockGetTokenUserId.mockReset();
+    mockGetTokenUserId.mockResolvedValue(REPORTER_ID);
+    await resetReportMirror();
+  });
+
+  // The only place a report filed seconds ago exists, and it costs no request.
+  it('answers from the mirror without calling the server', async () => {
+    await saveMirroredReport({
+      id: 'local-1',
+      status: 'Diagnosed',
+      createdAt: '2026-10-05T19:47:30Z',
+      reporterId: REPORTER_ID,
+      attachments: [],
+    });
+
+    await expect(getReportById('local-1')).resolves.toMatchObject({ id: 'local-1' });
+    expect(mockGet).not.toHaveBeenCalled();
+  });
+
+  it('falls back to the server list for a report the mirror never held', async () => {
+    mockGet.mockResolvedValue([row({ issueId: 'i-9' })]);
+
+    await expect(getReportById('i-9')).resolves.toMatchObject({
+      id: 'i-9',
+      status: 'Assigned',
+    });
+  });
+
+  // useIssueDetails treats this as "not mine" and falls through to the map.
+  it('throws when neither half has it', async () => {
+    mockGet.mockResolvedValue([row()]);
+
+    await expect(getReportById('someone-elses')).rejects.toThrow(/someone-elses/);
+  });
+});
+
+describe('buildAnalyzeFormData', () => {
+  // Jest runs on Node's FormData, which has the standard accessors RN's own lacks in its types.
+  type Readable = { get: (name: string) => unknown; keys: () => Iterable<string> };
+  const read = (form: FormData) => form as unknown as Readable;
+
+  it("sends the coordinate as AnalyzeIssueRequest's Latitude and Longitude fields", () => {
+    const form = read(
+      buildAnalyzeFormData(
+        { uri: 'file:///photo.jpg' },
+        { latitude: 25.4378, longitude: 30.5531 },
+      ),
+    );
+
+    expect(form.get('Latitude')).toBe('25.4378');
+    expect(form.get('Longitude')).toBe('30.5531');
+  });
+
+  it('sends only the photo when there is no coordinate, rather than a "undefined" string', () => {
+    const form = read(buildAnalyzeFormData({ uri: 'file:///photo.jpg' }));
+
+    expect([...form.keys()]).toEqual(['Photo']);
   });
 });

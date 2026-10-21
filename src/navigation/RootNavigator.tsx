@@ -6,6 +6,15 @@ import ForgotPasswordScreen from '@/features/auth/screens/ForgotPasswordScreen';
 import LoginOtpScreen from '@/features/auth/screens/LoginOtpScreen';
 import PhoneLoginScreen from '@/features/auth/screens/PhoneLoginScreen';
 import ResetPasswordScreen from '@/features/auth/screens/ResetPasswordScreen';
+import ExpertAwaitingApprovalScreen from '@/features/expert/screens/ExpertAwaitingApprovalScreen';
+import ExpertCaseClosedScreen from '@/features/expert/screens/ExpertCaseClosedScreen';
+import ExpertCaseReviewScreen from '@/features/expert/screens/ExpertCaseReviewScreen';
+import ExpertDiagnosisScreen from '@/features/expert/screens/ExpertDiagnosisScreen';
+import ExpertIssueDetailsScreen from '@/features/expert/screens/ExpertIssueDetailsScreen';
+import ExpertResolutionConfirmationScreen from '@/features/expert/screens/ExpertResolutionConfirmationScreen';
+import ExpertScheduleScreen from '@/features/expert/screens/ExpertScheduleScreen';
+import NotificationsScreen from '@/features/notifications/screens/NotificationsScreen';
+import AccountStatusScreen from '@/features/onboarding/screens/AccountStatusScreen';
 import EmailPasswordScreen from '@/features/onboarding/screens/EmailPasswordScreen';
 import FullNameScreen from '@/features/onboarding/screens/FullNameScreen';
 import IntroSlideshowScreen from '@/features/onboarding/screens/IntroSlideshowScreen';
@@ -18,15 +27,19 @@ import IssueDetailsScreen from '@/features/reports/screens/IssueDetailsScreen';
 import ReportAnalyzingScreen from '@/features/reports/screens/ReportAnalyzingScreen';
 import ReportCaptureScreen from '@/features/reports/screens/ReportCaptureScreen';
 import ReportDiagnosisScreen from '@/features/reports/screens/ReportDiagnosisScreen';
+import ReportTrackerScreen from '@/features/reports/screens/ReportTrackerScreen';
 import EditProfilePictureScreen from '@/features/user/screens/EditProfilePictureScreen';
 import EditRegionScreen from '@/features/user/screens/EditRegionScreen';
 import ProfileScreen from '@/features/user/screens/ProfileScreen';
 
+import { ExpertTabs } from './ExpertTabs';
 import { HomeTabs } from './HomeTabs';
 import { linking } from './linking';
+import { navigationRef } from './navigationRef';
 import { createPlaceholderScreen } from './PlaceholderScreen';
+import SessionErrorScreen from './SessionErrorScreen';
 
-import type { BootRoute, RootStackParamList } from './types';
+import type { BootDecision, RootStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -36,15 +49,15 @@ const PrivacyPolicyScreen = createPlaceholderScreen('سياسة الخصوصية
 const ConnectToExpertScreen = createPlaceholderScreen('التواصل مع خبير');
 
 export type RootNavigatorProps = {
-  /** Typed as BootRoute so the boot-shortcut habit cannot be committed through this prop. */
-  initialRouteName: BootRoute;
+  /** A BootDecision, so the boot-shortcut habit cannot be committed through this prop. */
+  initialRoute: BootDecision;
 };
 
-export function RootNavigator({ initialRouteName }: RootNavigatorProps) {
+export function RootNavigator({ initialRoute }: RootNavigatorProps) {
   return (
-    <NavigationContainer linking={linking}>
+    <NavigationContainer ref={navigationRef} linking={linking}>
       <Stack.Navigator
-        initialRouteName={initialRouteName}
+        initialRouteName={initialRoute.name}
         screenOptions={{
           headerShown: false,
           // Consistent slide transition on both platforms.
@@ -80,7 +93,35 @@ export function RootNavigator({ initialRouteName }: RootNavigatorProps) {
         <Stack.Screen name="ReportDiagnosis" component={ReportDiagnosisScreen} />
         <Stack.Screen name="ConnectToExpert" component={ConnectToExpertScreen} />
         <Stack.Screen name="IssueDetails" component={IssueDetailsScreen} />
+        <Stack.Screen name="ReportTracker" component={ReportTrackerScreen} />
+        <Stack.Screen name="ExpertIssueDetails" component={ExpertIssueDetailsScreen} />
+        <Stack.Screen name="ExpertDiagnosis" component={ExpertDiagnosisScreen} />
+        <Stack.Screen name="ExpertCaseReview" component={ExpertCaseReviewScreen} />
+        <Stack.Screen name="ExpertSchedule" component={ExpertScheduleScreen} />
+        <Stack.Screen
+          name="ExpertResolutionConfirmation"
+          component={ExpertResolutionConfirmationScreen}
+        />
+        <Stack.Screen
+          name="ExpertAwaitingApproval"
+          component={ExpertAwaitingApprovalScreen}
+        />
+        <Stack.Screen name="ExpertCaseClosed" component={ExpertCaseClosedScreen} />
         <Stack.Screen name="Home" component={HomeTabs} />
+        <Stack.Screen name="ExpertHome" component={ExpertTabs} />
+
+        {/* S-06. Reachable from every tab root in both shells, §4.3 - no single parent. */}
+        <Stack.Screen name="Notifications" component={NotificationsScreen} />
+
+        {/* Only §4.1 routes here, and only at boot, so the state rides in as initialParams. */}
+        <Stack.Screen
+          name="AccountStatus"
+          component={AccountStatusScreen}
+          initialParams={
+            initialRoute.name === 'AccountStatus' ? initialRoute.params : undefined
+          }
+        />
+        <Stack.Screen name="SessionError" component={SessionErrorScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

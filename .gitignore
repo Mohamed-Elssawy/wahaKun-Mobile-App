@@ -90,24 +90,26 @@ android/app/google-services.json
 # Editor and assistant tooling. Per-machine, and no part of the project.
 .claude/
 .mcp.json
-CLAUDE.md
 AGENTS.md
 .cursor/
 .aider*
 .windsurfrules
 .github/copilot-instructions.md
 
-# Working notes and drafts, not project deliverables. docs/ ships the two Word
-# documents only: the requirements and the system overview.
-REFERENCE-NOTES.md
-BACKEND-BLOCKERS.md
-docs/*.md
+# Working notes, specs and planning docs. The repository ships three documents and no more:
+# README.md, ARCHITECTURE.md and CONVENTIONS.md. Everything else stays on the machine that
+# wrote it, so a clone carries the code plus the three documents a teammate needs to run it.
+/*.md
+!/README.md
+!/ARCHITECTURE.md
+!/CONVENTIONS.md
+
+# Requirements and design exports: Word documents and Figma PDFs. Binaries that would bloat
+# every clone and cannot be diffed.
+docs/
 
 # Local dev tooling. These drive the .NET stack and the demo data on one machine,
 # with absolute paths to sibling checkouts, so they are no use in a clone.
 scripts/*.ps1
 scripts/demo-photos/
 
-# Design exports. Regenerated from Figma on demand; ~36 MB of binaries that
-# would bloat every clone and can't be diffed.
-docs/*.pdf

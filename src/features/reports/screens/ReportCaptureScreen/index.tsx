@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { Linking, StyleSheet, View } from 'react-native';
 import { Camera } from 'react-native-vision-camera';
 
+import { StateScreen } from '@/components/ui';
+import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import type { ScreenProps } from '@/navigation/types';
 import { colors } from '@/theme';
 
@@ -10,10 +12,10 @@ import { CameraControlsBar } from '../../components/CameraControlsBar';
 import { CameraPermissionDenied } from '../../components/CameraPermissionDenied';
 import { CaptureHeader } from '../../components/CaptureHeader';
 import { CaptureNotice } from '../../components/CaptureNotice';
+import { LocationPermissionDenied } from '../../components/LocationPermissionDenied';
 import { MicrophonePermissionDenied } from '../../components/MicrophonePermissionDenied';
 import { PhotoReview } from '../../components/PhotoReview';
 import { ReportErrorView } from '../../components/ReportErrorView';
-import { ReportFailureState } from '../../components/ReportFailureState';
 import { VoiceCapture } from '../../components/VoiceCapture';
 import { useReportCapture } from '../../hooks/useReportCapture';
 
@@ -48,19 +50,32 @@ export default function ReportCaptureScreen({
     isSubmitting,
     submitError,
     error,
+    isLocationDenied,
     // F-03c routes here asking for صوت when the model could not read a photo.
   } = useReportCapture(route.params?.mode);
 
   const [outcome, setOutcome] = useState<Outcome>(null);
   // X-04 answers a refused prompt; it is not the resting state of the صوت tab.
   const [isMicrophoneDenied, setIsMicrophoneDenied] = useState(false);
+  const recorder = useAudioRecorder();
+  // Photo XOR voice XOR text: a live or held recording blocks the toggle, not just the drawing.
+  const isVoiceLocked = recorder.state !== 'idle';
+  // Bumped, not boolean: VoiceCapture's effect fires on every increment, including repeats.
+  const [focusTextFieldTrigger, setFocusTextFieldTrigger] = useState(0);
+
+  const handleModeChange = (next: typeof mode) => {
+    if (isVoiceLocked) {
+      return;
+    }
+    changeMode(next);
+  };
 
   const handleUsePhoto = async () => {
     const result = await submit();
 
     if (result.kind === 'queued') {
       // replace, not navigate: the photo is stored now, so back would only duplicate it.
-      navigation.replace('ReportAnalyzing', { localId: result.localId });
+      navigation.replace('ReportAnalyzing', { localId: result.localId, mode: 'photo' });
       return;
     }
 
@@ -77,7 +92,7 @@ export default function ReportCaptureScreen({
     // X-02a moved to ReportAnalyzing: offline is only known once the drain has tried.
     if (outcome === 'full') {
       return (
-        <ReportFailureState
+        <StateScreen
           icon={CloudOff}
           title="لديك بلاغات في انتظار الإرسال"
           message="انتظر حتى يعود الاتصال وتُرسل بلاغاتك السابقة، ثم أرسل هذا البلاغ."
@@ -86,7 +101,12 @@ export default function ReportCaptureScreen({
       );
     }
 
-    // X-05. No draft option alongside it, because saving is exactly what just failed.
+    // X-05/D-HARD-BLOCK: location is mandatory, so the whole capture surface is blocked.
+    if (isLocationDenied) {
+      return <LocationPermissionDenied onOpenSettings={Linking.openSettings} />;
+    }
+
+    // No draft option alongside this one either, because saving is exactly what just failed.
     if (submitError) {
       return (
         <ReportErrorView
@@ -115,7 +135,10 @@ export default function ReportCaptureScreen({
         return (
           <MicrophonePermissionDenied
             onOpenSettings={Linking.openSettings}
-            onUsePhoto={() => changeMode('photo')}
+            onUseText={() => {
+              setIsMicrophoneDenied(false);
+              setFocusTextFieldTrigger(current => current + 1);
+            }}
           />
         );
       }
@@ -127,6 +150,8 @@ export default function ReportCaptureScreen({
           onNeedsPhoto={() => changeMode('photo')}
           onRequestMicrophone={requestMicrophone}
           onMicrophoneDenied={() => setIsMicrophoneDenied(true)}
+          recorder={recorder}
+          focusTrigger={focusTextFieldTrigger}
         />
       );
     }
@@ -167,7 +192,11 @@ export default function ReportCaptureScreen({
         />
       ) : null}
 
-      <CaptureHeader mode={mode} onModeChange={changeMode} onBack={navigation.goBack} />
+      <CaptureHeader
+        mode={mode}
+        onModeChange={handleModeChange}
+        onBack={navigation.goBack}
+      />
 
       {/* Transparent while the preview is live, so it shows through. */}
       <View style={[styles.body, !isPreviewActive && styles.bodyOpaque]}>

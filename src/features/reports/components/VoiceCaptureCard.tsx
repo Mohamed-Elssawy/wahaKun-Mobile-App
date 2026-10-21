@@ -1,9 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
-import { Text } from '@/components/ui';
+import { Text, VoiceWaveform } from '@/components/ui';
 import { colors, radii, screenPadding, spacing } from '@/theme';
-
-import { VoiceWaveform } from './VoiceWaveform';
 
 /** Not interactive yet: ReportService accepts only a photo, so there is no target. */
 export function VoiceCaptureCard() {

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { describeError } from '@/features/reports/errors';
 import type { ReportError } from '@/features/reports/errors';
+import { subscribeToIssueChanges } from '@/features/reports/services/issueEvents';
 import { useCurrentLocation } from '@/hooks/useCurrentLocation';
 
 import { boundsOf, clusterIssues, COINCIDENT_SPAN, isZoomedIn } from '../clustering';
@@ -71,7 +72,9 @@ export function useOasisMap() {
   const markerPressedAt = useRef(0);
   /** The query the camera was last framed for, so a refetch does not re-frame it. */
   const fittedQuery = useRef('');
-  const location = useCurrentLocation();
+  const { location } = useCurrentLocation();
+  /** The map opens on the oasis centre; the first fix moves it to the farmer exactly once. */
+  const centredOnFix = useRef(false);
 
   const load = useCallback(async (): Promise<void> => {
     setError(null);
@@ -105,6 +108,21 @@ export function useOasisMap() {
     }, [load]),
   );
 
+  // The queue files reports in the background, so the map can be open when one lands.
+  useEffect(
+    () =>
+      subscribeToIssueChanges(change => {
+        if (change.kind === 'deleted') {
+          setSelectedIds(ids => ids.filter(id => id !== change.issueId));
+        }
+        // Blurred maps skip it: the focus effect refetches on the way back anyway.
+        if (isFocused.current) {
+          load();
+        }
+      }),
+    [load],
+  );
+
   // Title and reference only: MapResponseDto carries no description, reporter or place.
   const visible = useMemo(() => filterIssues(issues, query), [issues, query]);
 
@@ -125,6 +143,22 @@ export function useOasisMap() {
       setCameraTarget(stop);
     }
   }, [query, visible]);
+
+  // Once only, and never over a search: the dot could otherwise be drawn off screen.
+  useEffect(() => {
+    if (!location || centredOnFix.current) {
+      return;
+    }
+    centredOnFix.current = true;
+
+    if (query.trim()) {
+      return;
+    }
+    setCameraTarget({
+      center: [location.longitude, location.latitude],
+      zoom: CLOSE_ZOOM,
+    });
+  }, [location, query]);
 
   const clusters = useMemo(
     () => clusterIssues(visible, latitudeSpan),
@@ -212,6 +246,8 @@ export function useOasisMap() {
     isLoading,
     error,
     retry: load,
+    /** Whether a failed refetch still has cached pins to fall back on (D-STALE). */
+    hasData: issues.length > 0,
     /** Empty is not an error: an oasis with nothing open is the good outcome. */
     isEmpty: !isLoading && !error && visible.length === 0,
     hasQuery: query.trim().length > 0,

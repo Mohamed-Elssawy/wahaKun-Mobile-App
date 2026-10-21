@@ -1,105 +1,98 @@
-/** GetCommentsByIssueId is [Authorize]; the feed is composed from MapService, which is not. */
+/** GetCommentsByIssueId plus the hub's writes. Never add a path the controller lacks. */
 
-// ShowIssueInMap is the only call returning everything, but it costs the author and counters, which is why USE_MOCK_COMMUNITY exists for demo work.
-
-import { API_ENDPOINTS, apiClient } from '@/api';
+import { API_ENDPOINTS, apiClient, getTokenUserId } from '@/api';
 import { API_BASE_URLS } from '@/config/env';
-import { getMapIssues } from '@/features/map/services/mapService';
-import type { MapIssue } from '@/features/map/types';
 import { toUtcTimestamp } from '@/features/reports/services/reportService';
-import { isResolvedStatus } from '@/features/reports/status';
-import { getUserDetails } from '@/features/user/services/userService';
+import {
+  getUserDetails,
+  resolveProfilePictureUrl,
+} from '@/features/user/services/userService';
 
-import { distanceKm } from '../distance';
+import * as hub from './communityHub';
+import * as mock from './communityService.mock';
 
 import type {
   Comment,
+  CommentEventWire,
   CommentsPage,
   CommentsPageWire,
   CommunityApi,
-  FeedPage,
-  FeedPost,
-  FeedQuery,
+  IssueLiveEvent,
+  VoteResult,
 } from '../types';
 
 const BASE = API_BASE_URLS.community;
 
 const UNKNOWN_AUTHOR = 'مزارع من الواحة';
 
-function toPost(issue: MapIssue): FeedPost {
-  return {
-    issueId: issue.id,
-    title: issue.title,
-    photoUrl: issue.photoUrl,
-    status: issue.status,
-    tier: issue.tier,
-    createdAt: issue.createdAt,
-    latitude: issue.latitude,
-    longitude: issue.longitude,
-    // Zero rather than absent: the card renders the row, the backend just cannot fill it.
-    confirmations: 0,
-    commentCount: 0,
-    shareCount: 0,
-    hasConfirmed: false,
-  };
+/** Issue ids are Guids; the seed's `i-1043` style ids would bind to nothing and come back 400. */
+const GUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function isServerIssueId(issueId: string): boolean {
+  return GUID.test(issueId);
 }
 
-const MATCHES: Record<FeedQuery['filter'], (post: FeedPost) => boolean> = {
-  all: () => true,
-  critical: post => post.tier === 'critical',
-  nearby: () => true,
-  inProgress: post => !isResolvedStatus(post.status),
-  resolved: post => isResolvedStatus(post.status),
-};
+type Author = { name: string; picture?: string };
 
-/** Paged client-side: ShowIssueInMap returns everything. The signature is what GetFeed would take. */
-export async function getFeed(query: FeedQuery): Promise<FeedPage> {
-  const issues = await getMapIssues();
-  let posts = issues.map(toPost).filter(MATCHES[query.filter]);
+/** Cached for the app session: authors repeat across pages and refreshes. */
+const authorCache = new Map<string, Promise<Author>>();
 
-  if (query.filter === 'nearby' && query.origin) {
-    const origin = query.origin;
-    posts = posts
-      .filter(post => post.latitude !== undefined && post.longitude !== undefined)
-      .sort(
-        (a, b) =>
-          distanceKm(origin, { latitude: a.latitude!, longitude: a.longitude! }) -
-          distanceKm(origin, { latitude: b.latitude!, longitude: b.longitude! }),
-      );
-  } else {
-    posts.sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+function resolveAuthor(userId: string): Promise<Author> {
+  if (!userId || userId === '00000000-0000-0000-0000-000000000000') {
+    return Promise.resolve({ name: UNKNOWN_AUTHOR });
   }
 
-  const start = (query.page - 1) * query.pageSize;
-  const slice = posts.slice(start, start + query.pageSize);
-
-  return { posts: slice, hasMore: start + slice.length < posts.length };
+  let pending = authorCache.get(userId);
+  if (!pending) {
+    pending = getUserDetails(userId)
+      .then(user => ({
+        name: user.fullName || UNKNOWN_AUTHOR,
+        picture: user.picture ? resolveProfilePictureUrl(user.picture) : undefined,
+      }))
+      .catch(() => {
+        // A missing name must not empty the thread; forget the failure so a later load retries.
+        authorCache.delete(userId);
+        return { name: UNKNOWN_AUTHOR };
+      });
+    authorCache.set(userId, pending);
+  }
+  return pending;
 }
 
-/** One lookup per distinct author, not per comment: a thread repeats its participants. */
-async function resolveAuthors(userIds: readonly string[]): Promise<Map<string, string>> {
+async function resolveAuthors(userIds: readonly string[]): Promise<Map<string, Author>> {
   const unique = [...new Set(userIds)];
-
   const entries = await Promise.all(
-    unique.map(async userId => {
-      try {
-        const user = await getUserDetails(userId);
-        return [userId, user.fullName || UNKNOWN_AUTHOR] as const;
-      } catch {
-        // A missing name must not empty the thread; the comment still has its text.
-        return [userId, UNKNOWN_AUTHOR] as const;
-      }
-    }),
+    unique.map(async id => [id, await resolveAuthor(id)] as const),
   );
-
   return new Map(entries);
 }
 
+/** CommentResponseDto and the hub's CommentEventDto carry the same fields. */
+function toComment(wire: CommentEventWire, author: Author | undefined): Comment {
+  return {
+    id: wire.id,
+    issueId: wire.issueId,
+    authorId: wire.userId,
+    authorName: author?.name ?? UNKNOWN_AUTHOR,
+    authorPicture: author?.picture,
+    // UserDetailsResponse has no role, so the خبير معتمد badge can never be earned yet.
+    isExpert: false,
+    text: wire.text ?? '',
+    voiceUrl: wire.voiceUrl || undefined,
+    createdAt: toUtcTimestamp(wire.createdAt),
+  };
+}
+
+/** GET api/Community/GetCommentsByIssueId for a real issue; the seed's thread for a seeded one. */
 export async function getComments(
   issueId: string,
   page: number,
   pageSize: number,
 ): Promise<CommentsPage> {
+  if (!isServerIssueId(issueId)) {
+    return mock.getComments(issueId, page, pageSize);
+  }
+
   const wire = await apiClient.get<CommentsPageWire>(
     BASE,
     API_ENDPOINTS.community.comments(issueId, page, pageSize),
@@ -108,24 +101,81 @@ export async function getComments(
 
   const authors = await resolveAuthors(wire.comments.map(comment => comment.userId));
 
-  const comments: Comment[] = wire.comments.map(comment => ({
-    id: comment.id,
-    issueId: comment.issueId,
-    authorId: comment.userId,
-    authorName: authors.get(comment.userId) ?? UNKNOWN_AUTHOR,
-    // UserDetailsResponse has no role, so the خبير معتمد badge can never be earned yet.
-    isExpert: false,
-    text: comment.text,
-    voiceUrl: comment.voiceUrl || undefined,
-    createdAt: toUtcTimestamp(comment.createdAt),
-  }));
+  const comments = wire.comments.map(comment =>
+    toComment(comment, authors.get(comment.userId)),
+  );
 
   return {
     comments,
     total: wire.count,
-    // count is the Redis total, so this stays right past the last full page.
     hasMore: (page - 1) * pageSize + comments.length < wire.count,
   };
 }
 
-export const communityApi: CommunityApi = { getFeed, getComments };
+/** CommunityHub.SendComment. The hub moderates first, so this can reject with COMMENT_REJECTED. */
+export async function postComment(issueId: string, text: string): Promise<Comment> {
+  if (!isServerIssueId(issueId)) {
+    return mock.postComment(issueId, text);
+  }
+  const wire = await hub.sendComment(issueId, text);
+  return toComment(wire, await resolveAuthor(wire.userId));
+}
+
+/** CommunityHub.VoteIssue. A toggle whose answer says where the vote ended up, so no guessing. */
+export async function toggleConfirmation(issueId: string): Promise<VoteResult> {
+  if (!isServerIssueId(issueId)) {
+    return mock.toggleConfirmation(issueId);
+  }
+  const state = await hub.toggleVote(issueId);
+  return { issueId, hasVoted: state.hasVoted, voteCount: state.count };
+}
+
+/** CommunityHub.ShareIssue. Resolves to the new share count. */
+export function shareIssue(issueId: string): Promise<number> {
+  return isServerIssueId(issueId) ? hub.shareIssue(issueId) : mock.shareIssue(issueId);
+}
+
+export function subscribeToIssue(
+  issueId: string,
+  listener: (event: IssueLiveEvent) => void,
+): () => void {
+  if (!isServerIssueId(issueId)) {
+    return mock.subscribeToIssue();
+  }
+
+  return hub.watchIssue(issueId, {
+    onCommentAdded: (wire, total) => {
+      // The author lookup is cached and never rejects, so the event always arrives.
+      resolveAuthor(wire.userId).then(author =>
+        listener({ type: 'commentAdded', comment: toComment(wire, author), total }),
+      );
+    },
+    onCommentDeleted: (commentId, total) =>
+      listener({ type: 'commentDeleted', commentId, total }),
+    onVotes: (count, voterId, voted) => {
+      getTokenUserId()
+        .catch(() => null)
+        .then(me =>
+          listener({
+            type: 'votes',
+            count,
+            voted,
+            byMe: Boolean(me) && me?.toLowerCase() === voterId.toLowerCase(),
+          }),
+        );
+    },
+    onShares: count => listener({ type: 'shares', count }),
+  });
+}
+
+export const communityApi: CommunityApi = {
+  // No feed or single-issue read exists in CommunityController.
+  getFeed: mock.getFeed,
+  getIssue: mock.getIssue,
+  getPost: mock.getIssue,
+  toggleConfirmation,
+  shareIssue,
+  postComment,
+  getComments,
+  subscribeToIssue,
+};

@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { addEventListener as onConnectivityChange } from '@react-native-community/netinfo';
 import { AppState } from 'react-native';
 
-import { getAccessToken } from '@/api';
+import { getAccessToken, onSessionRefreshed } from '@/api';
 import { REPORT_QUEUE_MAX } from '@/config/env';
 
 import { describeAnalysisError, describeCreateError } from '../errors';
@@ -39,6 +39,8 @@ export type QueueSnapshot = {
   /** Newest first, matching how My Issues lists them. */
   items: readonly QueuedReport[];
   isOnline: boolean;
+  /** D-QUEUE: ids an auto-upload delivered that nobody has opened yet. Session-only. */
+  unreadDeliveredIds: readonly string[];
 };
 
 type Listener = (snapshot: QueueSnapshot) => void;
@@ -69,10 +71,13 @@ let pausedForAuth = false;
 // localId -> server id for this session. Read once, then discarded.
 const delivered = new Map<string, string>();
 
+// D-QUEUE's unread marker, cleared once the farmer opens that row. Session-only.
+const unreadDelivered = new Set<string>();
+
 const listeners = new Set<Listener>();
 
 function snapshot(): QueueSnapshot {
-  return { items, isOnline };
+  return { items, isOnline, unreadDeliveredIds: [...unreadDelivered] };
 }
 
 function emit(): void {
@@ -129,7 +134,7 @@ function scheduleNextAttempt(): void {
     retryTimer = null;
   }
 
-  // Paused on a 401: scheduling now would spin a 0ms timer against a dead token; resume comes from a trigger.
+  // Paused on a 401: scheduling now would spin a 0ms timer against a dead token.
   if (pausedForAuth) {
     return;
   }
@@ -159,18 +164,26 @@ async function handleFailure(item: QueuedReport, error: ReportError): Promise<Ou
     return 'paused';
   }
 
-  if (error.kind === 'offline') {
+  // No connection, or the AI/storage/DB is temporarily down: back off and try again later.
+  if (error.kind === 'offline' || error.kind === 'temporary') {
     const attempts = item.attempts + 1;
     await patch(item.localId, {
       state: 'queued',
       attempts,
       nextAttemptAt: Date.now() + backoffFor(attempts),
+      lastError: error.message,
     });
+    // Offline affects every item; a busy server may still accept the next one, but be gentle.
     return 'retry';
   }
 
-  // A refused photo and a too-minor problem answer the same a thousand times. Stop.
-  await patch(item.localId, { state: 'failed', failureKind: error.kind });
+  // A refused photo, a too-minor problem or a validation error answer the same every time.
+  await patch(item.localId, {
+    state: 'failed',
+    failureKind: error.kind,
+    failureMessage: error.message,
+    lastError: undefined,
+  });
   return 'failed';
 }
 
@@ -189,7 +202,11 @@ async function uploadOne(item: QueuedReport): Promise<Outcome> {
     }
 
     try {
-      analysis = await reportApi.analyzeIssue(photo);
+      const location =
+        item.latitude !== undefined && item.longitude !== undefined
+          ? { latitude: item.latitude, longitude: item.longitude }
+          : undefined;
+      analysis = await reportApi.analyzeIssue(photo, location);
     } catch (error) {
       return handleFailure(item, describeAnalysisError(error, ''));
     }
@@ -208,6 +225,8 @@ async function uploadOne(item: QueuedReport): Promise<Outcome> {
 
     // Recorded before the drop, so the capture screen can still find where it landed.
     delivered.set(item.localId, report.id);
+    // Set before drop's own emit, so the first snapshot F-07 sees already carries it.
+    unreadDelivered.add(report.id);
     await drop(item.localId);
     return 'sent';
   } catch (error) {
@@ -319,7 +338,14 @@ export async function discardQueuedReport(localId: string): Promise<void> {
 /** Manual send. Resets the backoff, since the farmer is telling us to try now. */
 export async function retryQueuedReport(localId: string): Promise<void> {
   await hydrate();
-  await patch(localId, { state: 'queued', attempts: 0, nextAttemptAt: 0 });
+  await patch(localId, {
+    state: 'queued',
+    attempts: 0,
+    nextAttemptAt: 0,
+    failureKind: undefined,
+    failureMessage: undefined,
+    lastError: undefined,
+  });
   await drainQueue();
 }
 
@@ -331,6 +357,13 @@ export function resumeReportQueue(): void {
 /** Server id of a report delivered this session, or null. Non-consuming: subscribers read after. */
 export function getDeliveredReportId(localId: string): string | null {
   return delivered.get(localId) ?? null;
+}
+
+/** D-QUEUE: clears a report's unread marker once the farmer opens its row. */
+export function markDeliveredSeen(reportId: string): void {
+  if (unreadDelivered.delete(reportId)) {
+    emit();
+  }
 }
 
 export function getQueueSnapshot(): QueueSnapshot {
@@ -363,6 +396,11 @@ export function startReportQueue(): void {
     }
   });
 
+  // The API client refreshed an expired token: a queue paused on the old one can resume.
+  onSessionRefreshed(() => {
+    startDrain();
+  });
+
   // NetInfo misses this: backgrounded on a dead link, foregrounded with the radio up.
   AppState.addEventListener('change', status => {
     if (status === 'active') {
@@ -383,6 +421,8 @@ export async function clearReportQueue(): Promise<void> {
   // A new login must not inherit the previous farmer's rejected-token pause.
   rejectedToken = null;
   pausedForAuth = false;
+  // Nor the previous farmer's unread markers.
+  unreadDelivered.clear();
   await AsyncStorage.removeItem(INDEX_KEY);
   // Empty live set, so every persisted photo is swept, not just the indexed ones.
   await pruneOrphanedPhotos([]);
@@ -402,6 +442,7 @@ export async function resetReportQueue(): Promise<void> {
   draining = null;
   rejectedToken = null;
   pausedForAuth = false;
+  unreadDelivered.clear();
   listeners.clear();
   await AsyncStorage.removeItem(INDEX_KEY);
 }

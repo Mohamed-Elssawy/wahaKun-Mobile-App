@@ -1,29 +1,39 @@
 import { StyleSheet, View } from 'react-native';
 
-import { Text } from '@/components/ui';
+import { ProgressRing, Text } from '@/components/ui';
 import { screenPadding, spacing } from '@/theme';
 
-import { ProgressRing } from './ProgressRing';
+import type { AnalyzingMode } from '../types';
 
-const TITLE = 'يحلل الذكاء الاصطناعي الصورة';
+export type AnalyzingStatusProps = {
+  mode: AnalyzingMode;
+};
+
+/** §8.4's three mode:working H1s; the subtitle underneath does not vary by mode. */
+const TITLE: Record<AnalyzingMode, string> = {
+  photo: 'يحلل الذكاء الاصطناعي الصورة',
+  voice: 'يحلل الذكاء الاصطناعي تسجيلك',
+  text: 'يحلل الذكاء الاصطناعي كتابتك',
+};
 const SUBTITLE = 'قد يستغرق هذا بضع ثوانٍ';
 
-/** Hangs from the header rather than centring: the frame is empty below the subtitle. */
-// The group carries `busy`, not the ring, which is reused for a static gauge.
-export function AnalyzingStatus() {
+/** Hangs from the header rather than centring, and the group carries busy, not the ring. */
+export function AnalyzingStatus({ mode }: AnalyzingStatusProps) {
+  const title = TITLE[mode];
+
   return (
     <View
       style={styles.status}
       accessible
       accessibilityRole="progressbar"
-      accessibilityLabel={TITLE}
+      accessibilityLabel={title}
       accessibilityState={{ busy: true }}
     >
       <ProgressRing />
 
       <View style={styles.text}>
         <Text variant="h4" align="center">
-          {TITLE}
+          {title}
         </Text>
         <Text variant="label14" color="textSecondary" align="center">
           {SUBTITLE}

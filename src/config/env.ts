@@ -1,19 +1,28 @@
 import { Platform } from 'react-native';
 
-import { HOST_OVERRIDE } from './env.local';
+import { API_GATEWAY_URL_OVERRIDE, API_MODE_OVERRIDE, HOST_OVERRIDE } from './env.local';
 
-// Android emulators reach the host machine at 10.0.2.2; iOS simulators share its stack.
+export type ApiMode = 'gateway' | 'direct';
+
+export const API_MODE: ApiMode = API_MODE_OVERRIDE ?? 'gateway';
+
 const DEFAULT_HOST = Platform.select({
   android: '10.0.2.2',
   ios: 'localhost',
   default: 'localhost',
 }) as string;
 
-/** Set HOST_OVERRIDE in env.local.ts to reach the backend from a physical device. */
 export const HOST = HOST_OVERRIDE ?? DEFAULT_HOST;
 
-/** Match the http profile in each service's launchSettings.json. */
-// Per-service ports, not a gateway: nothing in the backend repo routes /report/api yet.
+function normalizeOrigin(url: string): string {
+  const trimmed = url.trim().replace(/\/+$/, '');
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `http://${trimmed}`;
+}
+
+export const API_GATEWAY_URL = normalizeOrigin(
+  API_GATEWAY_URL_OVERRIDE ?? `http://${DEFAULT_HOST}:30000`,
+);
+
 export const PORTS = {
   auth: 5090,
   user: 5256,
@@ -22,48 +31,102 @@ export const PORTS = {
   media: 5230,
   community: 5087,
   map: 5249,
+  issue: 5195,
 } as const;
+
+type ServiceName = keyof typeof PORTS;
+
+function baseUrlFor(service: ServiceName): string {
+  if (API_MODE === 'direct') {
+    return `http://${HOST}:${PORTS[service]}/api`;
+  }
+  return `${API_GATEWAY_URL}/api`;
+}
 
 export const API_BASE_URLS = {
-  auth: `http://${HOST}:${PORTS.auth}/api`,
-  user: `http://${HOST}:${PORTS.user}/api`,
-  notification: `http://${HOST}:${PORTS.notification}/api`,
-  report: `http://${HOST}:${PORTS.report}/api`,
-  community: `http://${HOST}:${PORTS.community}/api`,
-  map: `http://${HOST}:${PORTS.map}/api`,
-  /** Only used to render attachments; no client call goes through apiClient. */
-  media: `http://${HOST}:${PORTS.media}/api`,
+  auth: baseUrlFor('auth'),
+  user: baseUrlFor('user'),
+  notification: baseUrlFor('notification'),
+  report: baseUrlFor('report'),
+  community: baseUrlFor('community'),
+  media: baseUrlFor('media'),
+  map: baseUrlFor('map'),
+  issue: baseUrlFor('issue'),
 } as const;
 
-/** Registered natively in AndroidManifest.xml and Info.plist; changing it needs a rebuild. */
-// A custom scheme, not https: there is no web client for the emailed link to land on.
+/** Hubs sit at the service root, not under /api, so gateway mode must route /hubs/* and upgrades. */
+function hubUrlFor(service: ServiceName, path: string): string {
+  if (API_MODE === 'direct') {
+    return `http://${HOST}:${PORTS[service]}${path}`;
+  }
+  return `${API_GATEWAY_URL}${path}`;
+}
+
+export const HUB_URLS = {
+  community: hubUrlFor('community', '/hubs/community'),
+} as const;
+
 export const APP_URL_SCHEME = 'wahakun';
-
-/** The deep link's host. navigation/linking.ts maps it onto the ResetPassword route. */
 export const RESET_PASSWORD_PATH = 'reset-password';
-
-/** Sent to AuthService as ClinetUrl; it appends ?token=...&email=... to this. */
 export const RESET_PASSWORD_CLIENT_URL = `${APP_URL_SCHEME}://${RESET_PASSWORD_PATH}`;
 
-export const API_TIMEOUT_MS = 15000;
-
-/** 15s is right for JSON and wrong for multipart; aborting mid-write makes duplicates. */
-export const UPLOAD_TIMEOUT_MS = 60000;
+export const API_TIMEOUT_MS = 20000;
+export const UPLOAD_TIMEOUT_MS = 110000;
 
 /** A storage budget, not a UX limit: each queued report holds a photo in AsyncStorage. */
 export const REPORT_QUEUE_MAX = 5;
 
-/** Flip to true to work on the diagnosis screens with no backend running. */
-export const USE_MOCK_REPORTS = false;
+/** The master switch for a demo with no backend: every per-feature flag ORs against it. */
+export const DEMO_MODE = false;
 
-/** Mirrors this device's reports locally. On because IssueController has no GetMyIssues/GetIssueById. */
+/** Flip to true to work on the diagnosis screens with no backend running. */
+export const USE_MOCK_REPORTS = DEMO_MODE || false;
+
+/** Holds the reports the backend declines to create, and the local file index behind every photo. */
 export const USE_LOCAL_REPORT_MIRROR = true;
 
+/** F-06 is real: GET /Farmer/{id}/tracking answers 200 on a real id and a clean 404 otherwise. */
+export const USE_MOCK_TRACKER = DEMO_MODE || false;
+
 /** Seeded feed. CommunityService has no feed endpoint, and the MapService fallback has no author or counts. */
-export const USE_MOCK_COMMUNITY = true;
+export const USE_MOCK_COMMUNITY = DEMO_MODE || true;
 
-/** Posting a comment needs the moderation AI on :8000, which is not in the backend repo. */
-export const ENABLE_COMMENT_POSTING = false;
+/** A signed-in farmer with no AuthService. Without it DEMO_MODE has no identity to show. */
+export const USE_MOCK_USER = DEMO_MODE || false;
 
-/** Off by product decision: the farmer sees the diagnosis whatever the confidence. */
-export const ESCALATE_LOW_CONFIDENCE = false;
+/** Posting needs the moderation AI on :8000, which is not in the backend repo. */
+export const ENABLE_COMMENT_POSTING = DEMO_MODE || false;
+
+/** T2: below 80% the farmer gets the escalation line, while the expert still sees the chip. */
+export const ESCALATE_LOW_CONFIDENCE = true;
+
+/** Mirrors UserRole, redeclared because config/ imports nothing from features/ (ARCHITECTURE). */
+export type MockRole = 'farmer' | 'expert';
+
+/** §4.1's four expert destinations. The backend's UserStatus has exactly these, numbered 1-4. */
+export type MockApproval = 'approved' | 'pending' | 'rejected' | 'suspended';
+
+/** Off: the role comes from the token's ClaimTypes.Role claim, not UserDetailsResponse. */
+export const USE_MOCK_ROLE = DEMO_MODE || false;
+
+/** Farmer by default; set to expert with MOCK_EXPERT_APPROVAL approved to walk the expert shell. */
+export const MOCK_ROLE: MockRole = 'farmer';
+
+export const MOCK_EXPERT_APPROVAL: MockApproval = 'approved';
+
+/** Off: ExpertController serves the inbox, the review and all three writes. Notes carry G3. */
+export const USE_MOCK_EXPERT_QUEUE = DEMO_MODE || false;
+
+/** On by backend gap: no chat endpoint exists, and chat is a separate unit from the queue. */
+export const USE_MOCK_EXPERT_CHATS = DEMO_MODE || true;
+
+/** On by backend gap: NotificationService has no route the app has ever found. */
+export const USE_MOCK_NOTIFICATIONS = DEMO_MODE || true;
+
+/** Which state every mock serves, so loading, empty and error can be walked on a device. */
+export type MockScenario = 'content' | 'empty' | 'error' | 'slow';
+
+// A build-time constant rather than a dev menu: the mocks are module scope and have no UI.
+export const MOCK_SCENARIO: MockScenario = 'content';
+
+export const LOG_API_ERRORS = __DEV__;

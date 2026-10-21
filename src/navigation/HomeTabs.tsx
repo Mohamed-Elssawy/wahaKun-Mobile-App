@@ -48,7 +48,7 @@ export function HomeTabs() {
 
   return (
     <Tab.Navigator
-      // MyReports is declared last, so the landing tab has to be named explicitly.
+      // §4.1 and §8.2 both say بلاغاتي is the landing tab, not المجتمع.
       initialRouteName="MyReports"
       screenOptions={{
         headerShown: false,

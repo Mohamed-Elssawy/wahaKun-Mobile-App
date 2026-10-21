@@ -1,4 +1,9 @@
-import { describeSeverity, isCriticalSeverity } from '../severity';
+import {
+  describeSeverity,
+  isCriticalSeverity,
+  reportSeverity,
+  severityFromPriority,
+} from '../severity';
 
 import type { Severity } from '../types';
 
@@ -54,5 +59,52 @@ describe('isCriticalSeverity', () => {
         describeSeverity(severity).label === 'حرجة',
       );
     }
+  });
+});
+
+describe('severityFromPriority', () => {
+  it.each([
+    ['Critical', 'حرجة'],
+    ['High', 'عالية'],
+    ['Medium', 'متوسطة'],
+    ['Low', 'منخفضة'],
+  ])('reads IssuePriority %s as %s', (priority, expected) => {
+    expect(severityFromPriority(priority)).toBe(expected);
+  });
+
+  // GetPriority answers Unknown for anything it does not recognise, and so does this.
+  it('falls back rather than inventing a level', () => {
+    expect(severityFromPriority('Catastrophic')).toBe('غير معروفة');
+  });
+});
+
+/** The rule F-07's card border, F-06's border and B-CRIT-TAB all paint from. */
+describe('reportSeverity', () => {
+  const base = {
+    id: 'i-1',
+    status: 'Assigned',
+    createdAt: '2026-10-05T19:47:30Z',
+    reporterId: 'r-1',
+    attachments: [],
+  } as const;
+
+  const withAnalysis = { ...base, analysis: { severity: 'متوسطة' } } as never;
+
+  // T2 hides AI output below the threshold, and severity is AI output.
+  it('prefers the model, and hides it when the farmer may not see it', () => {
+    expect(reportSeverity(withAnalysis, true)).toBe('متوسطة');
+    expect(reportSeverity(withAnalysis, false)).toBeUndefined();
+  });
+
+  // seesAi is false for a بلاغاتي row either way, so the row's own priority answers here.
+  it('falls back to the row priority when there is no analysis to gate on', () => {
+    const row = { ...base, severity: 'حرجة' } as never;
+
+    expect(reportSeverity(row, false)).toBe('حرجة');
+    expect(reportSeverity(row, true)).toBe('حرجة');
+  });
+
+  it('has nothing to paint when the report carries neither', () => {
+    expect(reportSeverity(base as never, true)).toBeUndefined();
   });
 });

@@ -2,6 +2,7 @@ import { API_ENDPOINTS, apiClient } from '@/api';
 import { API_BASE_URLS } from '@/config/env';
 import {
   resolveAttachmentUrl,
+  STORAGE_SERVES_BYTES,
   toUtcTimestamp,
 } from '@/features/reports/services/reportService';
 
@@ -23,8 +24,9 @@ function toCoordinate(value: string | null): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+/** Nothing while storage cannot serve bytes: the same contract the list row holds to. */
 function toPhotoUrl(photoUrl: string | null): string | undefined {
-  return photoUrl ? resolveAttachmentUrl(photoUrl) : undefined;
+  return photoUrl && STORAGE_SERVES_BYTES ? resolveAttachmentUrl(photoUrl) : undefined;
 }
 
 /** Returns null for anything the map cannot place, so no caller has to guess a location. */

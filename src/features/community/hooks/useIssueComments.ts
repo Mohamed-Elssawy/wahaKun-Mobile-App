@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { ENABLE_COMMENT_POSTING } from '@/config/env';
 import { describeError } from '@/features/reports/errors';
 import type { ReportError } from '@/features/reports/errors';
 
@@ -8,6 +9,7 @@ import { communityApi } from '../services';
 import type { Comment } from '../types';
 
 const LOAD_ERROR = 'تعذر تحميل التعليقات';
+const POST_ERROR = 'تعذر إرسال التعليق، حاول مرة أخرى';
 
 const PAGE_SIZE = 10;
 
@@ -19,8 +21,12 @@ export function useIssueComments(issueId: string) {
   const [error, setError] = useState<ReportError | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isPosting, setIsPosting] = useState(false);
+  const [postError, setPostError] = useState<ReportError | null>(null);
 
   const page = useRef(1);
+  /** Ids appended since the last load, by post() or by the hub; read synchronously to dedupe. */
+  const appended = useRef(new Set<string>());
   const isMounted = useRef(true);
 
   // Its own empty dependency list: lifetime is a separate question from which load is live.
@@ -38,6 +44,7 @@ export function useIssueComments(issueId: string) {
       const result = await communityApi.getComments(issueId, 1, PAGE_SIZE);
       if (isMounted.current) {
         page.current = 1;
+        appended.current = new Set();
         setComments(result.comments);
         setTotal(result.total);
         setHasMore(result.hasMore);
@@ -56,6 +63,33 @@ export function useIssueComments(issueId: string) {
   useEffect(() => {
     load();
   }, [load]);
+
+  // The poster's own comment also arrives here, so both paths dedupe by id and keep the hub's count.
+  useEffect(
+    () =>
+      communityApi.subscribeToIssue(issueId, event => {
+        if (!isMounted.current) {
+          return;
+        }
+        if (event.type === 'commentAdded') {
+          if (!appended.current.has(event.comment.id)) {
+            appended.current.add(event.comment.id);
+            setComments(current =>
+              current.some(comment => comment.id === event.comment.id)
+                ? current
+                : [...current, event.comment],
+            );
+          }
+          setTotal(event.total);
+        } else if (event.type === 'commentDeleted') {
+          setComments(current =>
+            current.filter(comment => comment.id !== event.commentId),
+          );
+          setTotal(event.total);
+        }
+      }),
+    [issueId],
+  );
 
   const loadMore = useCallback(async (): Promise<void> => {
     if (!hasMore || isLoadingMore || isLoading) {
@@ -88,6 +122,42 @@ export function useIssueComments(issueId: string) {
     }
   }, [issueId, hasMore, isLoadingMore, isLoading]);
 
+  /** Not optimistic: the hub can reject the text, and pulling a comment back out is worse. */
+  const post = useCallback(
+    async (text: string): Promise<boolean> => {
+      const trimmed = text.trim();
+      if (!trimmed || isPosting) {
+        return false;
+      }
+
+      setIsPosting(true);
+      setPostError(null);
+
+      try {
+        const comment = await communityApi.postComment(issueId, trimmed);
+        if (isMounted.current) {
+          // Appended rather than reloaded, and skipped when the hub's broadcast arrived first.
+          if (!appended.current.has(comment.id)) {
+            appended.current.add(comment.id);
+            setComments(current => [...current, comment]);
+            setTotal(current => current + 1);
+          }
+        }
+        return true;
+      } catch (err) {
+        if (isMounted.current) {
+          setPostError(describeError(err, POST_ERROR));
+        }
+        return false;
+      } finally {
+        if (isMounted.current) {
+          setIsPosting(false);
+        }
+      }
+    },
+    [issueId, isPosting],
+  );
+
   return {
     comments,
     total,
@@ -97,5 +167,11 @@ export function useIssueComments(issueId: string) {
     error,
     loadMore,
     retry: load,
+    post,
+    isPosting,
+    postError,
+    dismissPostError: () => setPostError(null),
+    /** Off until the moderation service on :8000 is reachable; the composer renders disabled. */
+    canPost: ENABLE_COMMENT_POSTING,
   };
 }

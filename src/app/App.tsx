@@ -4,35 +4,31 @@ import BootSplash from 'react-native-bootsplash';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { getAccessToken } from '@/api';
+import { onSessionExpired } from '@/api';
 import { RegistrationProvider } from '@/features/onboarding/context/RegistrationContext';
-import { hasSeenIntro } from '@/features/onboarding/services/firstRunStore';
 import { startReportQueue } from '@/features/reports/services/reportQueue';
+import { resolveBootDecision } from '@/navigation/bootRoute';
+import { resetToWelcome } from '@/navigation/navigationRef';
 import { RootNavigator } from '@/navigation/RootNavigator';
-import type { BootRoute } from '@/navigation/types';
-
-/** A stored session boots straight to Home; otherwise first-run decides intro vs welcome. */
-async function resolveBootRoute(): Promise<BootRoute> {
-  if (await getAccessToken()) {
-    return 'Home';
-  }
-  return (await hasSeenIntro()) ? 'Welcome' : 'IntroSlideshow';
-}
+import type { BootDecision } from '@/navigation/types';
 
 /** Both providers are mounted once here; a second one mid-tree breaks insets and gestures. */
 const App = () => {
-  const [bootRoute, setBootRoute] = useState<BootRoute | null>(null);
+  const [bootRoute, setBootRoute] = useState<BootDecision | null>(null);
 
   useEffect(() => {
     // The splash stays up until the route is decided, so the wrong first screen never flashes.
-    resolveBootRoute()
+    resolveBootDecision()
       .then(setBootRoute)
-      // A failed read must still boot the app, or it hangs on a blank screen after the splash.
-      .catch(() => setBootRoute('Welcome'))
+      // A failed read must still boot, or the app hangs on a blank screen after the splash.
+      .catch(() => setBootRoute({ name: 'Welcome' }))
       .finally(() => BootSplash.hide({ fade: true }));
 
     // Queued reports must upload whether or not the farmer opens the tab showing them.
     startReportQueue();
+
+    // The API client ends the session when the server refuses the refresh token.
+    return onSessionExpired(resetToWelcome);
   }, []);
 
   if (!bootRoute) {
@@ -43,7 +39,7 @@ const App = () => {
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
         <RegistrationProvider>
-          <RootNavigator initialRouteName={bootRoute} />
+          <RootNavigator initialRoute={bootRoute} />
         </RegistrationProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

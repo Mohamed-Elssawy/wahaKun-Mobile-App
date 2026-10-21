@@ -1,3 +1,5 @@
+import { resolveAttachmentUrl } from '@/features/reports/services/reportService';
+
 import { normalizeMapIssue } from '../services/mapService';
 import { describeTier, normalizeMapStatus, worstTier } from '../tier';
 
@@ -32,11 +34,11 @@ describe('normalizeMapIssue', () => {
     expect(normalizeMapIssue(wire({ longitde: 'not-a-number' }))).toBeNull();
   });
 
-  it('points the attachment key at MediaStorageService', () => {
-    const issue = normalizeMapIssue(wire({ photoUrl: 'reportimage/a.jpg' }));
-
-    expect(issue?.photoUrl).toContain('/storage?objectName=');
-    expect(issue?.photoUrl).toContain('reportimage');
+  // STORAGE_SERVES_BYTES is on, so the row's object key becomes the peek card's photo url.
+  it('resolves an issue photo key to the storage endpoint', () => {
+    expect(normalizeMapIssue(wire({ photoUrl: 'reportimage/a.jpg' }))?.photoUrl).toBe(
+      resolveAttachmentUrl('reportimage/a.jpg'),
+    );
   });
 
   it('leaves an issue with no attachment without a photo', () => {
@@ -58,8 +60,8 @@ describe('normalizeMapStatus', () => {
   });
 
   // IssueStatus 6 is declared `completed` in C#; every other member is capitalised.
-  it('capitalises the one status the server spells in lower case', () => {
-    expect(normalizeMapStatus('completed')).toBe('Completed');
+  it('passes through the one status the server spells in lower case', () => {
+    expect(normalizeMapStatus('completed')).toBe('completed');
   });
 
   it('falls back rather than throwing when the server grows the enum', () => {
@@ -84,9 +86,13 @@ describe('describeTier', () => {
     expect(describeTier('1', 'Diagnosed')).toBe('low');
   });
 
-  it('reads a fixed problem as resolved whatever its severity was', () => {
-    expect(describeTier('Critical', 'Repaired')).toBe('resolved');
-    expect(describeTier('4', 'Completed')).toBe('resolved');
+  it('reads a closed problem as resolved whatever its severity was', () => {
+    expect(describeTier('4', 'completed')).toBe('resolved');
+  });
+
+  // T6 leaves a repaired case at مجدولة: until the farmer confirms, the problem may still be there.
+  it('keeps the severity of a repaired case the farmer has not confirmed', () => {
+    expect(describeTier('Critical', 'Repaired')).toBe('critical');
   });
 
   it('falls back to low for a priority it does not know', () => {

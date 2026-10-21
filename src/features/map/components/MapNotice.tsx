@@ -15,7 +15,7 @@ export type MapNoticeProps = {
 const CIRCLE_SIZE = 64;
 const ICON_SIZE = 28;
 
-/** The map's loading and empty states. ReportsEmptyState fills a screen, so it stretches over a map. */
+/** The map's loading and empty states. EmptyState fills a screen, so it stretches over a map. */
 export function MapNotice({ icon: Icon, title, message }: MapNoticeProps) {
   return (
     <View style={styles.card}>
