@@ -4,6 +4,7 @@ import {
   discardQueuedReport,
   drainQueue,
   getQueueSnapshot,
+  markDeliveredSeen,
   retryQueuedReport,
   subscribeToQueue,
 } from '../services/reportQueue';
@@ -19,7 +20,7 @@ export function useReportQueue() {
     return unsubscribe;
   }, []);
 
-  const { items, isOnline } = snapshot;
+  const { items, isOnline, unreadDeliveredIds } = snapshot;
 
   return useMemo(
     () => ({
@@ -32,7 +33,10 @@ export function useReportQueue() {
       sendNow: drainQueue,
       retry: retryQueuedReport,
       discard: discardQueuedReport,
+      /** D-QUEUE: report ids an auto-upload delivered that nobody has opened yet. */
+      unreadDeliveredIds,
+      markSeen: markDeliveredSeen,
     }),
-    [items, isOnline],
+    [items, isOnline, unreadDeliveredIds],
   );
 }

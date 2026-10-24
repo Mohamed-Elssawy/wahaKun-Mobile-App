@@ -1,5 +1,5 @@
 import { Mic } from 'lucide-react-native';
-import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { Text } from '@/components/ui';
 import { colors, radii, spacing } from '@/theme';
@@ -7,32 +7,17 @@ import { colors, radii, spacing } from '@/theme';
 const BUTTON_SIZE = 90;
 
 export type VoiceRecordButtonProps = {
-  /** Resolves false when the farmer refuses, which is what raises X-04. */
-  onRequestPermission: () => Promise<boolean>;
-  onPermissionDenied: () => void;
+  /** The caller has already resolved the microphone permission by the time this fires. */
+  onPress: () => void;
 };
 
-/** The permission half is real (X-04 comes through here); recording itself is not built. */
-export function VoiceRecordButton({
-  onRequestPermission,
-  onPermissionDenied,
-}: VoiceRecordButtonProps) {
-  const handlePress = async () => {
-    const isGranted = await onRequestPermission();
-
-    if (!isGranted) {
-      onPermissionDenied();
-      return;
-    }
-
-    Alert.alert('غير متاح حالياً', 'سيتم دعم البلاغ الصوتي قريبًا.');
-  };
-
+/** Idle state's mic button (§8.2). Permission is the caller's concern, not this control's. */
+export function VoiceRecordButton({ onPress }: VoiceRecordButtonProps) {
   return (
     <View style={styles.container}>
       <TouchableOpacity
         style={styles.button}
-        onPress={handlePress}
+        onPress={onPress}
         accessibilityRole="button"
         accessibilityLabel="اضغط للتسجيل"
       >

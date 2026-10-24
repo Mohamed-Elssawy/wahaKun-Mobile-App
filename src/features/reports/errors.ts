@@ -6,7 +6,7 @@ import { isDisplayableArabic } from '@/api/errorMessages';
 export type ReportErrorKind =
   /** Never reached the server: no connection, or it timed out. Retried with backoff. */
   | 'offline'
-  /** Reached the server, but it or a dependency (AI, MinIO, DB) is temporarily down. Retried with backoff. */
+  /** Reached the server, but it or a dependency is temporarily down. Retried with backoff. */
   | 'temporary'
   /** Token missing, expired or rejected, and refresh failed. */
   | 'unauthorized'
@@ -73,16 +73,16 @@ export function describeError(error: unknown, fallback: string): ReportError {
   return { ...base, kind: 'unknown' };
 }
 
-/** IssueService throws InvalidOperationException for both business refusals, which the middleware sends as this. */
+/** ReportService's code only; IssueService answers guard refusals with an empty 500. */
 const INVALID_OPERATION = 'INVALID_OPERATION';
 
-/** The server's own Arabic reason when it sent one, e.g. the vision service's "الصورة لا تظهر مشكلة ري واضحة." */
+/** The server's own Arabic reason when it sent one. */
 function serverReason(error: ApiError, fallback: string): string {
   const reason = error.details.serverMessage;
   return isDisplayableArabic(reason) ? reason : fallback;
 }
 
-/** For api/Issue/analyze. INVALID_OPERATION here means the model refused the photo (refused, low_confidence, poor_quality, uncertain). */
+/** For /Issue/analyze: INVALID_OPERATION here means the model refused the photo. */
 export function describeAnalysisError(error: unknown, fallback: string): ReportError {
   if (error instanceof ApiError && error.code === INVALID_OPERATION) {
     return {
@@ -94,7 +94,7 @@ export function describeAnalysisError(error: unknown, fallback: string): ReportE
   return describeError(error, fallback || UNKNOWN_MESSAGE);
 }
 
-/** For api/Issue/create. INVALID_OPERATION here means GetPriority returned Low/Unknown and the photo was deleted. */
+/** For /Issue/create: INVALID_OPERATION here means GetPriority returned Low or Unknown. */
 export function describeCreateError(error: unknown, fallback: string): ReportError {
   if (error instanceof ApiError && error.code === INVALID_OPERATION) {
     return { kind: 'tooMinor', code: error.code, message: TOO_MINOR_MESSAGE };

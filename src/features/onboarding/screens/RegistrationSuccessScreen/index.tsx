@@ -6,6 +6,7 @@ import { screenPadding, spacing } from '@/theme';
 
 import palmTreeLogo from '@assets/images/palmTreeLogoBlack.png';
 
+import { SuccessIllustration } from '../../components/SuccessIllustration';
 import { useRegistrationDraft } from '../../context/RegistrationContext';
 
 /** Terminal step of the registration wizard. */
@@ -19,12 +20,24 @@ export default function RegistrationSuccessScreen({
   const handleStart = () => {
     // The account exists, so the draft and its password should not outlive it.
     clearDraft();
-    // reset, not navigate, so the whole wizard leaves the back stack.
-    navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+    // reset, not navigate: a pending expert has no session, so they land at the entry fork.
+    navigation.reset({
+      index: 0,
+      routes: [{ name: pendingApproval ? 'Welcome' : 'Home' }],
+    });
   };
 
   return (
-    <Screen footer={<Button label="بداية استخدام التطبيق" onPress={handleStart} />}>
+    <Screen
+      footer={
+        <Button
+          label={pendingApproval ? 'العودة للرئيسية' : 'بداية استخدام التطبيق'}
+          onPress={handleStart}
+          showArrow={!pendingApproval}
+          showArrowEnd={pendingApproval}
+        />
+      }
+    >
       {/* Terminal step, so no back control and the bar is full. */}
       <View style={styles.header}>
         <View style={styles.brand}>
@@ -37,12 +50,13 @@ export default function RegistrationSuccessScreen({
       </View>
 
       <View style={styles.body}>
+        <SuccessIllustration />
         <Text variant="h2" color="textStrong" align="center">
-          اكتمل التسجيل!
+          {pendingApproval ? 'تم إرسال طلبك' : 'اكتمل التسجيل!'}
         </Text>
         <Text variant="body14" color="textMuted" align="center">
           {pendingApproval
-            ? 'تم تأكيد رقم هاتفك. حسابك كخبير الآن قيد المراجعة\nوسيتم إعلامك فور الموافقة عليه.'
+            ? 'سيراجعه المشرف وسنرسل لك بريداً إلكترونياً عند الموافقة'
             : 'يمكنك الآن الاستمتاع بجميع مزايا\nالتطبيق'}
         </Text>
       </View>

@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { Text } from '@/components/ui';
 import { colors, radii, spacing } from '@/theme';
 
-import { stageFor } from '../status';
+import { factsFromWireStatus, stageFor } from '../lifecycle';
 
 import type { ReportStatus } from '../types';
 
@@ -18,9 +18,9 @@ const RAIL_HEIGHT = 2;
 
 type Step = { label: string; isDone: boolean };
 
-/** F-04 draws three fixed steps; IssueStatus's seven collapse onto them. */
+/** F-04 draws three fixed steps; §3.3's six nodes collapse onto them. */
 function stepsFor(status: ReportStatus): Step[] {
-  const stage = stageFor(status);
+  const stage = stageFor(factsFromWireStatus(status));
 
   return [
     // The row exists, so this one is true the moment there is anything to render.

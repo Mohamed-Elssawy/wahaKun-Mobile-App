@@ -19,10 +19,7 @@ export type ScreenProps = {
   footer?: ReactNode;
   /** Apply the standard 24pt horizontal padding to children. */
   padded?: boolean;
-  /**
-   * Put the content in a ScrollView. Use it on any screen with text inputs: when the keyboard
-   * shrinks the window, the fields scroll instead of sliding under the pinned footer.
-   */
+  /** Put the content in a ScrollView. Use it with text inputs so fields clear the pinned footer. */
   scrollable?: boolean;
   edges?: readonly Edge[];
   style?: StyleProp<ViewStyle>;

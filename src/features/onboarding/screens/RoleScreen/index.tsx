@@ -76,6 +76,12 @@ export default function RoleScreen({ navigation }: ScreenProps<'Role'>) {
           })}
         </View>
 
+        {selectedRole === 'expert' ? (
+          <Text variant="label14" color="successText" align="right">
+            حسابات الخبراء تحتاج موافقة الإدارة — سنراسلك بعد المراجعة
+          </Text>
+        ) : null}
+
         {error ? (
           <Text variant="label14Bold" color="errorText" align="right">
             {error}

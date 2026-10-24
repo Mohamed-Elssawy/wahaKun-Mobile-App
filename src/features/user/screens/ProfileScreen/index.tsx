@@ -1,5 +1,6 @@
 import {
-  ArrowRight,
+  ChevronRight,
+  FilePlus2,
   FileText,
   HelpCircle,
   Languages,
@@ -32,6 +33,7 @@ import { colors, radii, screenPadding, shadows, spacing } from '@/theme';
 import { SettingsRow } from '../../components/SettingsRow';
 import { SettingsSection } from '../../components/SettingsSection';
 import { useProfile } from '../../hooks/useProfile';
+import { resolveRole } from '../../role';
 import { resolveProfilePictureUrl } from '../../services/userService';
 
 const AVATAR_SIZE = 76;
@@ -51,6 +53,9 @@ export default function ProfileScreen({ navigation }: ScreenProps<'Profile'>) {
   const logout = useLogout();
 
   const region = [user?.region, user?.village].filter(Boolean).join('، ');
+  const isExpert = resolveRole(user).role === 'expert';
+  // Branches on the resolved url, not on `picture`: a key storage cannot serve is not an avatar.
+  const avatarUrl = user?.picture ? resolveProfilePictureUrl(user.picture) : undefined;
 
   const handleLogout = async () => {
     // Clear the session before leaving, so the queue cannot upload under it afterward.
@@ -67,8 +72,8 @@ export default function ProfileScreen({ navigation }: ScreenProps<'Profile'>) {
             accessibilityRole="button"
             accessibilityLabel="رجوع"
           >
-            {/* Back is ArrowRight: directional icons follow the reading direction. */}
-            <ArrowRight size={BACK_ICON} color={colors.textInverse} />
+            {/* G-01: the back glyph is always the chevron, and it follows the reading direction. */}
+            <ChevronRight size={BACK_ICON} color={colors.textInverse} />
           </TouchableOpacity>
 
           <Text variant="h3" color="textInverse" align="right" style={styles.headerTitle}>
@@ -101,11 +106,8 @@ export default function ProfileScreen({ navigation }: ScreenProps<'Profile'>) {
               accessibilityRole="button"
               accessibilityLabel="تغيير الصورة الشخصية"
             >
-              {user?.picture ? (
-                <Image
-                  source={{ uri: resolveProfilePictureUrl(user.picture) }}
-                  style={styles.avatar}
-                />
+              {avatarUrl ? (
+                <Image source={{ uri: avatarUrl }} style={styles.avatar} />
               ) : (
                 <View style={[styles.avatar, styles.avatarEmpty]}>
                   <User size={AVATAR_ICON} color={colors.textMuted} />
@@ -166,18 +168,41 @@ export default function ProfileScreen({ navigation }: ScreenProps<'Profile'>) {
               value="العربية"
               note="لا تتوفر لغات أخرى بعد"
             />
-            <SettingsRow
-              icon={NotificationBell}
-              label="تنبيهات المنطقة الحرجة"
-              note={DEVICE_ONLY}
-              toggle={{
-                isOn: preferences?.criticalArea ?? true,
-                onChange: () => togglePreference('criticalArea'),
-              }}
-            />
+            {isExpert ? (
+              <>
+                <SettingsRow
+                  icon={NotificationBell}
+                  label="إشعارات الانتظار الطويل"
+                  note={DEVICE_ONLY}
+                  toggle={{
+                    isOn: preferences?.longWait ?? true,
+                    onChange: () => togglePreference('longWait'),
+                  }}
+                />
+                <SettingsRow
+                  icon={FilePlus2}
+                  label="إشعارات الحالات الجديدة"
+                  note={DEVICE_ONLY}
+                  toggle={{
+                    isOn: preferences?.newCase ?? true,
+                    onChange: () => togglePreference('newCase'),
+                  }}
+                />
+              </>
+            ) : (
+              <SettingsRow
+                icon={NotificationBell}
+                label="تنبيهات المنطقة الحرجة"
+                note={DEVICE_ONLY}
+                toggle={{
+                  isOn: preferences?.criticalArea ?? true,
+                  onChange: () => togglePreference('criticalArea'),
+                }}
+              />
+            )}
             <SettingsRow
               icon={MessageCircle}
-              label="إشعارات التعليقات"
+              label="إشعارات التعليقات و المحادثات"
               note={DEVICE_ONLY}
               toggle={{
                 isOn: preferences?.comments ?? true,

@@ -10,7 +10,8 @@ const expiredListeners = new Set<Listener>();
 const refreshedListeners = new Set<Listener>();
 let refreshing: Promise<RefreshOutcome> | null = null;
 
-function decodeJwtPayload(token: string): Record<string, unknown> | null {
+/** The payload only; the server validates what it issued. One decoder, shared with api/jwt.ts. */
+export function decodeJwtPayload(token: string): Record<string, unknown> | null {
   try {
     const part = token.split('.')[1];
     if (!part) return null;
@@ -34,6 +35,14 @@ export function isTokenExpired(token: string | null, skewSeconds = 30): boolean 
   return exp * 1000 <= Date.now() + skewSeconds * 1000;
 }
 
+/** A gateway, proxy or ingress answering for a service that never saw the token. */
+const GATEWAY_OUTAGE: ReadonlySet<number> = new Set([502, 503, 504]);
+
+/** Defensive: a throw here would be reported as network, which is the failure this prevents. */
+function contentTypeOf(response: Response): string {
+  return response.headers?.get('content-type') ?? '';
+}
+
 async function doRefresh(): Promise<RefreshOutcome> {
   const refreshToken = await getRefreshToken();
   if (!refreshToken) return 'refused';
@@ -53,8 +62,9 @@ async function doRefresh(): Promise<RefreshOutcome> {
         signal: controller.signal,
       },
     );
-    // A gateway/server outage is not a refused token; only 4xx means the session is over.
-    if (response.status >= 500) return 'network';
+    // A response AuthService produced is a refusal; a gateway status or HTML means it never arrived.
+    if (GATEWAY_OUTAGE.has(response.status)) return 'network';
+    if (contentTypeOf(response).includes('text/html')) return 'network';
     if (!response.ok) return 'refused';
     const data = (await response.json()) as {
       accessToken?: string;
@@ -114,6 +124,7 @@ export async function expireSession(): Promise<void> {
     expiring = false;
   }
 }
+/* eslint-disable no-bitwise -- base64 is bit packing; the rule has nothing to catch here. */
 function atob(padded: string): string[] {
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   const bytes: number[] = [];
@@ -133,3 +144,4 @@ function atob(padded: string): string[] {
 
   return bytes.map(byte => String.fromCharCode(byte));
 }
+/* eslint-enable no-bitwise */

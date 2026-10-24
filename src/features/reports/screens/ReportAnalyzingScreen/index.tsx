@@ -2,23 +2,28 @@ import { Sprout } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { StateScreen } from '@/components/ui';
 import type { ScreenProps } from '@/navigation/types';
 import { colors } from '@/theme';
 
 import { AnalyzingStatus } from '../../components/AnalyzingStatus';
 import { QueuedConfirmationSheet } from '../../components/QueuedConfirmationSheet';
 import { ReportErrorView } from '../../components/ReportErrorView';
-import { ReportFailureState } from '../../components/ReportFailureState';
 import { ReportHeader } from '../../components/ReportHeader';
 import { UnrecognizedPhotoState } from '../../components/UnrecognizedPhotoState';
 import { useReportSubmission } from '../../hooks/useReportSubmission';
 
+import type { AnalyzingMode } from '../../types';
+
+/** §8.4's three mode:working subtitles; the rest of HEADINGS does not vary by mode. */
+const WORKING_SUBTITLE: Record<AnalyzingMode, string> = {
+  photo: 'يحلل الذكاء الاصطناعي الصورة...',
+  voice: 'يحلل الذكاء الاصطناعي تسجيلك...',
+  text: 'يحلل الذكاء الاصطناعي كتابتك...',
+};
+
 /** The header speaks for whichever state is on screen. */
 const HEADINGS = {
-  working: {
-    title: 'جاري التحليل',
-    subtitle: 'يحلل الذكاء الاصطناعي الصورة...',
-  },
   unrecognized: {
     title: 'لم نتعرف على المشكلة',
     subtitle: 'لا تقلق، سنحاول مرة أخرى معًا',
@@ -39,12 +44,20 @@ export default function ReportAnalyzingScreen({
   navigation,
 }: ScreenProps<'ReportAnalyzing'>) {
   const { localId } = route.params;
+  // photo is today's only real path; the others wait on voice or text submission landing.
+  const mode: AnalyzingMode = route.params.mode ?? 'photo';
   const { state, retry, discard } = useReportSubmission(localId);
 
   useEffect(() => {
     if (state.kind === 'delivered') {
-      // replace: the report is filed, so back would land on a screen with nothing to do.
-      navigation.replace('ReportDiagnosis', { reportId: state.reportId });
+      // A reset, not a replace: back must land on F-07, not on whichever tab opened the flow.
+      navigation.reset({
+        index: 1,
+        routes: [
+          { name: 'Home', params: { screen: 'MyReports' } },
+          { name: 'ReportDiagnosis', params: { reportId: state.reportId } },
+        ],
+      });
     }
   }, [state, navigation]);
 
@@ -54,9 +67,9 @@ export default function ReportAnalyzingScreen({
   const goToMyReports = () => navigation.navigate('Home', { screen: 'MyReports' });
 
   // Every exit off F-03c drops the report, back included: it can never resolve.
-  const startOver = (mode: 'photo' | 'voice') => {
+  const startOver = (captureMode: 'photo' | 'voice') => {
     discard();
-    navigation.replace('ReportCapture', { mode });
+    navigation.replace('ReportCapture', { mode: captureMode });
   };
 
   const goBack = () => {
@@ -73,7 +86,7 @@ export default function ReportAnalyzingScreen({
         ? HEADINGS.tooMinor
         : state.kind === 'saved'
           ? HEADINGS.saved
-          : HEADINGS.working;
+          : { title: 'جاري التحليل', subtitle: WORKING_SUBTITLE[mode] };
 
   const renderBody = () => {
     if (failureKind === 'unrecognized') {
@@ -89,7 +102,7 @@ export default function ReportAnalyzingScreen({
     // ReportService refuses anything below Medium, so retrying the same photo cannot help.
     if (failureKind === 'tooMinor') {
       return (
-        <ReportFailureState
+        <StateScreen
           icon={Sprout}
           title="لا حاجة لبلاغ"
           message="حلّل الذكاء الاصطناعي الصورة ووجد أن المشكلة بسيطة ولا تستدعي بلاغًا. صوّر مشكلة أخرى إن احتجت."
@@ -113,12 +126,13 @@ export default function ReportAnalyzingScreen({
       return <QueuedConfirmationSheet onViewReports={goToMyReports} />;
     }
 
-    return <AnalyzingStatus />;
+    return <AnalyzingStatus mode={mode} />;
   };
 
   return (
     <View style={styles.screen}>
-      <ReportHeader {...heading} onBack={goBack} />
+      {/* §8.2/§8.4: back is disabled while the model runs — a submitted report can't be cancelled. */}
+      <ReportHeader {...heading} onBack={state.kind === 'working' ? undefined : goBack} />
       <View style={styles.body}>{renderBody()}</View>
     </View>
   );

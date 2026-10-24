@@ -13,7 +13,7 @@ export type AppHeaderProps = {
   /** Region line under the bar, e.g. "واحة سيوة، شمال". Hidden when unknown. */
   location?: string;
   onOpenProfile: () => void;
-  /** Omitted hides the bell. S-06 Notifications has no screen yet, and an inert control lies. */
+  /** Omitted, the bell renders inert - every call site now passes it (P10). */
   onOpenNotifications?: () => void;
 };
 
@@ -45,6 +45,14 @@ export function AppHeader({
         <View style={styles.row}>
           <View style={styles.leading}>
             <TouchableOpacity
+              onPress={onOpenNotifications ?? (() => {})}
+              accessibilityRole="button"
+              accessibilityLabel="الإشعارات"
+            >
+              <Bell size={ICON_SIZE} color={colors.textInverse} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
               onPress={onOpenProfile}
               accessibilityRole="button"
               accessibilityLabel="الملف الشخصي"
@@ -57,16 +65,6 @@ export function AppHeader({
                 </View>
               )}
             </TouchableOpacity>
-
-            {onOpenNotifications ? (
-              <TouchableOpacity
-                onPress={onOpenNotifications}
-                accessibilityRole="button"
-                accessibilityLabel="الإشعارات"
-              >
-                <Bell size={ICON_SIZE} color={colors.textInverse} />
-              </TouchableOpacity>
-            ) : null}
           </View>
 
           <Text variant="h3" color="textInverse" align="right" style={styles.title}>
@@ -102,8 +100,9 @@ const styles = StyleSheet.create({
     // Fixed, so the bar is 110 whatever the title's line height happens to be.
     height: ROW_HEIGHT,
   },
+  // Reversed: §8.2 reads bell then avatar right to left, so the avatar sits at the edge.
   leading: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     gap: spacing[24],
   },

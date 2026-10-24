@@ -5,8 +5,14 @@ import { Button, Screen, Text, TextField } from '@/components/ui';
 import type { ScreenProps } from '@/navigation/types';
 import { screenPadding, spacing } from '@/theme';
 
+import { PasswordRequirementsHint } from '../../components/PasswordRequirementsHint';
 import { WizardHeader } from '../../components/WizardHeader';
 import { useRegistrationDraft } from '../../context/RegistrationContext';
+import { isPasswordValid } from '../../passwordRules';
+
+const EMAIL_REQUIRED_ERROR = 'يرجى إدخال البريد الإلكتروني';
+const PASSWORD_WEAK_ERROR = 'كلمة المرور لا تحقق الشروط أدناه';
+const PASSWORD_MISMATCH_ERROR = 'كلمة المرور غير متطابقة';
 
 /** Step 3 of the registration wizard. */
 export default function EmailPasswordScreen({
@@ -15,16 +21,28 @@ export default function EmailPasswordScreen({
   const { update } = useRegistrationDraft();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [confirmError, setConfirmError] = useState('');
 
-  const isValid = email.trim().length > 0 && password.trim().length > 0;
+  const isValid =
+    email.trim().length > 0 && isPasswordValid(password) && confirmPassword === password;
 
   const handleNext = () => {
-    if (!isValid) {
-      setError('يرجى إدخال البريد الإلكتروني وكلمة المرور');
+    const nextEmailError = email.trim().length > 0 ? '' : EMAIL_REQUIRED_ERROR;
+    const nextPasswordError = isPasswordValid(password) ? '' : PASSWORD_WEAK_ERROR;
+    const nextConfirmError =
+      nextPasswordError || confirmPassword === password ? '' : PASSWORD_MISMATCH_ERROR;
+
+    setEmailError(nextEmailError);
+    setPasswordError(nextPasswordError);
+    setConfirmError(nextConfirmError);
+
+    if (nextEmailError || nextPasswordError || nextConfirmError) {
       return;
     }
-    setError('');
+
     update({ email: email.trim(), password });
     navigation.navigate('Phone');
   };
@@ -53,25 +71,51 @@ export default function EmailPasswordScreen({
             value={email}
             onChangeText={text => {
               setEmail(text);
-              setError('');
+              setEmailError('');
             }}
             placeholder="ahmed.rashidi@gmail.com"
             keyboardType="email-address"
             autoCapitalize="none"
             autoComplete="email"
+            error={emailError}
           />
 
+          <View style={styles.passwordGroup}>
+            <TextField
+              label="كلمة المرور"
+              value={password}
+              onChangeText={text => {
+                setPassword(text);
+                setPasswordError('');
+                // Stale until the confirm field is revisited, rather than flagged on every keystroke.
+                setConfirmError('');
+              }}
+              placeholder="••••••••"
+              secure
+              autoComplete="new-password"
+              error={passwordError}
+            />
+            <PasswordRequirementsHint password={password} />
+          </View>
+
           <TextField
-            label="كلمة المرور"
-            value={password}
+            label="تأكيد كلمة المرور"
+            value={confirmPassword}
             onChangeText={text => {
-              setPassword(text);
-              setError('');
+              setConfirmPassword(text);
+              setConfirmError('');
+            }}
+            onBlur={() => {
+              if (confirmPassword && confirmPassword !== password) {
+                setConfirmError(PASSWORD_MISMATCH_ERROR);
+              }
             }}
             placeholder="••••••••"
             secure
             autoComplete="new-password"
-            error={error}
+            returnKeyType="send"
+            onSubmitEditing={handleNext}
+            error={confirmError}
           />
         </View>
       </View>
@@ -87,4 +131,5 @@ const styles = StyleSheet.create({
   },
   intro: { gap: spacing[12] },
   fields: { gap: spacing[24] },
+  passwordGroup: { gap: spacing[8] },
 });

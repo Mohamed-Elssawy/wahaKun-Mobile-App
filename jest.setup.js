@@ -72,6 +72,31 @@ jest.mock('react-native-nitro-image', () => {
   };
 });
 
+// Throws on import at module scope; the mock returns synthetic data and never exercises metering.
+jest.mock('react-native-nitro-sound', () => {
+  const sound = {
+    startPlayer: jest.fn(() => Promise.resolve('/mock/voice.m4a')),
+    stopPlayer: jest.fn(() => Promise.resolve('stopped')),
+    pausePlayer: jest.fn(() => Promise.resolve('paused')),
+    resumePlayer: jest.fn(() => Promise.resolve('resumed')),
+    seekToPlayer: jest.fn(() => Promise.resolve('seeked')),
+    setSubscriptionDuration: jest.fn(),
+    addPlayBackListener: jest.fn(),
+    removePlayBackListener: jest.fn(),
+    addPlaybackEndListener: jest.fn(),
+    removePlaybackEndListener: jest.fn(),
+    startRecorder: jest.fn(() => Promise.resolve('/mock/recording.m4a')),
+    pauseRecorder: jest.fn(() => Promise.resolve('paused')),
+    resumeRecorder: jest.fn(() => Promise.resolve('resumed')),
+    stopRecorder: jest.fn(() => Promise.resolve('/mock/recording.m4a')),
+    addRecordBackListener: jest.fn(),
+    removeRecordBackListener: jest.fn(),
+    mmss: jest.fn(secs => `00:${String(Math.floor(secs)).padStart(2, '0')}`),
+  };
+
+  return { __esModule: true, default: sound, Sound: sound };
+});
+
 // Native module with no JS fallback. Resolves a fix at once so useCurrentLocation has one.
 jest.mock('@react-native-community/geolocation', () => ({
   __esModule: true,

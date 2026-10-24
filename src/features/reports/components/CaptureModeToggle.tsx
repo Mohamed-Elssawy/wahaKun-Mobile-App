@@ -20,7 +20,6 @@ const OPTIONS: { mode: CaptureMode; label: string; Icon: LucideIcon }[] = [
 ];
 
 /** Controlled, so the active mode and the body that swaps with it cannot disagree. */
-// One recessed track with a raised thumb, not two buttons, matching the frame.
 export function CaptureModeToggle({ mode, onChange }: CaptureModeToggleProps) {
   return (
     <View style={styles.track} accessibilityRole="tablist">

@@ -1,5 +1,4 @@
-/** Import communityApi from here, never the two implementations, so the flag is the switch. */
-// The CommunityApi annotation is load-bearing: it stops the mock drifting from the real one.
+/** Import communityApi from here so the flag is the switch; the CommunityApi type stops drift. */
 import { USE_MOCK_COMMUNITY } from '@/config/env';
 
 import { communityApi as real } from './communityService';

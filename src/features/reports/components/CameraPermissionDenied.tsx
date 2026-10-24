@@ -1,6 +1,6 @@
 import { CameraOff } from 'lucide-react-native';
 
-import { ReportFailureState } from './ReportFailureState';
+import { StateScreen } from '@/components/ui';
 
 export type CameraPermissionDeniedProps = {
   onOpenSettings: () => void;
@@ -14,7 +14,7 @@ export function CameraPermissionDenied({
   onUseVoice,
 }: CameraPermissionDeniedProps) {
   return (
-    <ReportFailureState
+    <StateScreen
       icon={CameraOff}
       title="لا يمكن الوصول إلى الكاميرا"
       message="فعّل إذن الكاميرا من الإعدادات لتصوير المشكلة."

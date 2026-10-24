@@ -1,8 +1,7 @@
-// Module state, not a hook: create happens in the queue's drain, far from any screen that shows issues.
+// Module state, not a hook: create happens in the queue's drain, far from any screen.
 
 export type IssueChange =
-  | { kind: 'created'; issueId: string }
-  | { kind: 'deleted'; issueId: string };
+  { kind: 'created'; issueId: string } | { kind: 'deleted'; issueId: string };
 
 type Listener = (change: IssueChange) => void;
 
