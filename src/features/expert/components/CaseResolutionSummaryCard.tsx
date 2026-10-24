@@ -20,7 +20,7 @@ export function CaseResolutionSummaryCard({
 }: CaseResolutionSummaryCardProps) {
   return (
     <View style={styles.card}>
-      <Text variant="h5" align="right" color="successText">
+      <Text variant="h5" align="right" color="primaryPressed">
         {title}
       </Text>
 
@@ -30,7 +30,7 @@ export function CaseResolutionSummaryCard({
         ) : (
           <View style={[styles.photo, styles.photoEmpty]} />
         )}
-        <Text variant="body16" color="successText" align="right" style={styles.notes}>
+        <Text variant="body16" color="primaryPressed" align="right" style={styles.notes}>
           {notes}
         </Text>
       </View>
@@ -42,8 +42,8 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: radii[16],
     borderWidth: 1.5,
-    borderColor: colors.successText,
-    backgroundColor: colors.successTint,
+    borderColor: colors.primaryPressed,
+    backgroundColor: colors.primaryTint,
     padding: spacing[16],
     gap: spacing[12],
   },
