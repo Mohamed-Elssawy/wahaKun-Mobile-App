@@ -2,8 +2,7 @@
 
 import type { StyleSpecification } from '@maplibre/maplibre-gl-style-spec';
 
-/** F-05 needs satellite imagery: Siwa is fields and canals, and a street basemap renders empty. */
-// Esri's terms cover tracing, not app basemaps. Fine for a demo; swap to OpenFreeMap to ship.
+/** Satellite imagery, since a street basemap renders empty; the terms fit a demo only. */
 export const SATELLITE_TILE_URL =
   'https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
 

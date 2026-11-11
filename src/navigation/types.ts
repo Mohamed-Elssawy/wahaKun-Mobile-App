@@ -1,4 +1,4 @@
-import type { CaptureMode } from '@/features/reports/types';
+import type { AnalyzingMode, CaptureMode } from '@/features/reports/types';
 
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -11,8 +11,14 @@ export type HomeTabParamList = {
   MyReports: undefined;
 };
 
-/** A route must be listed here to exist, so a bad navigate() fails to compile. */
-// The wizard's draft lives in RegistrationContext, outside navigation state.
+/** §8.3's three tabs, listed left to right as the bar shows them, so الوارد lands on the right. */
+export type ExpertTabParamList = {
+  ExpertChats: undefined;
+  ExpertMap: undefined;
+  ExpertInbox: undefined;
+};
+
+/** A route must be listed here to exist. The wizard draft lives outside navigation state. */
 export type RootStackParamList = {
   /** First launch only; firstRunStore decides whether the app boots here or at Welcome. */
   IntroSlideshow: undefined;
@@ -42,20 +48,57 @@ export type RootStackParamList = {
   /** `mode` opens a tab other than the camera; F-03c sends the farmer to صوت. */
   ReportCapture: { mode?: CaptureMode } | undefined;
   /** A localId, not a report id: analyze runs before create, so nothing has one yet. */
-  ReportAnalyzing: { localId: string };
+  ReportAnalyzing: { localId: string; mode?: AnalyzingMode };
   ReportDiagnosis: { reportId: string };
   ConnectToExpert: { reportId: string };
   IssueDetails: { reportId: string };
+  /** F-06. Entry points: the F-07 card, the F-03b CTA, F-05's owner peek, notifications. */
+  ReportTracker: { reportId: string };
+  /** §8.3's E-07. Reached from E-08's unassigned peek. Shares IssueDetailsBody with IssueDetails. */
+  ExpertIssueDetails: { reportId: string };
+  /** §8.3's E-11. Reached from التشخيص الكامل on E-02 and E-07. Shares ReportDiagnosisBody. */
+  ExpertDiagnosis: { reportId: string };
+
+  /** §8.3's E-02. `state` is set only when entered from an `E-01 · has-reopened` card. */
+  ExpertCaseReview: { reportId: string; state?: 'reopened' };
+  /** §8.3's E-03. */
+  ExpertSchedule: { reportId: string };
+  /** §8.3's E-04. */
+  ExpertResolutionConfirmation: { reportId: string };
+  /** E-05. submitted is what E-04 just sent: the write is the only place those notes exist (G9). */
+  ExpertAwaitingApproval: {
+    reportId: string;
+    submitted?: { notes: string; photoUri?: string };
+  };
+  /** §8.3's E-06. */
+  ExpertCaseClosed: { reportId: string };
 
   Home: NavigatorScreenParams<HomeTabParamList> | undefined;
+  /** The expert shell. A separate root because §8.3's tabs are not the farmer's with a flag. */
+  ExpertHome: NavigatorScreenParams<ExpertTabParamList> | undefined;
+
+  /** S-06. Reachable from the header bell on every tab root, so back returns to its invoker. */
+  Notifications: undefined;
+
+  /** S-08. Outside any shell, with one way out, so an unapproved expert reaches nothing else. */
+  AccountStatus: { state: AccountStatusState };
+  /** X-01. A cold-start guard only, per D-OFFLINE-FIRST; nothing in a flow may route here. */
+  SessionError: undefined;
 };
 
-/** The routes the app may boot at, so no dev shortcut can reach the rest. */
-// Home is here for session restore: a stored token boots straight in.
+/** §4.1's three expert destinations that are not the shell. 'approved' is absent on purpose. */
+export type AccountStatusState = 'pending' | 'rejected' | 'suspended';
+
+/** The routes the app may boot at. Home and ExpertHome are here for session restore. */
 export type BootRoute = Extract<
   keyof RootStackParamList,
-  'IntroSlideshow' | 'Welcome' | 'Home'
+  'IntroSlideshow' | 'Welcome' | 'Home' | 'ExpertHome' | 'AccountStatus' | 'SessionError'
 >;
+
+/** Keyed name, matching a navigation route, so a decision can be handed to reset() as it is. */
+export type BootDecision =
+  | { name: Exclude<BootRoute, 'AccountStatus'> }
+  | { name: 'AccountStatus'; params: { state: AccountStatusState } };
 
 /** Props for a screen component, e.g. `ScreenProps<'Otp'>`. */
 export type ScreenProps<T extends keyof RootStackParamList> = NativeStackScreenProps<

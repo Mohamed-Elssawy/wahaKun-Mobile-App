@@ -78,6 +78,7 @@ export class ApiError extends Error {
         'AI_SERVICE_UNAVAILABLE',
         'STORAGE_SERVICE_UNAVAILABLE',
         'DEPENDENCY_UNAVAILABLE',
+        'DATABASE_ERROR',
       ].includes(this.code ?? '')
     );
   }

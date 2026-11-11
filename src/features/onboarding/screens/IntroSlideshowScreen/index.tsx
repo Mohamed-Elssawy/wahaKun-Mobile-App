@@ -3,6 +3,7 @@ import {
   FlatList,
   Image,
   StyleSheet,
+  TouchableOpacity,
   useWindowDimensions,
   View,
   type NativeScrollEvent,
@@ -45,6 +46,12 @@ export default function IntroSlideshowScreen({
     setIndex(Math.round(event.nativeEvent.contentOffset.x / width));
   };
 
+  const completeIntro = async () => {
+    await markIntroSeen();
+    // reset, not navigate: the intro is first-run only and must not sit on the back stack.
+    navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] });
+  };
+
   const handleNext = async () => {
     if (!isLast) {
       // Clamped: one swipe can fire onMomentumScrollEnd twice, so index can lag reality.
@@ -53,9 +60,14 @@ export default function IntroSlideshowScreen({
       return;
     }
 
-    await markIntroSeen();
-    // reset, not navigate: the intro is first-run only and must not sit on the back stack.
-    navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] });
+    await completeIntro();
+  };
+
+  // Same completion as finishing the slideshow: seen once, never shown again, logout included.
+  const handleSkip = completeIntro;
+
+  const handleSelectSlide = (nextIndex: number) => {
+    listRef.current?.scrollToIndex({ index: nextIndex, animated: true });
   };
 
   return (
@@ -88,13 +100,28 @@ export default function IntroSlideshowScreen({
       >
         <BrandLockup />
 
+        <TouchableOpacity
+          onPress={handleSkip}
+          style={styles.skip}
+          accessibilityRole="button"
+          accessibilityLabel="تخطّي"
+        >
+          <Text variant="label14Bold" color="primary">
+            تخطّي
+          </Text>
+        </TouchableOpacity>
+
         <View style={styles.footer}>
           <Text variant="h3" color="primary" align="center">
             {SLIDES[index].headline}
           </Text>
 
           <View style={styles.controls}>
-            <SlideshowDots count={SLIDES.length} activeIndex={index} />
+            <SlideshowDots
+              count={SLIDES.length}
+              activeIndex={index}
+              onSelect={handleSelectSlide}
+            />
             <Button
               label={isLast ? 'ابدأ استخدام التطبيق' : 'التالي'}
               onPress={handleNext}
@@ -123,6 +150,12 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     justifyContent: 'space-between',
+  },
+  // Absolute, not a row with BrandLockup: that component is shared with S-02, which has no skip.
+  skip: {
+    position: 'absolute',
+    top: spacing[56],
+    left: screenPadding,
   },
   footer: {
     gap: spacing[40],

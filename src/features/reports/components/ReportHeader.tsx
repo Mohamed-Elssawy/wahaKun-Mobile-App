@@ -15,8 +15,7 @@ export type ReportHeaderProps = {
   children?: ReactNode;
 };
 
-/** Back control sits left, matching WizardHeader, which Figma keeps despite the RTL. */
-// In normal flow rather than overlaying, so the body just takes the space that is left.
+/** Back sits left, matching WizardHeader, and in normal flow rather than overlaying. */
 export function ReportHeader({ title, subtitle, onBack, children }: ReportHeaderProps) {
   const insets = useSafeAreaInsets();
 

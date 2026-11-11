@@ -1,12 +1,15 @@
 import type { PickedImage } from '@/types/image';
 
+import { CONFIDENCE_THRESHOLD } from '../../lifecycle';
+import { analyzeIssue as realAnalyzeIssue } from '../reportService';
 import {
-  CONFIDENCE_THRESHOLD,
   analyzeIssue,
   createIssue,
   getReportById,
   resetMockReports,
 } from '../reportService.mock';
+
+import type { ReportApi } from '../../types';
 
 const PHOTO: PickedImage = { uri: 'file:///test-report.jpg' };
 
@@ -82,4 +85,29 @@ describe('reportService mock:createIssue', () => {
     },
     TIMEOUT,
   );
+});
+
+// A one-parameter function satisfies a two-parameter type, so the mock silently dropped location.
+describe('the mock analyze signature matches the real one', () => {
+  it('declares the location parameter the real service declares', () => {
+    expect(analyzeIssue).toHaveLength(realAnalyzeIssue.length);
+    // An optional parameter with no default still counts toward length, which is what catches it.
+    expect(realAnalyzeIssue.length).toBe(2);
+  });
+
+  it(
+    'accepts a coordinate without throwing, so the queue can always pass one',
+    async () => {
+      await expect(
+        analyzeIssue(PHOTO, { latitude: 29.2041, longitude: 25.5195 }),
+      ).resolves.toMatchObject({ filePath: PHOTO.uri });
+    },
+    TIMEOUT,
+  );
+
+  it('conforms to ReportApi, which is what stops the two drifting again', () => {
+    const conforms: ReportApi['analyzeIssue'] = analyzeIssue;
+
+    expect(conforms).toBe(analyzeIssue);
+  });
 });

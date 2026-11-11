@@ -48,8 +48,8 @@ export function HomeTabs() {
 
   return (
     <Tab.Navigator
-      // F-01 (المجتمع) is the signed-in landing tab; My Reports stays one tap away.
-      initialRouteName="CommunityFeed"
+      // §4.1 and §8.2 both say بلاغاتي is the landing tab, not المجتمع.
+      initialRouteName="MyReports"
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.primary,

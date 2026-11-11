@@ -1,7 +1,7 @@
 import { API_TIMEOUT_MS, LOG_API_ERRORS } from '@/config/env';
 
 import { ApiError } from './errors';
-import { expireSession, getValidAccessToken, refreshSession } from './session';
+import { expireSession, getValidAccessToken, refreshSessionOutcome } from './session';
 
 import type { ApiErrorDetails } from './errors';
 
@@ -65,7 +65,6 @@ function parseErrorBody(
 }
 
 function logFailure(error: ApiError): void {
-  // eslint-disable-next-line no-console
   if (LOG_API_ERRORS) console.warn(error.toLogString(), error.details.fieldErrors ?? '');
 }
 
@@ -126,9 +125,17 @@ async function request<T>(
   const data = text ? safeJsonParse(text) : null;
   if (response.ok) return data as T;
 
+  // D11: only a refused refresh ends the session, so a dropped connection cannot sign the farmer out.
   if (response.status === 401 && authenticated && !isRetry) {
-    if (await refreshSession())
+    const outcome = await refreshSessionOutcome();
+    if (outcome === 'refreshed') {
       return request<T>(baseUrl, path, { ...options, isRetry: true });
+    }
+    if (outcome === 'network') {
+      const error = ApiError.network({ method, url });
+      logFailure(error);
+      throw error;
+    }
     await expireSession();
   }
 

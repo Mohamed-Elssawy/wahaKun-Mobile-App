@@ -1,22 +1,26 @@
-// Device-local, and labelled as such in the UI.
-
-// Neither S-07 toggle has a field on AppUser or an endpoint. Move to UserService when they exist.
+// Device-local: neither S-07 toggle has a field on AppUser or an endpoint yet.
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const KEY = 'wk.prefs.notifications';
 
 export type NotificationPreferences = {
-  /** "تنبيهات المنطقة الحرجة" */
+  /** Farmer only. "تنبيهات المنطقة الحرجة" */
   criticalArea: boolean;
-  /** "إشعارات التعليقات" */
+  /** Both roles. "إشعارات التعليقات و المحادثات" */
   comments: boolean;
+  /** Expert only. "إشعارات الانتظار الطويل" */
+  longWait: boolean;
+  /** Expert only. "إشعارات الحالات الجديدة" */
+  newCase: boolean;
 };
 
-/** Both on, matching how S-07 draws them. */
+/** All on, matching how S-07 draws them for either role. */
 const DEFAULTS: NotificationPreferences = {
   criticalArea: true,
   comments: true,
+  longWait: true,
+  newCase: true,
 };
 
 export async function loadPreferences(): Promise<NotificationPreferences> {

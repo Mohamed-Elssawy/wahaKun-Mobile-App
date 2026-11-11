@@ -109,6 +109,17 @@ describe('enqueue', () => {
     expect(getQueueSnapshot().items).toHaveLength(0);
   });
 
+  // The Hangfire job takes GPSLocation from analyze, so a coordinate held back is lost for good.
+  it('hands the coordinate to analyze, which is the only call the server reads it from', async () => {
+    await enqueueReport({ photo: PHOTO, latitude: 25.4378, longitude: 30.5531 });
+    await drainQueue();
+
+    expect(analyzeIssue).toHaveBeenCalledWith(expect.anything(), {
+      latitude: 25.4378,
+      longitude: 30.5531,
+    });
+  });
+
   it('analyses before it files, and files what the model returned', async () => {
     await enqueueReport({ photo: PHOTO });
     await drainQueue();

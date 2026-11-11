@@ -1,30 +1,22 @@
-import { isResolvedStatus } from '@/features/reports/status';
+import { isClosedWireStatus } from '@/features/reports/lifecycle';
 import type { ReportStatus } from '@/features/reports/types';
 import type { ColorToken } from '@/theme';
 
 import type { MapIssueTier, MapPriorityName } from './types';
-
-/** IssueStatus 6 is spelled `completed` server-side; every other name is capitalised. */
-const WIRE_STATUS_FIXUPS: Record<string, ReportStatus> = {
-  completed: 'Completed',
-};
 
 const STATUSES: readonly ReportStatus[] = [
   'Reported',
   'Diagnosed',
   'Verified',
   'Assigned',
+  'Reviewed',
   'Scheduled',
   'Repaired',
-  'Completed',
+  'completed',
 ];
 
 /** Falls back rather than throwing: the server can grow IssueStatus before this file does. */
 export function normalizeMapStatus(status: string): ReportStatus {
-  const fixed = WIRE_STATUS_FIXUPS[status];
-  if (fixed) {
-    return fixed;
-  }
   return STATUSES.find(known => known === status) ?? 'Reported';
 }
 
@@ -44,12 +36,12 @@ const TIER_BY_PRIORITY: Record<string, MapIssueTier> = {
   '4': 'critical',
 };
 
-/** Resolved wins over severity: a fixed problem reads green whatever it used to be. */
+/** Closed wins over severity: a case the farmer settled reads green whatever it used to be. */
 export function describeTier(
   priority: MapPriorityName | string,
   status: ReportStatus,
 ): MapIssueTier {
-  if (isResolvedStatus(status)) {
+  if (isClosedWireStatus(status)) {
     return 'resolved';
   }
   return TIER_BY_PRIORITY[priority] ?? 'low';
@@ -58,15 +50,18 @@ export function describeTier(
 export type TierDisplay = {
   /** The pin fill and the legend swatch. */
   color: ColorToken;
+  /** F-05's legend, which has room for the whole sentence. */
   label: string;
+  /** F-01's card badge and its filter chips, where only the severity itself fits. */
+  shortLabel: string;
 };
 
 // The four hexes in F-05's legend are error, warning, info and success exactly.
 const TIER_DISPLAY: Record<MapIssueTier, TierDisplay> = {
-  critical: { color: 'error', label: 'مشكلة خطورتها حرجة' },
-  medium: { color: 'warning', label: 'مشكلة خطورتها متوسطة' },
-  low: { color: 'info', label: 'مشكلة خطورتها منخفضة' },
-  resolved: { color: 'success', label: 'مشكلة تم حلها' },
+  critical: { color: 'error', label: 'مشكلة خطورتها حرجة', shortLabel: 'حرجة' },
+  medium: { color: 'warning', label: 'مشكلة خطورتها متوسطة', shortLabel: 'متوسطة' },
+  low: { color: 'info', label: 'مشكلة خطورتها منخفضة', shortLabel: 'منخفضة' },
+  resolved: { color: 'success', label: 'مشكلة تم حلها', shortLabel: 'تم الحل' },
 };
 
 export function describeTierDisplay(tier: MapIssueTier): TierDisplay {

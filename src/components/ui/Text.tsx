@@ -14,8 +14,7 @@ export type TextProps = Omit<RNTextProps, 'style'> & {
   style?: StyleProp<TextStyle>;
 };
 
-/** The only way to render text here: family, size and line height travel together. */
-// No weight prop, because Android ignores fontWeight when the family is explicit.
+/** The only way to render text here. No weight prop: Android ignores it with a set family. */
 export function Text({
   variant = 'body14',
   color = 'textPrimary',

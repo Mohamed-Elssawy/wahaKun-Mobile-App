@@ -1,0 +1,88 @@
+import { ChevronLeft } from 'lucide-react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+
+import { Text } from '@/components/ui';
+import { describeSeverity } from '@/features/reports/severity';
+import { colors, radii, spacing } from '@/theme';
+
+import type { ExpertReviewOverride } from '../types';
+
+export type CaseDecisionSummaryProps = {
+  override?: ExpertReviewOverride;
+  onReview: () => void;
+};
+
+const TITLE_ON = 'تجاوز تشخيص الذكاء الاصطناعي';
+const SUBTITLE_ON = 'استبدل الخبير التشخيص بتشخيصه الخاص';
+const TITLE_OFF = 'لم يتم تجاوز تشخيص الذكاء الاصطناعي';
+const SUBTITLE_OFF = 'تم قبول تشخيص الذكاء الاصطناعي كما هو';
+const REVIEW_LABEL = 'مراجعة';
+const LINK_ICON_SIZE = 16;
+
+/** E-03's read-only قرار الخبير card; the frame governs layout only, the content comes from §8.3. */
+export function CaseDecisionSummary({ override, onReview }: CaseDecisionSummaryProps) {
+  const severity = override ? describeSeverity(override.severity) : null;
+
+  return (
+    <View style={styles.card}>
+      <View style={styles.header}>
+        <View style={styles.text}>
+          <Text variant="h5" align="right">
+            {override ? TITLE_ON : TITLE_OFF}
+          </Text>
+          <Text variant="label14" color="textSecondary" align="right">
+            {override ? SUBTITLE_ON : SUBTITLE_OFF}
+          </Text>
+        </View>
+      </View>
+
+      {override ? (
+        <View style={styles.details}>
+          <Text variant="label12" color="textSecondary" align="right">
+            {severity?.label}
+          </Text>
+          <Text variant="body14Bold" align="right">
+            {override.correctedDiagnosis}
+          </Text>
+        </View>
+      ) : null}
+
+      <TouchableOpacity style={styles.link} onPress={onReview} accessibilityRole="link">
+        <Text variant="label12" color="primary">
+          {REVIEW_LABEL}
+        </Text>
+        <ChevronLeft size={LINK_ICON_SIZE} color={colors.primary} />
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: radii[12],
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing[16],
+    gap: spacing[16],
+  },
+  header: {
+    flexDirection: 'row-reverse',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: spacing[12],
+  },
+  text: {
+    flex: 1,
+    gap: spacing[4],
+  },
+  link: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: spacing[4],
+  },
+  details: {
+    gap: spacing[4],
+  },
+});

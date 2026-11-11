@@ -1,6 +1,8 @@
 module.exports = {
   preset: '@react-native/jest-preset',
   setupFiles: ['<rootDir>/jest.setup.js'],
+  // Matching on the filename, not the folder, lets a suite keep fixture files beside it.
+  testMatch: ['**/*.test.[jt]s?(x)'],
   moduleNameMapper: {
     // The preset resolves .svg as an asset, which is not a renderable element.
     '\\.svg$': '<rootDir>/__mocks__/svgMock.js',

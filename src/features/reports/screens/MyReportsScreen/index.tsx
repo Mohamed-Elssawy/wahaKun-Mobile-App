@@ -3,31 +3,44 @@ import { FileSearch, FileText } from 'lucide-react-native';
 import { useCallback } from 'react';
 import { SectionList, StyleSheet, View } from 'react-native';
 
-import { AppHeader, Text } from '@/components/ui';
+import {
+  AppHeader,
+  EmptyState,
+  ListSkeleton,
+  SegmentedTabs,
+  Text,
+} from '@/components/ui';
 import { useIdentity } from '@/features/user/hooks/useIdentity';
 import { colors, screenPadding, spacing } from '@/theme';
 
-import { ProgressRing } from '../../components/ProgressRing';
 import { QueueBanner } from '../../components/QueueBanner';
 import { QueuedReportRow } from '../../components/QueuedReportRow';
 import { ReportCtaCard } from '../../components/ReportCtaCard';
 import { ReportErrorView } from '../../components/ReportErrorView';
-import { ReportFilterTabs } from '../../components/ReportFilterTabs';
 import { ReportRow } from '../../components/ReportRow';
-import { ReportsEmptyState } from '../../components/ReportsEmptyState';
 import { useMyReports } from '../../hooks/useMyReports';
+import { REPORT_FILTER_LABELS } from '../../lifecycle/display';
 
+import type { ReportFilter } from '../../hooks/useMyReports';
 import type { ReportListItem } from '../../types';
 
 const TITLE = 'بلاغاتي';
 
-/** F-07. The empty state splits: never filed one (X-07) reads differently to no match (X-06). */
-// The frame's tracker, expert and appointment data has no endpoint, so it is left out.
+// Only two tabs carry a count in the frame, and a count on all four reads as a dashboard.
+const TABS: { key: ReportFilter; label: string; showCount: boolean }[] = [
+  { key: 'all', label: REPORT_FILTER_LABELS.all, showCount: false },
+  { key: 'active', label: REPORT_FILTER_LABELS.active, showCount: true },
+  { key: 'resolved', label: REPORT_FILTER_LABELS.resolved, showCount: true },
+  { key: 'critical', label: REPORT_FILTER_LABELS.critical, showCount: false },
+];
+
+/** F-07. X-07, never having filed one, reads differently to X-06, no match. */
 export default function MyReportsScreen() {
   const navigation = useNavigation();
   const { avatarUrl } = useIdentity();
   const {
     sections,
+    trackers,
     isEmpty,
     hasAnyReports,
     counts,
@@ -38,11 +51,21 @@ export default function MyReportsScreen() {
     refresh,
     retryQueued,
     discardQueued,
+    unreadReportIds,
+    markReportSeen,
   } = useMyReports();
 
+  // D-QUEUE's unread-result opens the result, not the tracker, and reading it clears the marker.
   const openReport = useCallback(
-    (reportId: string) => navigation.navigate('IssueDetails', { reportId }),
-    [navigation],
+    (reportId: string) => {
+      if (unreadReportIds.has(reportId)) {
+        markReportSeen(reportId);
+        navigation.navigate('ReportDiagnosis', { reportId });
+        return;
+      }
+      navigation.navigate('ReportTracker', { reportId });
+    },
+    [navigation, unreadReportIds, markReportSeen],
   );
 
   const startReport = useCallback(
@@ -59,17 +82,23 @@ export default function MyReportsScreen() {
           onDiscard={discardQueued}
         />
       ) : (
-        <ReportRow report={item.report} onPress={openReport} />
+        <ReportRow
+          report={item.report}
+          onPress={openReport}
+          trackerDetails={trackers[item.report.id]}
+          onResolutionChanged={refresh}
+          isUnread={unreadReportIds.has(item.report.id)}
+        />
       ),
-    [openReport, retryQueued, discardQueued],
+    [openReport, retryQueued, discardQueued, trackers, refresh, unreadReportIds],
   );
 
   const renderBody = () => {
     // First load only: a focus refetch leaves the current list on screen.
     if (isLoading) {
       return (
-        <View style={styles.centred}>
-          <ProgressRing />
+        <View style={styles.list}>
+          <ListSkeleton />
         </View>
       );
     }
@@ -91,13 +120,13 @@ export default function MyReportsScreen() {
 
           {/* The card above is the way out, so neither empty state carries a button. */}
           {hasAnyReports ? (
-            <ReportsEmptyState
+            <EmptyState
               icon={FileSearch}
               title="لا توجد بلاغات مطابقة"
               message="جرّب توسيع البحث أو تغيير الفلتر."
             />
           ) : (
-            <ReportsEmptyState
+            <EmptyState
               icon={FileText}
               title="لم تُبلّغ عن أي مشكلة بعد"
               message="عندما تبلغ عن مشكلة، ستظهر هنا حتى تتمكن من تتبع حالتها."
@@ -134,11 +163,19 @@ export default function MyReportsScreen() {
         title={TITLE}
         avatarUrl={avatarUrl}
         onOpenProfile={() => navigation.navigate('Profile')}
+        onOpenNotifications={() => navigation.navigate('Notifications')}
       />
 
       <QueueBanner />
 
-      <ReportFilterTabs filter={filter} counts={counts} onChange={setFilter} />
+      <SegmentedTabs
+        items={TABS.map(tab => ({
+          key: tab.key,
+          label: tab.showCount ? `${tab.label} (${counts[tab.key]})` : tab.label,
+        }))}
+        value={filter}
+        onChange={setFilter}
+      />
 
       <View style={styles.body}>{renderBody()}</View>
     </View>
@@ -165,12 +202,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: screenPadding,
     paddingTop: spacing[16],
     gap: spacing[16],
-  },
-  centred: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing[24],
-    paddingHorizontal: screenPadding,
   },
 });

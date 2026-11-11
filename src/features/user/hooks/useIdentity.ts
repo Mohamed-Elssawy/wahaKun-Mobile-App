@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
-import { getUserDetails, resolveProfilePictureUrl } from '../services/userService';
+import { resolveRole } from '../role';
+import { resolveProfilePictureUrl, userApi } from '../services';
 
 import type { UserDetails } from '../types';
 
@@ -11,7 +12,8 @@ export function useIdentity() {
   useEffect(() => {
     let cancelled = false;
 
-    getUserDetails()
+    userApi
+      .getUserDetails()
       .then(details => {
         if (!cancelled) {
           setUser(details);
@@ -26,11 +28,19 @@ export function useIdentity() {
   }, []);
 
   const region = [user?.region, user?.village].filter(Boolean).join('، ');
+  // Resolved here rather than fetched again: this hook already holds the details it reads.
+  const { role, approval } = resolveRole(user);
 
   return {
+    /** Undefined until UserService answers. Consumers gating on ownership must fail closed. */
+    userId: user?.id || undefined,
     displayName: user?.fullName || '',
     // Same resolver the profile screen uses, so a profile-pictures/ key resolves the same way.
     avatarUrl: user?.picture ? resolveProfilePictureUrl(user.picture) : undefined,
     location: region || undefined,
+    /** §4.1's two account types. Mocked until UserDetailsResponse carries the field. */
+    role,
+    /** Always 'approved' for a farmer; §4.1 only gates experts. */
+    approval,
   };
 }

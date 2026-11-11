@@ -35,7 +35,9 @@ describe('describeAnalysisError', () => {
 describe('describeCreateError', () => {
   it("reads create's INVALID_OPERATION as a too-minor problem", () => {
     const error = describeCreateError(
-      invalidOperation('Issue was not created because the detected problem priority is too low.'),
+      invalidOperation(
+        'Issue was not created because the detected problem priority is too low.',
+      ),
       '',
     );
 

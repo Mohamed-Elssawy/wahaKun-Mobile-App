@@ -1,8 +1,9 @@
-import { ArrowLeft } from 'lucide-react-native';
-import { ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
+import { ArrowLeft, ArrowRight } from 'lucide-react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 
 import { colors, controlHeight, radii, spacing } from '@/theme';
 
+import { ButtonSpinner } from './ButtonSpinner';
 import { Text } from './Text';
 
 import type { ReactNode } from 'react';
@@ -19,6 +20,8 @@ export type ButtonProps = {
   disabled?: boolean;
   /** Directional icon, so it trails the label on the left. Points left because RTL. */
   showArrow?: boolean;
+  /** Same slot as showArrow, pointed right instead, for a CTA that navigates backward. */
+  showArrowEnd?: boolean;
   /** Descriptive icon, so it leads the label on the right. Directional ones use showArrow. */
   icon?: ReactNode;
   style?: StyleProp<ViewStyle>;
@@ -46,6 +49,7 @@ export function Button({
   loading = false,
   disabled = false,
   showArrow = false,
+  showArrowEnd = false,
   icon,
   style,
   testID,
@@ -72,7 +76,7 @@ export function Button({
     >
       {loading ? (
         // The inactive primary fill is pale now, so a white spinner would vanish.
-        <ActivityIndicator color={colors[labelColor]} />
+        <ButtonSpinner color={labelColor} />
       ) : (
         <>
           {icon}
@@ -80,6 +84,7 @@ export function Button({
             {label}
           </Text>
           {showArrow && <ArrowLeft size={24} color={colors[labelColor]} />}
+          {showArrowEnd && <ArrowRight size={24} color={colors[labelColor]} />}
         </>
       )}
     </TouchableOpacity>

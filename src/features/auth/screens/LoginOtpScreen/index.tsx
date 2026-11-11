@@ -4,6 +4,7 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { BackHeader, Button, OtpInput, Screen, Text } from '@/components/ui';
 import { formatCountdown, useCountdown } from '@/hooks/useCountdown';
 import type { ScreenProps } from '@/navigation/types';
+import { useRouteAfterLogin } from '@/navigation/useRouteAfterLogin';
 import { screenPadding, spacing } from '@/theme';
 
 import { useOtpVerification } from '../../hooks/useOtpVerification';
@@ -12,6 +13,7 @@ const OTP_LENGTH = 6;
 const RESEND_SECONDS = 30;
 
 export default function LoginOtpScreen({ navigation, route }: ScreenProps<'LoginOtp'>) {
+  const routeAfterLogin = useRouteAfterLogin();
   const { phoneNumber } = route.params;
 
   const [code, setCode] = useState('');
@@ -29,8 +31,7 @@ export default function LoginOtpScreen({ navigation, route }: ScreenProps<'Login
     setValidationError('');
 
     if (await verify(code)) {
-      // reset, not navigate, so login does not stay on the back stack.
-      navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+      await routeAfterLogin();
     }
   };
 

@@ -28,7 +28,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-/** A DiagnosisCard whose body folds away. Used by "لماذا هذا التشخيص؟". */
+/** An AiDiagnosisCard whose body folds away; not composed from it, as it owns the header. */
 export function CollapsibleCard({
   title,
   defaultOpen = true,

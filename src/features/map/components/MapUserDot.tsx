@@ -13,8 +13,7 @@ const SOURCE_ID = 'user-location';
 const RADIUS = 8;
 const RING = 2;
 
-/** Where the farmer is. A layer, not a Marker: a Marker takes touches and swallowed taps on the pin. */
-// Not MapLibre's own UserLocation either: it stayed silent on the emulator with a fix set.
+/** A layer, not a Marker: a Marker takes touches, and MapLibre's own UserLocation stayed silent. */
 export function MapUserDot({ location }: MapUserDotProps) {
   return (
     <GeoJSONSource

@@ -4,7 +4,7 @@ import { describeError } from '@/features/reports/errors';
 import { useImagePicker } from '@/hooks/useImagePicker';
 
 import { useProfile } from './useProfile';
-import { uploadProfilePicture } from '../services/userService';
+import { userApi } from '../services';
 
 const UPLOAD_ERROR = 'تعذر رفع الصورة، حاول مرة أخرى';
 
@@ -25,7 +25,7 @@ export function useProfilePicture() {
     setUploadError('');
 
     try {
-      const objectKey = await uploadProfilePicture(image);
+      const objectKey = await userApi.uploadProfilePicture(image);
       return await save({ picture: objectKey });
     } catch (err) {
       setUploadError(describeError(err, UPLOAD_ERROR).message);

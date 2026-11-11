@@ -1,151 +1,129 @@
-import { ChevronLeft, Clock } from 'lucide-react-native';
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Sparkles } from 'lucide-react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { Text } from '@/components/ui';
-import { colors, radii, spacing } from '@/theme';
+import { ContextChip, ProgressBar, ReportSummaryCard, Text } from '@/components/ui';
+import { spacing } from '@/theme';
 import type { ColorToken } from '@/theme';
 
+import { farmerSeesAi } from '../aiVisibility';
 import { formatReportReference } from '../format';
+import { useResolutionAction } from '../hooks/useResolutionAction';
+import { isClosedWireStatus, UNTITLED_REPORT } from '../lifecycle';
 import { formatRelativeTime } from '../relativeTime';
-import { describeSeverity } from '../severity';
-import { isResolvedStatus } from '../status';
+import { describeSeverity, reportSeverity } from '../severity';
+import { trackerFacts } from '../trackerFacts';
+import { activeCardStep, buildActiveCardSlot } from '../trackerView';
+import { TrackerApprovalControl } from './TrackerApprovalControl';
 
-import type { Report } from '../types';
+import type { Report, ReportTrackerDetails } from '../types';
 
 export type ReportRowProps = {
   report: Report;
   onPress: (reportId: string) => void;
+  /** §8.2 F-07's contextual slot. Absent for a closed report, which draws none. */
+  trackerDetails?: ReportTrackerDetails;
+  /** Fires after a successful confirm/reject, so the list can refetch. */
+  onResolutionChanged?: () => void;
+  /** D-QUEUE's unread-result: a card an auto-upload just delivered. No frame exists for it. */
+  isUnread?: boolean;
 };
 
-const STRIPE_HEIGHT = 3;
-const THUMBNAIL_SIZE = 82;
-const META_ICON_SIZE = 12;
-const CHEVRON_SIZE = 24;
+const TOTAL_NODES = 6;
+const UNREAD_LABEL = 'جديد';
 
-/** The reference chip is a fixed 64 by 24 in the frame, wider only if the text outgrows it. */
-const PILL_WIDTH = 64;
-const PILL_HEIGHT = 24;
-
-const UNTITLED = 'بلاغ بدون وصف';
-
-/** Green once it is fixed, whatever the severity was; grey while there is no analysis. */
-function stripeColor(report: Report): ColorToken {
-  if (isResolvedStatus(report.status)) {
+/** Green once the farmer closes it; grey while there is no severity this farmer may see. */
+function stripeColor(report: Report, seesAi: boolean): ColorToken {
+  if (isClosedWireStatus(report.status)) {
     return 'success';
   }
-  return report.analysis
-    ? describeSeverity(report.analysis.severity).color
-    : 'borderStrong';
+  const severity = reportSeverity(report, seesAi);
+  return severity ? describeSeverity(severity).color : 'borderStrong';
 }
 
-/** One report in the My Issues list. F-07 draws the same card F-05's sheet does. */
-export function ReportRow({ report, onPress }: ReportRowProps) {
-  const title = report.analysis?.problemArabic || report.description || UNTITLED;
+/** One report in the My Issues list, mapped onto the card F-05 and F-06 draw too. */
+export function ReportRow({
+  report,
+  onPress,
+  trackerDetails,
+  onResolutionChanged,
+  isUnread,
+}: ReportRowProps) {
+  const seesAi = report.analysis
+    ? farmerSeesAi({ confidence: report.analysis.confidence })
+    : false;
+
+  const aiTitle = seesAi ? report.analysis?.problemArabic : undefined;
+  // title is model output too, so it leads the description IssueService fills with explanation.
+  const title = aiTitle || report.title || report.description || UNTITLED_REPORT;
   const photo = report.attachments.find(attachment => attachment.type === 'Photo');
 
+  // Falls back to a bare wire-status read, so a tap never throws for want of tracker data.
+  const getFacts = () =>
+    trackerFacts(trackerDetails ?? { reportId: report.id, status: report.status });
+  const action = useResolutionAction(report.id, getFacts);
+
+  const handleConfirm = async () => {
+    const refusal = await action.confirm();
+    if (!refusal) {
+      onResolutionChanged?.();
+    }
+  };
+  const handleReject = async () => {
+    const refusal = await action.reject();
+    if (!refusal) {
+      onResolutionChanged?.();
+    }
+  };
+
+  const slot = trackerDetails ? buildActiveCardSlot(trackerDetails) : null;
+
   return (
-    <TouchableOpacity
-      style={styles.card}
+    <ReportSummaryCard
+      title={title}
+      reference={formatReportReference(report.id)}
+      timeLabel={formatRelativeTime(report.createdAt)}
+      borderColor={stripeColor(report, seesAi)}
+      photoUrl={photo?.url}
       onPress={() => onPress(report.id)}
-      activeOpacity={0.8}
-      accessibilityRole="button"
-      accessibilityLabel={title}
+      marker={isUnread ? { icon: Sparkles, label: UNREAD_LABEL } : undefined}
     >
-      <View style={[styles.stripe, { backgroundColor: colors[stripeColor(report)] }]} />
-
-      <View style={styles.body}>
-        {photo ? (
-          <Image source={{ uri: photo.url }} style={styles.thumbnail} />
-        ) : (
-          <View style={[styles.thumbnail, styles.thumbnailEmpty]} />
-        )}
-
-        <View style={styles.text}>
-          <Text variant="body14Bold" align="right" numberOfLines={2}>
-            {title}
+      {trackerDetails ? (
+        <View style={styles.footer}>
+          <Text variant="label12" color="textSecondary" align="right">
+            {`الخطوة ${activeCardStep(trackerDetails)} من ${TOTAL_NODES}`}
           </Text>
 
-          <View style={styles.meta}>
-            <View style={styles.pill}>
-              <Text variant="label12" color="textSecondary">
-                {formatReportReference(report.id)}
-              </Text>
-            </View>
+          <ProgressBar
+            step={activeCardStep(trackerDetails)}
+            totalSteps={TOTAL_NODES}
+            color="primary"
+          />
 
-            <View style={styles.time}>
-              <Clock size={META_ICON_SIZE} color={colors.textSecondary} />
-              <Text variant="label12" color="textSecondary">
-                {formatRelativeTime(report.createdAt)}
-              </Text>
-            </View>
-          </View>
+          {slot?.kind === 'chip' ? (
+            <ContextChip
+              tint={slot.chip.tint}
+              icon={slot.chip.icon}
+              label={slot.chip.label}
+            />
+          ) : null}
+
+          {slot?.kind === 'approval' ? (
+            <TrackerApprovalControl
+              onConfirm={handleConfirm}
+              onReject={handleReject}
+              disabled={action.isActing}
+            />
+          ) : null}
         </View>
-
-        <ChevronLeft size={CHEVRON_SIZE} color={colors.textSecondary} />
-      </View>
-    </TouchableOpacity>
+      ) : null}
+    </ReportSummaryCard>
   );
 }
 
 const styles = StyleSheet.create({
-  // No shadow: F-07 goes from white to the canvas in one pixel, with nothing under it.
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radii[12],
-    // The stripe reaches the rounded corners, so it has to be clipped by them.
-    overflow: 'hidden',
-  },
-  // Over the top padding, not above it: Figma strokes inside the frame, so the card stays 106.
-  stripe: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    left: 0,
-    height: STRIPE_HEIGHT,
-  },
-  // 8 on the chevron's side, 16 on the photo's: its 24 box carries the other 8 as whitespace.
-  body: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    gap: spacing[16],
-    paddingVertical: spacing[12],
-    paddingRight: spacing[16],
-    paddingLeft: spacing[8],
-  },
-  thumbnail: {
-    width: THUMBNAIL_SIZE,
-    height: THUMBNAIL_SIZE,
-    borderRadius: radii[12],
-    backgroundColor: colors.surfaceMuted,
-  },
-  thumbnailEmpty: {
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  text: {
-    flex: 1,
-    gap: spacing[8],
-  },
-  // The reference reads first in Arabic, so it sits at the trailing edge.
-  meta: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    gap: spacing[16],
-  },
-  // Clock first, so it sits between the reference and the duration as the frame has it.
-  time: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    gap: spacing[4],
-  },
-  // Sized, not padded: no step of the 2pt ramp pads label12's 18 line box out to the frame's 24.
-  pill: {
-    minWidth: PILL_WIDTH,
-    minHeight: PILL_HEIGHT,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing[10],
-    borderRadius: radii.pill,
-    backgroundColor: colors.surfaceMuted,
+  footer: {
+    gap: spacing[12],
+    paddingHorizontal: spacing[16],
+    paddingBottom: spacing[12],
   },
 });
