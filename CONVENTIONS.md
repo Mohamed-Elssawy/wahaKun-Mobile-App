@@ -111,21 +111,65 @@ Layout only — colour and type come from `@/theme` or a `Text` variant.
 
 ### Right-to-left
 
-The UI is Arabic-first. RTL is expressed per-style with
-`flexDirection: 'row-reverse'` and `textAlign: 'right'`, **not** via
-`I18nManager.forceRTL`. Follow the existing pattern; don't mix approaches.
+The UI is Arabic-first and ships in two directions. Direction comes from
+`I18nManager`, resolved once at boot from the locale — never per-style. Write
+`flexDirection: 'row'` and let the direction do the work; a row runs start → end
+and mirrors for free.
 
-Latin-ish inputs — email, phone, password — stay `textAlign: 'left'` inside an
-otherwise RTL screen.
+Use logical edges — `start`/`end`, `paddingStart`, not `left`/`right`. Order JSX
+children in reading order, because that is what `'row'` lays out.
 
-Directional icons follow the reading direction: back is `ArrowRight`, forward is
-`ArrowLeft`.
+The `SPEC §6.7` LTR islands — phone numbers, the `+20` prefix, email, OTP boxes,
+timers, report IDs, percentages, chat timestamps — are the only place a hard
+direction belongs, and they keep it in **both** languages. A value interpolated
+into an Arabic sentence uses `ltrIsolate()` instead.
+
+On Android a physical `textAlign` is not a fixed edge. React Native swaps `left` and `right` on
+text it lays out right to left, so `'right'` lands on the left in the Arabic UI. The style object
+cannot show this: check where the glyphs land on a device (E8, `design/UI-CONFORMANCE.md` C47).
+
+Directional icons come from `@/i18n/icons` — `BackIcon`, `ForwardIcon`,
+`ForwardArrow`, `BackArrow`. Never name a side-specific glyph directly.
 
 ## Strings
 
-Arabic copy is inline in JSX today. There is no i18n layer — adding one is a
-project decision, not something to do halfway. Until then, keep user-facing
-strings in the component that renders them, not scattered into helpers.
+User-facing copy comes from the catalogue: `t('key')`, and `tPlural(stem, count)`
+for a count-dependent family. `src/i18n/ar.json` and `en.json` are generated from
+`design/COPY-DECK.csv` by `scripts/i18n-deck.js` and are never hand-edited.
+
+`t()` is a plain function, not a hook: the locale cannot change mid-session (SPEC §16.5
+relaunches the app instead), so nothing ever has to re-render on a language change. Keys use the
+SPEC's screen IDs (`s03.cta`, `f06.contactExpert`), so a key names the table that defines it.
+
+**A `t()` call must sit inside a function body** — a function declaration, a
+function expression or an arrow. SPEC §16.2 resolves the locale inside
+`App.tsx`'s splash window, after the module graph is already built, so a call
+evaluated during an import freezes whichever locale module init happened to see.
+A default parameter is fine, because it is evaluated per call. A
+`no-restricted-syntax` rule fails the build on a call at module scope, and it has
+to be a rule rather than a habit: `FORCE_LOCALE='en'` lands at module init too,
+so the dev setting built to make English visible is blind to exactly this bug.
+
+Three shapes cover every extraction. `REFERENCE-NOTES.md` has the diffs; don't
+invent a fourth.
+
+| what you have                                       | what it becomes                                                                                            |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| A module const read only inside a function          | Delete the const, inline `t('key')` at each read                                                           |
+| A private map or array read by an exported function | The map holds keys; the function resolves them                                                             |
+| Exported data rendered elsewhere                    | Keys in the table and an accessor function out, or a `labelKey` on the item and the `t()` in the component |
+
+**Not every Arabic string is copy.** A value the code matches on is a token:
+`scripts/i18n-wire.js` pins the ones syntax cannot tell from a label, and
+translating one changes what the code means rather than what the farmer reads,
+with no error anywhere. Content the app did not author — a comment, a voice
+transcript, an AI diagnosis, a person's name — keeps the language it arrived in
+and renders through `BiText`.
+
+**A resolved string is never stored or sent.** If a value identifies something,
+persist the id and look the copy up where it is read; a sentence written into
+storage is frozen in the locale that wrote it. E4.1 in `REFERENCE-NOTES.md` is
+what that costs.
 
 ## API
 
@@ -136,8 +180,8 @@ strings in the component that renders them, not scattered into helpers.
   the server accepts. Do not "fix" them here.
 - Catch `ApiError`, branch on `status` / `isNetworkError` / `isUnauthorized` —
   never on the message text.
-- Always give the user an Arabic fallback message when the server doesn't
-  provide one.
+- Always give the user a catalogue fallback message, a `t()` key, when the
+  server doesn't provide one, so it reaches them in their own language.
 
 ## Comments
 

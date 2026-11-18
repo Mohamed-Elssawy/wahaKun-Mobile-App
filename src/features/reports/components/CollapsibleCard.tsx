@@ -52,7 +52,7 @@ export function CollapsibleCard({
         accessibilityState={{ expanded: isOpen }}
         accessibilityLabel={title}
       >
-        <Text variant="h4" align="right" style={styles.title}>
+        <Text variant="h4" style={styles.title}>
           {title}
         </Text>
         <Chevron size={CHEVRON_SIZE} color={colors.textStrong} />
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     ...shadows.card,
   },
   header: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     // The whole header is the target, so it has to clear 48dp on its own.

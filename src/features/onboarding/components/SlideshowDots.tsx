@@ -1,5 +1,6 @@
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
+import { t } from '@/i18n';
 import { colors, radii, spacing } from '@/theme';
 
 export type SlideshowDotsProps = {
@@ -27,7 +28,9 @@ export function SlideshowDots({ count, activeIndex, onSelect }: SlideshowDotsPro
           onPress={() => onSelect?.(index)}
           hitSlop={HIT_SLOP}
           accessibilityRole={onSelect ? 'button' : undefined}
-          accessibilityLabel={onSelect ? `الانتقال إلى الشريحة ${index + 1}` : undefined}
+          accessibilityLabel={
+            onSelect ? t('s01a.goToSlide', { n: index + 1 }) : undefined
+          }
         >
           <View style={index === activeIndex ? styles.active : styles.dot} />
         </TouchableOpacity>
@@ -37,9 +40,9 @@ export function SlideshowDots({ count, activeIndex, onSelect }: SlideshowDotsPro
 }
 
 const styles = StyleSheet.create({
-  // row-reverse: the first slide's dot sits on the right, and progress runs leftwards.
+  // The first slide's dot takes the start edge, so progress runs the reading way.
   row: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing[32],

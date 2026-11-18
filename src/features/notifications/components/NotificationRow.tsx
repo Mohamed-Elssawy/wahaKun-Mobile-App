@@ -15,7 +15,7 @@ export type NotificationRowProps = {
 
 const DOT_SIZE = 10;
 
-/** Unread is a white card with a dot at the icon's top corner, as all three frames draw it. */
+/** Unread is a card with a dot, read is flat on the page; C21's "every row is a card" was the capture's error, not the screen's. */
 export function NotificationRow({ notification, onPress }: NotificationRowProps) {
   const { type, title, createdAt, isRead } = notification;
 
@@ -26,18 +26,18 @@ export function NotificationRow({ notification, onPress }: NotificationRowProps)
       activeOpacity={0.8}
       accessibilityRole="button"
     >
-      <View style={styles.text}>
-        <Text variant="body14" color="textStrong" align="right">
-          {title}
-        </Text>
-        <Text variant="label12" color="textMuted" align="right" style={styles.time}>
-          {formatNotificationTime(createdAt)}
-        </Text>
-      </View>
-
       <View style={styles.iconWrap}>
         <NotificationIcon type={type} />
         {!isRead ? <View style={styles.dot} /> : null}
+      </View>
+
+      <View style={styles.text}>
+        <Text variant="body14" color="textStrong">
+          {title}
+        </Text>
+        <Text variant="label12" color="textMuted" style={styles.time}>
+          {formatNotificationTime(createdAt)}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -68,10 +68,11 @@ const styles = StyleSheet.create({
   iconWrap: {
     position: 'relative',
   },
+  // The dot takes the START corner so it mirrors with locale, as S-06 draws it; it sat on `end` in both.
   dot: {
     position: 'absolute',
     top: -2,
-    right: -2,
+    start: -2,
     width: DOT_SIZE,
     height: DOT_SIZE,
     borderRadius: radii.pill,

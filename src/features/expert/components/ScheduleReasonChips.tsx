@@ -1,9 +1,10 @@
 import { StyleSheet, View } from 'react-native';
 
 import { FilterChip, Text, TextField } from '@/components/ui';
+import { t } from '@/i18n';
 import { spacing } from '@/theme';
 
-import { RESCHEDULE_REASON_CHIPS } from '../types';
+import { OTHER_REASON, RESCHEDULE_REASON_CHIPS, reasonLabel } from '../types';
 
 import type { RescheduleReasonChip } from '../types';
 
@@ -14,11 +15,7 @@ export type ScheduleReasonChipsProps = {
   onNoteChange: (note: string) => void;
 };
 
-const LABEL = 'سبب التغيير';
-const OTHER: RescheduleReasonChip = 'أخرى';
-const OTHER_PLACEHOLDER = 'اكتب السبب...';
-
-/** Reschedule only, since the farmer's node-4 chip renders it; أخرى alone takes the free text. */
+/** Reschedule only, since the farmer's node-4 chip renders it; `other` takes the free text. */
 export function ScheduleReasonChips({
   value,
   onChange,
@@ -27,24 +24,24 @@ export function ScheduleReasonChips({
 }: ScheduleReasonChipsProps) {
   return (
     <View style={styles.section}>
-      <Text variant="h5" color="textSecondary" align="right">
-        {LABEL}
+      <Text variant="h5" color="textSecondary">
+        {t('e03.reasonLabel')}
       </Text>
 
       <View style={styles.grid}>
         {RESCHEDULE_REASON_CHIPS.map(chip => (
           <FilterChip
             key={chip}
-            label={chip}
+            label={reasonLabel(chip)}
             isActive={value === chip}
             onPress={() => onChange(chip)}
           />
         ))}
       </View>
 
-      {value === OTHER ? (
+      {value === OTHER_REASON ? (
         <TextField
-          placeholder={OTHER_PLACEHOLDER}
+          placeholder={t('e03.reasonPlaceholder')}
           value={note}
           onChangeText={onNoteChange}
           inputStyle={styles.noteInput}
@@ -59,11 +56,9 @@ const styles = StyleSheet.create({
     gap: spacing[8],
   },
   grid: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing[8],
   },
-  noteInput: {
-    textAlign: 'right',
-  },
+  noteInput: {},
 });

@@ -2,6 +2,7 @@
 
 import { emptyOnEmptyScenario, failOnErrorScenario, mockDelay } from '@/api/mockScenario';
 import { resolveRole } from '@/features/user/role';
+import { t } from '@/i18n';
 
 import { applyFeedQuery } from '../feedQuery';
 import { SEED_COMMENTS, SEED_POSTS, SEED_VOICE } from '../fixtures';
@@ -18,16 +19,18 @@ import type {
 
 const LATENCY = { feed: 700, comments: 500, write: 400 } as const;
 
-const FEED_ERROR = 'تعذر تحميل المجتمع';
-const COMMENTS_ERROR = 'تعذر تحميل التعليقات';
-const WRITE_ERROR = 'تعذر إتمام العملية';
+// Never rendered: describeError replaces these with its own offline copy, so they're developer text only.
+const FEED_ERROR = 'Mock: the community feed is unavailable in this scenario';
+const COMMENTS_ERROR = 'Mock: comments are unavailable in this scenario';
+const WRITE_ERROR = 'Mock: this write fails in the error scenario';
 
 // Module scope, not a hook: a vote has to survive leaving the screen, the way the server's would.
 const posts = SEED_POSTS.map(post => ({ ...post }));
 const comments: Comment[] = SEED_COMMENTS.map(comment => ({ ...comment }));
 
-/** The signed-in farmer, for a comment the mock appends. The real path reads it off the token. */
-const ME = { id: 'u-me', name: 'أنت' } as const;
+/** The signed-in farmer. Resolved per call, not at module scope, or t() would freeze the locale (§16.2). */
+const ME = { id: 'u-me' } as const;
+const myName = () => t('common.you');
 
 function findPost(issueId: string) {
   const post = posts.find(row => row.issueId === issueId);
@@ -113,7 +116,7 @@ export async function postComment(issueId: string, text: string): Promise<Commen
     id: `c-${Date.now()}`,
     issueId,
     authorId: ME.id,
-    authorName: ME.name,
+    authorName: myName(),
     isExpert,
     text,
     createdAt: new Date().toISOString(),

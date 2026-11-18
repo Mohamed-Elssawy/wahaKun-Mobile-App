@@ -1,15 +1,27 @@
 // In-memory ExpertCaseSummary/Detail for when no expert endpoint exists at all.
+import {
+  ENGLISH_CASE_TITLE,
+  ENGLISH_DESCRIPTION,
+  ENGLISH_DIAGNOSIS,
+  ENGLISH_RECOMMENDATION,
+  ENGLISH_REPAIR_STEPS,
+  LATIN_FARMER_NAME,
+  LONG_ARABIC_FARMER_NAME,
+} from '@/__fixtures__/expertBidi';
 import { emptyOnEmptyScenario, failOnErrorScenario, mockDelay } from '@/api/mockScenario';
 import {
   applyExpertAppointment,
   applyExpertRepair,
 } from '@/features/reports/services/reportTracker.mock';
 
+import { SLOT_TIMES } from './expertService';
+
 import type {
   ConfirmAppointmentFields,
   ConfirmRepairFields,
   ExpertCaseDetail,
   ExpertCaseSummary,
+  ScheduleSlot,
   SubmitExpertReviewFields,
 } from '../types';
 
@@ -24,9 +36,11 @@ function daysAgo(days: number): string {
   return hoursAgo(days * 24);
 }
 
-/** E-03 picks one fixed point, so the window the farmer sees collapses to that single slot. */
-function slotToWindow(slot: string): { windowStart: string; windowEnd: string } {
-  return { windowStart: slot, windowEnd: slot };
+/** Slot id to HH:MM for the farmer's node-5 chip; used to send `'9:00 ص'` verbatim since formatClockTime only matches digits, printing Arabic in an English build. */
+function slotToWindow(slot: ScheduleSlot): { windowStart: string; windowEnd: string } {
+  const { slotStart, slotEnd } = SLOT_TIMES[slot];
+
+  return { windowStart: slotStart.slice(0, 5), windowEnd: slotEnd.slice(0, 5) };
 }
 
 /** Local YYYY-MM-DD offset from today, so fixture dates stay relative to the device clock. */
@@ -191,7 +205,38 @@ const SUMMARIES: Record<string, ExpertCaseSummary> = {
     createdAt: hoursAgo(14),
     photoUrl: 'https://picsum.photos/seed/wahakun-2009/900/675',
   },
-  // Filed six days ago so E-03's window boundary is walkable: day 7 is today, day 8 is disabled.
+  // Filed six days ago so E-03's window boundary is walkable (day 7 today, day 8 disabled); English content per RULEBOOK 8, never translated (L-AS-AUTHORED).
+  '2011': {
+    reportId: '2011',
+    status: 'New',
+    hasAiAnalysis: true,
+    hasExpertReview: false,
+    hasAppointment: false,
+    hasRepairConfirmation: false,
+    title: ENGLISH_CASE_TITLE,
+    severity: 'Medium',
+    confidence: 0.88,
+    corroborationCount: 3,
+    reporterName: LATIN_FARMER_NAME,
+    reporterAvatar: 'https://i.pravatar.cc/150?img=33',
+    createdAt: hoursAgo(5),
+    photoUrl: 'https://picsum.photos/seed/wahakun-2011/900/675',
+  },
+  // The edge row: longest name, no photo, no avatar, confidence under CONFIDENCE_THRESHOLD so the amber C-CONFIDENCE-CHIP draws.
+  '2012': {
+    reportId: '2012',
+    status: 'UnderReview',
+    hasAiAnalysis: true,
+    hasExpertReview: false,
+    hasAppointment: false,
+    hasRepairConfirmation: false,
+    title: 'انسداد جزئي في المصفاة الرئيسية بعد موسم الرياح',
+    severity: 'Low',
+    confidence: 0.61,
+    corroborationCount: 0,
+    reporterName: LONG_ARABIC_FARMER_NAME,
+    createdAt: daysAgo(2),
+  },
   '2010': {
     reportId: '2010',
     status: 'UnderReview',
@@ -254,13 +299,13 @@ const DETAILS: Record<string, Omit<ExpertCaseDetail, keyof ExpertCaseSummary>> =
     recommendation: 'استبدال الجزء المكسور وفحص الأنابيب المجاورة.',
     appointment: {
       date: todayPlus(1),
-      slot: '9:00 ص',
+      slot: '0900',
       noteToFarmer: 'سأحتاج للوصول إلى محبس الصرف الجانبي.',
     },
   },
   // Scheduled, repair confirmed: entry point for E-05 straight from E-01's عرض.
   '2007': {
-    appointment: { date: todayPlus(-2), slot: '11:00 ص' },
+    appointment: { date: todayPlus(-2), slot: '1100' },
     repair: {
       photoUrl: 'https://picsum.photos/seed/wahakun-2007-repair/900/675',
       notes: 'تم تبطين خط الري بالتنقيط واستبدال الوصلة التالفة.',
@@ -268,11 +313,22 @@ const DETAILS: Record<string, Omit<ExpertCaseDetail, keyof ExpertCaseSummary>> =
   },
   // Resolved: entry point for E-06 straight from E-01's عرض.
   '2008': {
-    appointment: { date: todayPlus(-5), slot: '7:00 ص' },
+    appointment: { date: todayPlus(-5), slot: '0700' },
     repair: {
       photoUrl: 'https://picsum.photos/seed/wahakun-2008-repair/900/675',
       notes: 'تم استبدال صمام التحويل وإحكام الوصلات المحيطة به.',
     },
+  },
+  // The English half of 2011: explanation, recommendation and steps all as authored.
+  '2011': {
+    explanation: ENGLISH_DIAGNOSIS,
+    recommendation: ENGLISH_RECOMMENDATION,
+    repairSteps: [...ENGLISH_REPAIR_STEPS],
+    description: ENGLISH_DESCRIPTION,
+  },
+  // Missing optional fields on purpose - E-02 has to draw its block with only a recommendation, a shape the server really sends.
+  '2012': {
+    recommendation: 'تنظيف المصفاة وفحص نقطة التحويل أسبوعياً لمدة شهر.',
   },
   '2010': {
     explanation: 'تشقق طولي في جدار القناة الخرسانية مصحوب بتسرب بطيء عند القاعدة.',

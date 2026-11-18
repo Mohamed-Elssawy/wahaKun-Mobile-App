@@ -1,14 +1,15 @@
 import { StyleSheet, View } from 'react-native';
 
 import { Text, VoiceWaveform } from '@/components/ui';
+import { t } from '@/i18n';
 import { colors, radii, screenPadding, spacing } from '@/theme';
 
 /** Not interactive yet: ReportService accepts only a photo, so there is no target. */
 export function VoiceCaptureCard() {
   return (
     <View style={styles.card}>
-      <Text variant="h4" color="textStrong" align="right">
-        صف المشكلة بصوتك
+      <Text variant="h4" color="textStrong">
+        {t('f02.describeByVoice')}
       </Text>
       <VoiceWaveform />
     </View>

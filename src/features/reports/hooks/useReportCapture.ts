@@ -8,6 +8,7 @@ import {
 
 import { useCurrentLocation } from '@/hooks/useCurrentLocation';
 import { useImagePicker } from '@/hooks/useImagePicker';
+import { t } from '@/i18n';
 import type { PickedImage } from '@/types/image';
 
 import { describeError } from '../errors';
@@ -29,11 +30,14 @@ export type SubmitResult =
   /** The photo could not be stored at all. */
   | { kind: 'failed' };
 
-// X-05's required sub-line, verbatim: there is no awaiting-a-fix frame to draw from.
-const AWAITING_LOCATION: ReportError = {
+// A function, not a const, so §16.2 resolves the locale after import; compared by this code, not object identity, since each call returns a new object.
+const AWAITING_LOCATION_CODE = 'AWAITING_LOCATION';
+
+const awaitingLocation = (): ReportError => ({
   kind: 'unknown',
-  message: 'نحتاج موقع المشكلة حتى يصل الخبير إليها — لا يمكن إرسال البلاغ بدونه.',
-};
+  code: AWAITING_LOCATION_CODE,
+  message: t('errors.report.locationRequired'),
+});
 
 /** Everything F-02 does that is not layout: camera, both photo sources, and upload. */
 export function useReportCapture(initialMode: CaptureMode = 'photo') {
@@ -86,7 +90,9 @@ export function useReportCapture(initialMode: CaptureMode = 'photo') {
   // D7: only this one error is cleared, by identity, since a coordinate fixes nothing else.
   useEffect(() => {
     if (location) {
-      setSubmitError(current => (current === AWAITING_LOCATION ? null : current));
+      setSubmitError(current =>
+        current?.code === AWAITING_LOCATION_CODE ? null : current,
+      );
     }
   }, [location]);
 
@@ -136,7 +142,7 @@ export function useReportCapture(initialMode: CaptureMode = 'photo') {
       });
       setPhotoSource('camera');
     } catch {
-      setError('تعذر التقاط الصورة، حاول مرة أخرى');
+      setError(t('f02.captureError'));
     }
   }, [photoOutput]);
 
@@ -148,7 +154,7 @@ export function useReportCapture(initialMode: CaptureMode = 'photo') {
 
     // D7: the gate is having a coordinate, not merely not being denied. failed reuses the retry.
     if (!location) {
-      setSubmitError(AWAITING_LOCATION);
+      setSubmitError(awaitingLocation());
       return { kind: 'failed' };
     }
 
@@ -170,7 +176,7 @@ export function useReportCapture(initialMode: CaptureMode = 'photo') {
         return { kind: 'full' };
       }
       // Only reached if the photo itself could not be stored, which no retry fixes.
-      setSubmitError(describeError(err, 'تعذر حفظ الصورة، حاول مرة أخرى.'));
+      setSubmitError(describeError(err, t('f02.saveError')));
       return { kind: 'failed' };
     } finally {
       setIsSubmitting(false);

@@ -17,6 +17,7 @@ import {
 
 import { BackHeader, Button, Screen, Text } from '@/components/ui';
 import { ReportErrorView } from '@/features/reports/components/ReportErrorView';
+import { t } from '@/i18n';
 import type { ScreenProps } from '@/navigation/types';
 import { colors, radii, screenPadding, spacing } from '@/theme';
 
@@ -103,7 +104,7 @@ export default function EditProfilePictureScreen({
         <View style={styles.fallback}>
           <ReportErrorView
             error={loadError}
-            unknownTitle="تعذر تحميل الملف الشخصي"
+            unknownTitle={t('s07.loadErrorTitle')}
             onRetry={retry}
           />
         </View>
@@ -121,12 +122,16 @@ export default function EditProfilePictureScreen({
         footer={
           <>
             <Button
-              label={image ? 'حفظ' : 'تحميل الصورة'}
+              label={image ? t('common.save') : t('s13a.uploading')}
               onPress={image ? handleSave : openSheet}
               showArrow={Boolean(image)}
               loading={isSubmitting}
             />
-            <Button label="إلغاء" variant="ghost" onPress={() => navigation.goBack()} />
+            <Button
+              label={t('common.cancel')}
+              variant="ghost"
+              onPress={() => navigation.goBack()}
+            />
           </>
         }
       >
@@ -135,10 +140,10 @@ export default function EditProfilePictureScreen({
         <View style={styles.body}>
           <View style={styles.intro}>
             <Text variant="h3" color="textStrong" align="center">
-              اضف صورتك الشخصية
+              {t('s13a.addPhotoTitle')}
             </Text>
             <Text variant="body14" color="textMuted" align="center">
-              أضف صورتك حتى يتعرف عليك الأعضاء الآخرون.
+              {t('s13a.addPhotoBody')}
             </Text>
           </View>
 
@@ -170,7 +175,7 @@ export default function EditProfilePictureScreen({
       >
         <BottomSheetView style={styles.sheetContent}>
           <Text variant="h5" align="center">
-            اختر طريقة إضافة الصورة
+            {t('s13a.chooseMethod')}
           </Text>
 
           <TouchableOpacity
@@ -178,7 +183,7 @@ export default function EditProfilePictureScreen({
             onPress={() => queuePicker('camera')}
             activeOpacity={0.7}
           >
-            <Text variant="label16">التقاط صورة</Text>
+            <Text variant="label16">{t('common.takePhoto')}</Text>
             <Camera size={22} color={colors.primary} />
           </TouchableOpacity>
 
@@ -187,7 +192,7 @@ export default function EditProfilePictureScreen({
             onPress={() => queuePicker('gallery')}
             activeOpacity={0.7}
           >
-            <Text variant="label16">رفع صورة من المعرض</Text>
+            <Text variant="label16">{t('s13a.fromGallery')}</Text>
             <ImageIcon size={22} color={colors.primary} />
           </TouchableOpacity>
 
@@ -197,7 +202,7 @@ export default function EditProfilePictureScreen({
             activeOpacity={0.7}
           >
             <Text variant="label16Bold" color="textSecondary">
-              إلغاء
+              {t('common.cancel')}
             </Text>
           </TouchableOpacity>
         </BottomSheetView>
@@ -249,7 +254,7 @@ const styles = StyleSheet.create({
     gap: spacing[16],
   },
   sheetOption: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
     gap: spacing[12],

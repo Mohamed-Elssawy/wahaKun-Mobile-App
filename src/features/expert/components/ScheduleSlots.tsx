@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { FilterChip, Text } from '@/components/ui';
 import { spacing } from '@/theme';
 
-import { SCHEDULE_SLOTS } from '../types';
+import { SCHEDULE_SLOTS, slotLabel } from '../types';
 
 import type { ScheduleSlot } from '../types';
 
@@ -17,7 +17,7 @@ export type ScheduleSlotsProps = {
 export function ScheduleSlots({ label, value, onChange }: ScheduleSlotsProps) {
   return (
     <View style={styles.section}>
-      <Text variant="h5" color="textSecondary" align="right">
+      <Text variant="h5" color="textSecondary">
         {label}
       </Text>
 
@@ -25,7 +25,7 @@ export function ScheduleSlots({ label, value, onChange }: ScheduleSlotsProps) {
         {SCHEDULE_SLOTS.map(slot => (
           <FilterChip
             key={slot}
-            label={slot}
+            label={slotLabel(slot)}
             isActive={value === slot}
             onPress={() => onChange(slot)}
           />
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     gap: spacing[8],
   },
   grid: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing[8],
   },

@@ -47,7 +47,7 @@ export function SegmentedTabs<K extends string>({
 
   return (
     <View
-      // row-reverse: the first tab is الكل and belongs at the right.
+      // The first tab is الكل and belongs at the start edge.
       style={[styles.row, isFloating ? styles.rowFloating : styles.rowSeated]}
       accessibilityRole="tablist"
     >
@@ -56,9 +56,7 @@ export function SegmentedTabs<K extends string>({
 
         const content = (
           <>
-            {/* h5 is wider than the old per-state sizing (Cairo-SemiBold, not NotoSansArabic) -
-                a two-word label in a five-tab row (E-01's قيد المراجعة) can outgrow its
-                column. Shrink-to-fit on one line rather than let it wrap and stack. */}
+            {/* h5 is wider than the old per-state sizing; a two-word label (E-01's قيد المراجعة) can outgrow its column, so shrink-to-fit rather than wrap. */}
             <Text
               variant={labelVariant()}
               color={labelColor(variant, isActive)}
@@ -87,8 +85,7 @@ export function SegmentedTabs<K extends string>({
             accessibilityRole="tab"
             accessibilityState={{ selected: isActive }}
           >
-            {/* The wrapper is what lets the rule stretch to the word rather than to the
-                share of the row the tab occupies. */}
+            {/* Wrapper lets the rule stretch to the word, not to the tab's share of the row. */}
             {isFloating ? <View style={styles.inner}>{content}</View> : content}
           </TouchableOpacity>
         );
@@ -99,12 +96,14 @@ export function SegmentedTabs<K extends string>({
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'flex-end',
   },
+  // C64/C69: labels are spread, not shared out - each tab is as wide as its words, so "Under review" and "قيد المراجعة" fit where an equal fifth of 390dp couldn't.
   rowSeated: {
     backgroundColor: colors.background,
-    paddingHorizontal: spacing[16],
+    paddingHorizontal: screenPadding,
+    justifyContent: 'space-between',
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
@@ -112,16 +111,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: screenPadding,
     paddingTop: spacing[16],
   },
-  // Equal shares rather than intrinsic width, which is what spreads them across the row.
   tab: {
-    flex: 1,
     alignItems: 'center',
   },
+  // Intrinsic width sets the tab; only once the row is genuinely full does minimumFontScale shrink the label instead of a tab falling off the edge.
   tabSeated: {
+    flexShrink: 1,
     gap: spacing[8],
     paddingTop: spacing[12],
   },
+  // F-01 keeps equal shares, which is what its frame draws; only the seated row changed.
   tabFloating: {
+    flex: 1,
     minHeight: FLOATING_TAB_HEIGHT,
   },
   inner: {
@@ -133,9 +134,9 @@ const styles = StyleSheet.create({
   underline: {
     height: UNDERLINE_HEIGHT,
   },
+  // The tab is the word now, so the rule stretches to it, not to 70% of a column share like before.
   underlineColumn: {
-    // Narrower than the tab so the rule sits under the word, not the column.
-    width: '70%',
+    alignSelf: 'stretch',
     backgroundColor: colors.background,
   },
   underlineWord: {

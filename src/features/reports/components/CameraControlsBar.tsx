@@ -26,14 +26,15 @@ export function CameraControlsBar({
   return (
     <View style={[styles.bar, { paddingBottom: insets.bottom + spacing[24] }]}>
       {/* Three columns, so the shutter stays centred with or without a flip control. */}
+      {/* C41: gallery leads and flip trails, mirrored in Arabic - they had been swapped. */}
       <View style={styles.side}>
-        {canFlip ? <FlipCameraButton onPress={onFlip} /> : null}
+        <GalleryButton onPress={onOpenGallery} />
       </View>
 
       <ShutterButton onPress={onCapture} />
 
       <View style={styles.side}>
-        <GalleryButton onPress={onOpenGallery} />
+        {canFlip ? <FlipCameraButton onPress={onFlip} /> : null}
       </View>
     </View>
   );
@@ -45,7 +46,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingTop: spacing[24],

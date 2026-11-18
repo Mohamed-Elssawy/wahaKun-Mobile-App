@@ -1,6 +1,6 @@
 import { Image, StyleSheet, View } from 'react-native';
 
-import { Text } from '@/components/ui';
+import { BiText, Text } from '@/components/ui';
 import { colors, radii, spacing } from '@/theme';
 
 export type CaseResolutionSummaryCardProps = {
@@ -20,7 +20,7 @@ export function CaseResolutionSummaryCard({
 }: CaseResolutionSummaryCardProps) {
   return (
     <View style={styles.card}>
-      <Text variant="h5" align="right" color="primaryPressed">
+      <Text variant="h5" color="primaryPressed">
         {title}
       </Text>
 
@@ -30,9 +30,14 @@ export function CaseResolutionSummaryCard({
         ) : (
           <View style={[styles.photo, styles.photoEmpty]} />
         )}
-        <Text variant="body16" color="primaryPressed" align="right" style={styles.notes}>
+        <BiText
+          contentRole="body"
+          variant="body16"
+          color="primaryPressed"
+          style={styles.notes}
+        >
           {notes}
-        </Text>
+        </BiText>
       </View>
     </View>
   );
@@ -48,7 +53,7 @@ const styles = StyleSheet.create({
     gap: spacing[12],
   },
   row: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     gap: spacing[12],
   },
   photo: {

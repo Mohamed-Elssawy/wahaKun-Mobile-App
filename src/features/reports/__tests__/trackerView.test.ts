@@ -1,4 +1,6 @@
-import { CONFIDENCE_THRESHOLD, ESCALATION_LINE } from '../lifecycle';
+import { setLocale } from '@/i18n';
+
+import { CONFIDENCE_THRESHOLD, escalationLine } from '../lifecycle';
 import {
   activeCardStep,
   buildActiveCardSlot,
@@ -59,10 +61,25 @@ describe('buildTrackerView', () => {
     const node2 = view.find(n => n.node === 2);
     const node3 = view.find(n => n.node === 3);
 
-    expect(node2?.chips[0].label).toBe(ESCALATION_LINE);
+    expect(node2?.chips[0].label).toBe(escalationLine());
     // §8.2: T3 auto-routes regardless of confidence, so node 3 is still current with its chip.
     expect(node3?.markerState).toBe('current');
     expect(node3?.chips).toHaveLength(1);
+  });
+
+  // W13: node 2 used to call a missing analysis an escalation, even a 90%+ one — absent isn't low.
+  it('shows no node-2 chip when the report carries no analysis, rather than an escalation', () => {
+    const { analysis: _dropped, ...withoutAnalysis } = BASE_REPORT;
+
+    for (const locale of ['ar', 'en'] as const) {
+      setLocale(locale);
+      const node2 = buildTrackerView(withoutAnalysis, UNDER_REVIEW).find(
+        n => n.node === 2,
+      );
+
+      expect(node2?.chips).toEqual([]);
+    }
+    setLocale('ar');
   });
 
   it('gives nodes 1-3 no pending subtext, since they cannot be reached in a pending state', () => {
@@ -90,6 +107,27 @@ describe('buildTrackerView', () => {
 
     expect(node6?.markerState).toBe('current');
     expect(node6?.showApproval).toBe(true);
+  });
+
+  // W1: the branch had put the raw KEY in the slot instead of resolving the catalogue copy.
+  it('gives a current node 6 its pending line as copy, in both locales', () => {
+    const openNode6: ReportTrackerDetails = {
+      reportId: '1037',
+      status: 'Repaired',
+      hasExpertReview: true,
+      repair: { confirmedAt: '2026-06-14T09:41:00Z', notes: '' },
+    };
+    const subtextIn = (locale: 'ar' | 'en') => {
+      setLocale(locale);
+      const subtext = buildTrackerView(BASE_REPORT, openNode6).find(
+        n => n.node === 6,
+      )?.subtext;
+      setLocale('ar');
+      return subtext;
+    };
+
+    expect(subtextIn('ar')).toBe('آخر خطوة — سيُطلب تأكيدك');
+    expect(subtextIn('en')).toBe("Last step — we'll ask you to confirm");
   });
 
   it('never shows the approval control once the case is closed', () => {
@@ -218,5 +256,117 @@ describe('buildActiveCardSlot (F-07)', () => {
 describe('activeCardStep', () => {
   it('reads the same node the model would place the case at', () => {
     expect(activeCardStep(UNDER_REVIEW)).toBe(3);
+  });
+});
+
+// Had no assertion before, which is how it printed a raw 2026-06-14 instead of SPEC §12.2's الأحد.
+describe('the appointment chip', () => {
+  const SCHEDULED: ReportTrackerDetails = {
+    reportId: '1043',
+    status: 'Assigned',
+    hasExpertReview: true,
+    reviewedAt: '2026-06-12T17:32:00Z',
+    appointment: {
+      confirmedAt: '2026-06-12T20:07:00Z',
+      date: '2026-06-14',
+      // 24-hour form per src/__fixtures__/bilingual.ts; the old fixture's Arabic labels passed through untranslated.
+      windowStart: '09:00',
+      windowEnd: '12:00',
+    },
+  };
+
+  const chipLabel = (details: ReportTrackerDetails) => {
+    const slot = buildActiveCardSlot(details);
+
+    return slot && slot.kind === 'chip' ? slot.chip.label : '';
+  };
+
+  afterEach(() => setLocale('ar'));
+
+  it('names the weekday of the real date rather than printing the ISO value', () => {
+    expect(chipLabel(SCHEDULED)).toContain('الأحد، 14 يونيو');
+    expect(chipLabel(SCHEDULED)).not.toContain('2026-06-14');
+  });
+
+  it('follows the locale, since the date is formatted and not stored', () => {
+    setLocale('en');
+
+    expect(chipLabel(SCHEDULED)).toContain('Sunday, 14 June');
+  });
+
+  // The reason is author text in an Arabic sentence, so it needs its own isolate to not drag the punctuation around it.
+  it('isolates the reschedule reason, which the farmer did not write in a known direction', () => {
+    const label = chipLabel({
+      ...SCHEDULED,
+      appointment: {
+        ...SCHEDULED.appointment!,
+        rescheduled: true,
+        reason: 'Weather delayed the crew',
+      },
+    });
+
+    expect(label).toContain('⁨Weather delayed the crew⁩');
+  });
+
+  // Whole labels: the English row once held a literal backslash-n that toContain couldn't catch.
+  it('breaks the English chip into the same lines as the Arabic', () => {
+    setLocale('en');
+
+    expect(chipLabel(SCHEDULED)).toBe(
+      'Repair appointment\nSunday, 14 June — 9:00 AM to 12:00 PM',
+    );
+  });
+
+  it('puts an English reschedule reason on a line of its own, as the Arabic does', () => {
+    setLocale('en');
+    const label = chipLabel({
+      ...SCHEDULED,
+      appointment: {
+        ...SCHEDULED.appointment!,
+        rescheduled: true,
+        reason: 'Weather delayed the crew',
+      },
+    });
+
+    expect(label).toBe(
+      'Rescheduled\nSunday, 14 June — 9:00 AM to 12:00 PM\nReason for the change: ⁨Weather delayed the crew⁩',
+    );
+  });
+});
+
+// §6.7: a full GUID asserted whole, after a 4-char id and toContain let a doubled # stay green.
+describe('node 6 closure copy', () => {
+  const FSI = '⁨';
+  const PDI = '⁩';
+  const closedReport: Report = {
+    ...BASE_REPORT,
+    id: '43ac6474-f4f3-4a47-7f63-08df3019b25b',
+  };
+  const closed: ReportTrackerDetails = {
+    reportId: closedReport.id,
+    status: 'completed',
+    hasExpertReview: true,
+    reviewedAt: '2026-06-12T17:32:00Z',
+    closedBy: 'farmer',
+    closedAt: '2026-06-15T08:00:00Z',
+  };
+  const closureIn = (locale: 'ar' | 'en') => {
+    setLocale(locale);
+    const label = buildTrackerView(closedReport, closed).find(node => node.node === 6)
+      ?.chips[0].label;
+    setLocale('ar');
+    return label;
+  };
+
+  it('names the report by its short isolated reference, once, in Arabic', () => {
+    expect(closureIn('ar')).toBe(
+      `أكّد المزارع الحل\nتم إغلاق البلاغ ${FSI}#43AC${PDI} بنجاح`,
+    );
+  });
+
+  it('breaks the English line where the Arabic does, rather than printing a backslash', () => {
+    expect(closureIn('en')).toBe(
+      `The farmer confirmed the fix\nReport ${FSI}#43AC${PDI} closed successfully`,
+    );
   });
 });

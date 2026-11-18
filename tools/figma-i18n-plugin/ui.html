@@ -1,0 +1,176 @@
+<style>
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font:
+      12px/1.5 'Inter',
+      -apple-system,
+      sans-serif;
+    margin: 0;
+    padding: 16px;
+    color: #1f2223;
+    background: #fff;
+  }
+  h1 {
+    font-size: 13px;
+    margin: 0 0 2px;
+  }
+  p.sub {
+    margin: 0 0 14px;
+    color: #797a7b;
+  }
+  .row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  button {
+    font: inherit;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    cursor: pointer;
+  }
+  button.read {
+    background: #fff;
+    border-color: #d2d3d3;
+    color: #1f2223;
+  }
+  button.write {
+    background: #1a6b3c;
+    color: #fff;
+  }
+  button:disabled {
+    background: #b1b2b2;
+    border-color: transparent;
+    color: #fff;
+    cursor: progress;
+  }
+  .spacer {
+    flex: 1;
+  }
+  #copy {
+    font-weight: 400;
+    padding: 6px 10px;
+    background: #fff;
+    border-color: #eaeaea;
+    color: #797a7b;
+  }
+  pre {
+    background: #f6f6f6;
+    border: 1px solid #eaeaea;
+    border-radius: 6px;
+    padding: 10px;
+    margin: 0;
+    height: 420px;
+    overflow: auto;
+    font:
+      11px/1.45 ui-monospace,
+      Menlo,
+      Consolas,
+      monospace;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .warn {
+    color: #a41b12;
+    margin: 10px 0 0;
+    min-height: 18px;
+  }
+</style>
+
+<h1>Waha KUN English Frames</h1>
+<p class="sub">Copy comes from design/COPY-DECK.csv. Press the buttons in this order.</p>
+
+<div class="row">
+  <button id="report" class="read">Report</button>
+  <button id="mirror" class="write">Build the LTR twins</button>
+  <button id="build" class="write">Build the English page</button>
+  <button id="overflow" class="read">Overflow report</button>
+  <button id="check" class="read">Check twins</button>
+  <span class="spacer"></span>
+  <button id="copy">Copy</button>
+</div>
+
+<pre id="out">
+Press Report first. It changes nothing, so you can run it as often as you like.</pre>
+
+<p class="warn" id="warn"></p>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const BUTTONS = ['report', 'mirror', 'build', 'overflow', 'check'];
+
+  // Every button that writes is armed by a first click. Two-step rather than confirm(): a
+  // native dialog inside a plugin iframe is unreliable and a blocked one freezes it.
+  const ARMED = {
+    mirror: 'Build the LTR twins',
+    build: 'Build the English page',
+  };
+  const WARNING = {
+    mirror:
+      'Run this on your components page. It writes ONLY to "🔁 Components · LTR" and ' +
+      'refuses any write off that page, so your Arabic masters and frames are untouched.',
+    build: 'Clones the current page. The Arabic page itself is not written to.',
+  };
+  let armed = null;
+  let timer = null;
+
+  function disarm() {
+    if (!armed) return;
+    $(armed).textContent = ARMED[armed];
+    $('warn').textContent = '';
+    clearTimeout(timer);
+    armed = null;
+  }
+
+  function run(mode) {
+    disarm();
+    for (const id of BUTTONS) $(id).disabled = true;
+    $('out').textContent = 'Working…';
+    parent.postMessage({ pluginMessage: { type: 'run', mode } }, '*');
+  }
+
+  for (const mode of BUTTONS) {
+    $(mode).onclick = () => {
+      if (!ARMED[mode]) return run(mode);
+      if (armed !== mode) {
+        disarm();
+        armed = mode;
+        $(mode).textContent = 'Click again to confirm';
+        $('warn').textContent = WARNING[mode];
+        timer = setTimeout(disarm, 4000);
+        return;
+      }
+      run(mode);
+    };
+  }
+
+  // The unmatched and overflow lists are the design backlog, so they have to leave the panel.
+  $('copy').onclick = () => {
+    const range = document.createRange();
+    range.selectNodeContents($('out'));
+    const selection = getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+    document.execCommand('copy');
+    selection.removeAllRanges();
+    $('copy').textContent = 'Copied';
+    setTimeout(() => {
+      $('copy').textContent = 'Copy';
+    }, 1500);
+  };
+
+  onmessage = e => {
+    const message = e.data.pluginMessage;
+    if (!message || message.type !== 'report') return;
+    for (const id of BUTTONS) $(id).disabled = false;
+    $('out').textContent = message.body;
+    $('warn').textContent = message.notice || '';
+    $('out').scrollTop = 0;
+  };
+</script>

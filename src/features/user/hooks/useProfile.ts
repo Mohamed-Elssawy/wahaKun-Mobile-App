@@ -3,15 +3,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { describeError } from '@/features/reports/errors';
 import type { ReportError } from '@/features/reports/errors';
+import { t } from '@/i18n';
 
 import { userApi } from '../services';
 import { loadPreferences, savePreference } from '../services/preferencesStore';
 
 import type { NotificationPreferences } from '../services/preferencesStore';
 import type { UserDetails, UserUpdateRequest } from '../types';
-
-const LOAD_ERROR = 'تعذر تحميل الملف الشخصي، حاول مرة أخرى';
-const SAVE_ERROR = 'تعذر حفظ التغييرات، حاول مرة أخرى';
 
 export function useProfile() {
   const [user, setUser] = useState<UserDetails | null>(null);
@@ -45,7 +43,7 @@ export function useProfile() {
       }
     } catch (err) {
       if (isMounted.current) {
-        setError(describeError(err, LOAD_ERROR));
+        setError(describeError(err, t('errors.profile.loadFailed')));
       }
     } finally {
       if (isMounted.current) {
@@ -91,7 +89,7 @@ export function useProfile() {
         return true;
       } catch (err) {
         if (isMounted.current) {
-          setSaveError(describeError(err, SAVE_ERROR));
+          setSaveError(describeError(err, t('errors.profile.saveFailed')));
         }
         return false;
       } finally {

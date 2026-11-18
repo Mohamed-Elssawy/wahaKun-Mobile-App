@@ -14,6 +14,8 @@ import {
 import { ReportErrorView } from '@/features/reports/components/ReportErrorView';
 import type { ExpertCta } from '@/features/reports/lifecycle';
 import { useIdentity } from '@/features/user/hooks/useIdentity';
+import { t } from '@/i18n';
+import type { TranslationKey } from '@/i18n';
 import { colors, screenPadding, spacing } from '@/theme';
 
 import { ExpertCaseCard } from '../../components/ExpertCaseCard';
@@ -23,15 +25,14 @@ import { navigateToExpertCta } from '../../navigateToCta';
 
 import type { ExpertCaseRow, ExpertTab } from '../../hooks/useExpertInbox';
 
-const TITLE = 'الوارد';
-
-const TABS: { key: ExpertTab; label: string }[] = [
-  { key: 'all', label: 'الكل' },
-  { key: 'new', label: 'جديدة' },
-  { key: 'underReview', label: 'قيد المراجعة' },
-  { key: 'scheduled', label: 'مجدولة' },
-  { key: 'resolved', label: 'تم الحل' },
-];
+/** labelKey rides on the item and resolves at render, not here, so the module-scope table can't freeze the boot locale (§16.2). */
+const TABS = [
+  { key: 'all', labelKey: 'f07.tab.all' },
+  { key: 'new', labelKey: 'status.new' },
+  { key: 'underReview', labelKey: 'status.underReview' },
+  { key: 'scheduled', labelKey: 'status.scheduled' },
+  { key: 'resolved', labelKey: 'status.resolved' },
+] as const satisfies readonly { key: ExpertTab; labelKey: TranslationKey }[];
 
 /** E-01's triage queue, grouped by status, with the CTA always from expertCtaFor. */
 export default function ExpertInboxScreen() {
@@ -78,7 +79,7 @@ export default function ExpertInboxScreen() {
       return (
         <ReportErrorView
           error={error}
-          unknownTitle="تعذر تحميل الحالات"
+          unknownTitle={t('e01.loadErrorTitle')}
           onRetry={refresh}
         />
       );
@@ -86,18 +87,13 @@ export default function ExpertInboxScreen() {
 
     return (
       <>
-        {error ? (
-          <StaleBanner
-            message="تعذر تحديث الوارد، قد تكون البيانات قديمة"
-            onRetry={refresh}
-          />
-        ) : null}
+        {error ? <StaleBanner message={t('e01.staleBanner')} onRetry={refresh} /> : null}
 
         {isEmpty ? (
           <EmptyState
             icon={Inbox}
-            title="لا توجد حالات بانتظار المراجعة"
-            message="ستظهر هنا البلاغات فور تعيينها لك."
+            title={t('e01.emptyTitle')}
+            message={t('e01.emptyBody')}
           />
         ) : (
           <SectionList
@@ -112,7 +108,7 @@ export default function ExpertInboxScreen() {
               />
             )}
             renderSectionHeader={({ section }) => (
-              <Text variant="h5" color="textSecondary" align="right">
+              <Text variant="h5" color="textSecondary">
                 {section.title}
               </Text>
             )}
@@ -128,13 +124,17 @@ export default function ExpertInboxScreen() {
   return (
     <View style={styles.screen}>
       <AppHeader
-        title={TITLE}
+        title={t('tabs.inbox')}
         avatarUrl={avatarUrl}
         onOpenProfile={() => navigation.navigate('Profile')}
         onOpenNotifications={() => navigation.navigate('Notifications')}
       />
 
-      <SegmentedTabs items={TABS} value={tab} onChange={setTab} />
+      <SegmentedTabs
+        items={TABS.map(item => ({ key: item.key, label: t(item.labelKey) }))}
+        value={tab}
+        onChange={setTab}
+      />
 
       <ExpertChipRow filters={filters} onToggleFilter={toggleFilter} />
 

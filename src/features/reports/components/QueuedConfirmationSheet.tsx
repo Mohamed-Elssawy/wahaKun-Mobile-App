@@ -3,15 +3,12 @@ import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, Text } from '@/components/ui';
+import { t } from '@/i18n';
 import { colors, radii, screenPadding, shadows, spacing } from '@/theme';
 
 const CIRCLE_SIZE = 100;
 const ICON_SIZE = 44;
 const NOTICE_ICON_SIZE = 24;
-
-const TITLE = 'بلاغك محفوظ';
-const SUBTITLE = 'لا تحتاج لفعل أي شيء';
-const NOTICE = 'البلاغ محفوظ على جهازك — سيُرسل تلقائيًا عند عودة الاتصال بالإنترنت';
 
 export type QueuedConfirmationSheetProps = {
   onViewReports: () => void;
@@ -32,26 +29,21 @@ export function QueuedConfirmationSheet({ onViewReports }: QueuedConfirmationShe
 
       <View style={styles.text}>
         <Text variant="h4" align="center">
-          {TITLE}
+          {t('x02a.savedTitle')}
         </Text>
         <Text variant="label14" color="textSecondary" align="center">
-          {SUBTITLE}
+          {t('x02a.nothingToDo')}
         </Text>
       </View>
 
       <View style={styles.notice}>
         <CloudOff size={NOTICE_ICON_SIZE} color={colors.primary} />
-        <Text
-          variant="label12"
-          color="primaryPressed"
-          align="right"
-          style={styles.noticeText}
-        >
-          {NOTICE}
+        <Text variant="label12" color="primaryPressed" style={styles.noticeText}>
+          {t('x02a.savedBody')}
         </Text>
       </View>
 
-      <Button label="عرض جميع البلاغات" onPress={onViewReports} showArrow />
+      <Button label={t('x02a.viewAll')} onPress={onViewReports} showArrow />
     </View>
   );
 }
@@ -84,7 +76,7 @@ const styles = StyleSheet.create({
     gap: spacing[4],
   },
   notice: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'stretch',
     gap: spacing[12],

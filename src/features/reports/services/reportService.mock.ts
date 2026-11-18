@@ -368,7 +368,7 @@ export async function createIssue(fields: CreateIssueFields): Promise<Report> {
 
 export async function getMyReports(): Promise<Report[]> {
   await mockDelay(LATENCY.read);
-  failOnErrorScenario('تعذر تحميل البلاغات');
+  failOnErrorScenario('Mock: the report list is unavailable in this scenario');
 
   const sorted = [...reports].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   return [...emptyOnEmptyScenario(sorted)];
@@ -376,7 +376,7 @@ export async function getMyReports(): Promise<Report[]> {
 
 export async function getReportById(reportId: string): Promise<Report> {
   await mockDelay(LATENCY.read);
-  failOnErrorScenario('تعذر تحميل البلاغ');
+  failOnErrorScenario('Mock: this report is unavailable in this scenario');
 
   const found = reports.find(report => report.id === reportId);
   if (!found) {

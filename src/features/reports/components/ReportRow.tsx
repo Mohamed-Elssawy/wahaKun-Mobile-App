@@ -2,13 +2,14 @@ import { Sparkles } from 'lucide-react-native';
 import { StyleSheet, View } from 'react-native';
 
 import { ContextChip, ProgressBar, ReportSummaryCard, Text } from '@/components/ui';
+import { t } from '@/i18n';
 import { spacing } from '@/theme';
 import type { ColorToken } from '@/theme';
 
 import { farmerSeesAi } from '../aiVisibility';
 import { formatReportReference } from '../format';
 import { useResolutionAction } from '../hooks/useResolutionAction';
-import { isClosedWireStatus, UNTITLED_REPORT } from '../lifecycle';
+import { isClosedWireStatus, untitledReport } from '../lifecycle';
 import { formatRelativeTime } from '../relativeTime';
 import { describeSeverity, reportSeverity } from '../severity';
 import { trackerFacts } from '../trackerFacts';
@@ -29,7 +30,6 @@ export type ReportRowProps = {
 };
 
 const TOTAL_NODES = 6;
-const UNREAD_LABEL = 'جديد';
 
 /** Green once the farmer closes it; grey while there is no severity this farmer may see. */
 function stripeColor(report: Report, seesAi: boolean): ColorToken {
@@ -54,7 +54,7 @@ export function ReportRow({
 
   const aiTitle = seesAi ? report.analysis?.problemArabic : undefined;
   // title is model output too, so it leads the description IssueService fills with explanation.
-  const title = aiTitle || report.title || report.description || UNTITLED_REPORT;
+  const title = aiTitle || report.title || report.description || untitledReport();
   const photo = report.attachments.find(attachment => attachment.type === 'Photo');
 
   // Falls back to a bare wire-status read, so a tap never throws for want of tracker data.
@@ -85,12 +85,15 @@ export function ReportRow({
       borderColor={stripeColor(report, seesAi)}
       photoUrl={photo?.url}
       onPress={() => onPress(report.id)}
-      marker={isUnread ? { icon: Sparkles, label: UNREAD_LABEL } : undefined}
+      marker={isUnread ? { icon: Sparkles, label: t('f07.unreadMarker') } : undefined}
     >
       {trackerDetails ? (
         <View style={styles.footer}>
-          <Text variant="label12" color="textSecondary" align="right">
-            {`الخطوة ${activeCardStep(trackerDetails)} من ${TOTAL_NODES}`}
+          <Text variant="label12" color="textSecondary">
+            {t('common.stepOf', {
+              step: activeCardStep(trackerDetails),
+              total: TOTAL_NODES,
+            })}
           </Text>
 
           <ProgressBar

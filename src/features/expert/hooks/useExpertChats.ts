@@ -3,12 +3,11 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { describeError } from '@/features/reports/errors';
 import type { ReportError } from '@/features/reports/errors';
+import { t } from '@/i18n';
 
 import { chatApi } from '../services';
 
 import type { ChatThread } from '../types';
-
-const LOAD_ERROR = 'تعذر تحميل المحادثات، حاول مرة أخرى';
 
 export type ExpertChatFilter = 'unread' | 'active';
 
@@ -30,7 +29,7 @@ export function useExpertChats() {
       }
     } catch (err) {
       if (isFocused.current) {
-        setError(describeError(err, LOAD_ERROR));
+        setError(describeError(err, t('errors.expert.chatsFailed')));
       }
     } finally {
       if (isFocused.current) {

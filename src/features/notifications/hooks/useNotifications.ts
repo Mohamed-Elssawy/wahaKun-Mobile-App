@@ -3,12 +3,12 @@ import { useCallback, useRef, useState } from 'react';
 
 import { describeError } from '@/features/reports/errors';
 import type { ReportError } from '@/features/reports/errors';
+import { t } from '@/i18n';
 
 import { notificationApi } from '../services';
 
 import type { NotificationItem } from '../types';
 
-const LOAD_ERROR = 'تعذر تحميل الإشعارات، حاول مرة أخرى';
 const PAGE_SIZE = 10;
 
 /** Owns read state and pagination both: S-06 has one list, so one hook. No refresh (G-NO-PTR). */
@@ -39,7 +39,7 @@ export function useNotifications() {
       setHasMore(result.hasMore);
     } catch (err) {
       if (isFocused.current && request === requestId.current) {
-        setError(describeError(err, LOAD_ERROR));
+        setError(describeError(err, t('errors.notifications.loadFailed')));
       }
     } finally {
       if (isFocused.current && request === requestId.current) {

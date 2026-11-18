@@ -1,8 +1,9 @@
-import { ChevronLeft } from 'lucide-react-native';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
-import { Text } from '@/components/ui';
+import { BiText, Text } from '@/components/ui';
 import { describeSeverity } from '@/features/reports/severity';
+import { t } from '@/i18n';
+import { ForwardIcon } from '@/i18n/icons';
 import { colors, radii, spacing } from '@/theme';
 
 import type { ExpertReviewOverride } from '../types';
@@ -12,11 +13,6 @@ export type CaseDecisionSummaryProps = {
   onReview: () => void;
 };
 
-const TITLE_ON = 'تجاوز تشخيص الذكاء الاصطناعي';
-const SUBTITLE_ON = 'استبدل الخبير التشخيص بتشخيصه الخاص';
-const TITLE_OFF = 'لم يتم تجاوز تشخيص الذكاء الاصطناعي';
-const SUBTITLE_OFF = 'تم قبول تشخيص الذكاء الاصطناعي كما هو';
-const REVIEW_LABEL = 'مراجعة';
 const LINK_ICON_SIZE = 16;
 
 /** E-03's read-only قرار الخبير card; the frame governs layout only, the content comes from §8.3. */
@@ -27,31 +23,31 @@ export function CaseDecisionSummary({ override, onReview }: CaseDecisionSummaryP
     <View style={styles.card}>
       <View style={styles.header}>
         <View style={styles.text}>
-          <Text variant="h5" align="right">
-            {override ? TITLE_ON : TITLE_OFF}
+          <Text variant="h5">
+            {override ? t('expert.overrideTitle') : t('expert.overrideNoneTitle')}
           </Text>
-          <Text variant="label14" color="textSecondary" align="right">
-            {override ? SUBTITLE_ON : SUBTITLE_OFF}
+          <Text variant="label14" color="textSecondary">
+            {override ? t('expert.overrideReplaced') : t('expert.overrideAccepted')}
           </Text>
         </View>
       </View>
 
       {override ? (
         <View style={styles.details}>
-          <Text variant="label12" color="textSecondary" align="right">
+          <Text variant="label12" color="textSecondary">
             {severity?.label}
           </Text>
-          <Text variant="body14Bold" align="right">
+          <BiText contentRole="body" variant="body14Bold">
             {override.correctedDiagnosis}
-          </Text>
+          </BiText>
         </View>
       ) : null}
 
       <TouchableOpacity style={styles.link} onPress={onReview} accessibilityRole="link">
         <Text variant="label12" color="primary">
-          {REVIEW_LABEL}
+          {t('f07.tab.review')}
         </Text>
-        <ChevronLeft size={LINK_ICON_SIZE} color={colors.primary} />
+        <ForwardIcon size={LINK_ICON_SIZE} color={colors.primary} />
       </TouchableOpacity>
     </View>
   );
@@ -67,7 +63,7 @@ const styles = StyleSheet.create({
     gap: spacing[16],
   },
   header: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: spacing[12],
@@ -77,9 +73,9 @@ const styles = StyleSheet.create({
     gap: spacing[4],
   },
   link: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-start',
+    alignSelf: 'flex-end',
     gap: spacing[4],
   },
   details: {

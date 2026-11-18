@@ -3,12 +3,10 @@ import { act, create } from 'react-test-renderer';
 
 import { UnrecognizedPhotoState } from '../components/UnrecognizedPhotoState';
 
+import type { UnrecognizedPhotoStateProps } from '../components/UnrecognizedPhotoState';
 import type { ReactTestInstance, ReactTestRenderer } from 'react-test-renderer';
 
-const render = (props: {
-  onRetakePhoto: () => void;
-  onUseVoice: () => void;
-}): ReactTestRenderer => {
+const render = (props: UnrecognizedPhotoStateProps): ReactTestRenderer => {
   let tree!: ReactTestRenderer;
   act(() => {
     tree = create(<UnrecognizedPhotoState {...props} />);
@@ -42,6 +40,17 @@ describe('UnrecognizedPhotoState', () => {
     const tips = ['تسرب أو قناة أو أنبوب', 'في ضوء جيد', 'وعن قرب'];
 
     expect(strings.filter(text => tips.includes(text))).toEqual(tips);
+  });
+
+  // Which copy renders is decided by whether the caller HAS a server reason, never by string comparison.
+  it("shows the server's reason in place of the subtitle, and keeps the title", () => {
+    const reason = 'المياه تغطي موضع التسريب فلا يظهر مصدره';
+    const tree = render({ ...props, serverReason: reason });
+    const strings = tree.root.findAllByType('Text' as never).map(textOf);
+
+    expect(strings).toContain(reason);
+    expect(strings).not.toContain('تأكد أن الصورة تُظهر مصدر المشكلة بوضوح');
+    expect(strings).toContain('لم نتمكن من رؤية مشكلة واضحة في الصورة');
   });
 
   it('offers both ways forward and never a retry', () => {

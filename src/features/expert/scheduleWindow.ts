@@ -1,3 +1,5 @@
+import { formatCalendarDay } from '@/features/reports/relativeTime';
+
 /** C-WINDOW: the 7 days from the filing date, keyed by local calendar day rather than UTC. */
 
 export const WINDOW_LENGTH_DAYS = 7;
@@ -29,11 +31,7 @@ export function isWithinWindow(filingIso: string, candidate: string): boolean {
   return windowDates(filingIso).includes(candidate);
 }
 
-/** -u-nu-latn is §6.7: ar-EG alone numbers the day in Arabic-Indic digits. */
+/** Hand-rolled, not toLocaleDateString('ar-EG-u-nu-latn'): ICU support varies by device, and bare ar-EG renders Arabic-Indic digits, which §6.7 forbids. */
 export function formatSlotDay(date: string): string {
-  return new Date(date).toLocaleDateString('ar-EG-u-nu-latn', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  });
+  return formatCalendarDay(date);
 }

@@ -7,12 +7,17 @@ import {
   USE_MOCK_COMMUNITY,
   USE_MOCK_EXPERT_CHATS,
   USE_MOCK_EXPERT_QUEUE,
+  USE_MOCK_MAP,
   USE_MOCK_NOTIFICATIONS,
   USE_MOCK_REPORTS,
   USE_MOCK_ROLE,
   USE_MOCK_TRACKER,
   USE_MOCK_USER,
 } from '../env';
+import {
+  FORCE_LANGUAGE_FAILURE_OVERRIDE,
+  FORCE_LOCALE_OVERRIDE,
+} from '../env.local.example';
 
 // main is the public build, so the committed defaults are the product.
 describe('committed feature flag defaults', () => {
@@ -21,11 +26,50 @@ describe('committed feature flag defaults', () => {
     expect(MOCK_SCENARIO).toBe('content');
   });
 
+  // L-DEFAULT: asserted against the committed surface, not the resolved value, so a machine set to English still passes.
+  it('falls back to Arabic when the machine sets no override', () => {
+    jest.isolateModules(() => {
+      jest.doMock('../env.local', () => ({
+        HOST_OVERRIDE: null,
+        API_MODE_OVERRIDE: null,
+        API_GATEWAY_URL_OVERRIDE: null,
+        FORCE_LOCALE_OVERRIDE: null,
+        FORCE_LANGUAGE_FAILURE_OVERRIDE: null,
+      }));
+
+      expect(require('../env').FORCE_LOCALE).toBeNull();
+    });
+  });
+
+  // What postinstall copies onto a machine that has no env.local.ts yet.
+  it('ships the example override unset, so a fresh install opens in Arabic', () => {
+    expect(FORCE_LOCALE_OVERRIDE).toBeNull();
+  });
+
+  // E7's three forced failure states are a dev affordance; a committed value would wedge S-12 into a failure branch.
+  it('ships with no forced language failure, in both halves', () => {
+    expect(FORCE_LANGUAGE_FAILURE_OVERRIDE).toBeNull();
+
+    jest.isolateModules(() => {
+      jest.doMock('../env.local', () => ({
+        HOST_OVERRIDE: null,
+        API_MODE_OVERRIDE: null,
+        API_GATEWAY_URL_OVERRIDE: null,
+        FORCE_LOCALE_OVERRIDE: null,
+        FORCE_LANGUAGE_FAILURE_OVERRIDE: null,
+      }));
+
+      expect(require('../env').FORCE_LANGUAGE_FAILURE).toBeNull();
+    });
+  });
+
   // Each of these is `DEMO_MODE || …`, so the assertion above is what actually holds them down.
   it('leaves every flag that only demo mode turns on in its off state', () => {
     expect(USE_MOCK_REPORTS).toBe(false);
     expect(USE_MOCK_USER).toBe(false);
     expect(ENABLE_COMMENT_POSTING).toBe(false);
+    // Added in E5. Before it, DEMO_MODE reached every feature but this one.
+    expect(USE_MOCK_MAP).toBe(false);
   });
 
   // On by backend gap: CommunityService has no feed endpoint yet.

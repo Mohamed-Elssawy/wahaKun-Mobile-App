@@ -46,7 +46,7 @@ export function FilterChip({
 
 const styles = StyleSheet.create({
   chip: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[8],
     minHeight: HEIGHT,

@@ -1,6 +1,7 @@
 import { API_ENDPOINTS, ApiError } from '@/api';
 import { API_BASE_URLS } from '@/config/env';
 import type { ReportStatus } from '@/features/reports/types';
+import { setLocale } from '@/i18n';
 
 import {
   classifyExpertError,
@@ -156,6 +157,41 @@ describe('parseReviewNotes', () => {
     expect(parseReviewNotes(undefined)).toEqual({});
     expect(parseReviewNotes('')).toEqual({});
     expect(parseReviewNotes('   ')).toEqual({});
+  });
+});
+
+/** Guards that the override marker survives a write/read locale change (two experts, or one across a §16.5 relaunch) - deliberately not asserting today's literal output, which would pass even while unresolved. */
+describe('the override marker survives a locale change between write and read', () => {
+  afterEach(() => setLocale('ar'));
+
+  const FIELDS = {
+    reportId: '1',
+    override: { severity: 'عالية' as const, correctedDiagnosis: 'تصدع إنشائي' },
+    expertNote: 'يحتاج دعامة',
+  };
+
+  it.each([
+    ['ar', 'en'],
+    ['en', 'ar'],
+  ] as const)('written under %s, read under %s', (wrote, read) => {
+    setLocale(wrote);
+    const notes = composeReviewNotes(FIELDS);
+
+    setLocale(read);
+
+    expect(parseReviewNotes(notes)).toEqual({
+      override: { severity: 'عالية', correctedDiagnosis: 'تصدع إنشائي' },
+      expertNote: 'يحتاج دعامة',
+    });
+  });
+
+  it('writes the same bytes in both locales, so nothing already stored needs migrating', () => {
+    setLocale('ar');
+    const arabic = composeReviewNotes(FIELDS);
+
+    setLocale('en');
+
+    expect(composeReviewNotes(FIELDS)).toBe(arabic);
   });
 });
 

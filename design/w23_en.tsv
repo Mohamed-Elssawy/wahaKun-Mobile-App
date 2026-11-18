@@ -1,0 +1,375 @@
+finalKey	ar	en	notes
+e01.loadErrorTitle	تعذر تحميل الحالات	Couldn't load your cases
+e01.staleBanner	تعذر تحديث الوارد، قد تكون البيانات قديمة	Couldn't refresh the inbox — this may be out of date	D-STALE
+e01.emptyTitle	لا توجد حالات بانتظار المراجعة	No cases waiting for review	§5.5
+e01.emptyBody	ستظهر هنا البلاغات فور تعيينها لك.	Reports appear here as soon as they're assigned to you.	§5.5
+e01.corroborationCount	{corroborationCount} نفس المشكلة	{corroborationCount} also affected	§D: تأكيدات is "Also affected", never "Corroborations" on screen
+e02.submitErrorTitle	تعذر إرسال المراجعة	Couldn't submit your review
+e03.slotHeading	اختر موعداً — {selectedDate}	Choose a time — {selectedDate}
+e03.confirmErrorTitle	تعذر تأكيد الجدولة	Couldn't confirm the appointment
+e03.slot.0700	7:00 ص	7:00 AM	WIRE RISK: expertService.ts keys its slot map on this exact string. E6 must re-key the map onto stable ids in the same commit that adopts this key, or booking breaks.
+e03.slot.0900	9:00 ص	9:00 AM	see e03.slot.0700
+e03.slot.1100	11:00 ص	11:00 AM	see e03.slot.0700
+e03.slot.1300	1:00 م	1:00 PM	see e03.slot.0700
+e03.slot.1500	3:00 م	3:00 PM	see e03.slot.0700
+e03.slot.1700	5:00 م	5:00 PM	see e03.slot.0700
+e03.reason.weather	ظروف الطقس	Weather	Reschedule reason chip
+e03.reason.emergency	طارئ في حالة أخرى	Emergency on another case
+e03.reason.farmerRequest	بطلب من المزارع	At the farmer's request
+e03.reason.other	أخرى	Other	WIRE RISK: useScheduleRepair compares reasonChip !== 'أخرى'. E6 must move that sentinel to a stable id in the same commit.
+e04.confirmErrorTitle	تعذر تأكيد الحل	Couldn't confirm the repair
+status.resolved	تم الحل	Resolved	§3.2
+severity.critical	حرجة	Critical	Also appears as a wire value in reportService.ts — add those occurrences to scripts/i18n-wire.js before E5 keys them. The English is harmless; keying the wire row is what breaks parsing.
+severity.medium	متوسطة	Medium	see severity.critical
+severity.low	منخفضة	Low	see severity.critical
+severity.unknown	غير معروفة	Unknown	see severity.critical
+severity.veryCritical	حرجة جداً		DO NOT TRANSLATE — reportService.ts severity wire value. Belongs in scripts/i18n-wire.js, not the catalogue.
+severity.veryHigh	عالية جداً		DO NOT TRANSLATE — see above
+severity.high	عالية		DO NOT TRANSLATE — see above
+status.new	جديدة	New	§3.2
+status.underReview	قيد المراجعة	Under review	§3.2, sentence case
+status.scheduled	مجدولة	Scheduled	§3.2
+status.reopened	معاد فتحها	Reopened	§3.2
+common.distanceKm	{km} كم	{km} km	Unified across FeedPostCard, distance.ts and IssueDetailsBody — one key, three call sites
+f01.sortChip	ترتيب: {sortLabels}	Sort: {sortLabels}
+f01.sortA11y	ترتيب البلاغات حسب {sortLabels}	Sort reports by {sortLabels}
+f01.veryClose	قريب جدًا	Very close	Shown instead of a distance under ~100m
+f01.corroborateError	تعذر تسجيل التأكيد، حاول مرة أخرى	Couldn't record that. Please try again.
+f01.loadErrorTitle	تعذر تحميل المجتمع	Couldn't load the community feed
+f01.staleBanner	تعذر تحديث المجتمع، قد تكون البيانات قديمة	Couldn't refresh the feed — this may be out of date	D-STALE
+f01.pinA11y.critical	مشكلة خطورتها حرجة	Critical severity issue	Map/legend accessibility label
+f01.pinA11y.medium	مشكلة خطورتها متوسطة	Medium severity issue
+f01.pinA11y.low	مشكلة خطورتها منخفضة	Low severity issue
+f01.pinA11y.resolved	مشكلة تم حلها	Resolved issue
+f02.submitErrorTitle	تعذر إرسال البلاغ	Couldn't send your report
+f02.captureError	تعذر التقاط الصورة، حاول مرة أخرى	Couldn't take the photo. Please try again.
+f02.saveError	تعذر حفظ الصورة، حاول مرة أخرى.	Couldn't save the photo. Please try again.
+f02.queuedTitle	لديك بلاغات في انتظار الإرسال	You have reports waiting to send	D-QUEUE
+f02.queuedBody	انتظر حتى يعود الاتصال وتُرسل بلاغاتك السابقة، ثم أرسل هذا البلاغ.	Wait until you're back online and your earlier reports have sent, then send this one.
+f02.viewMyReports	عرض بلاغاتي	View my reports
+f02.noCameraTitle	لا توجد كاميرا متاحة	No camera available
+f02b.usePhoto	استخدام هذه الصورة	Use this photo
+f02b.retake	إعادة الالتقاط	Retake
+f02b.pickAnother	اختيار صورة أخرى	Choose another photo
+f02b.tapToPause	اضغط للإيقاف	Tap to pause
+f02b.tapToPlay	اضغط للتشغيل	Tap to play
+f03a.notReadyBody	لم يكتمل تحليل الذكاء الاصطناعي بعد.	The AI analysis isn't finished yet.
+f03a.loadErrorTitle	تعذر تحميل التشخيص	Couldn't load the diagnosis
+f03a.noneTitle	لا يوجد تشخيص لهذا البلاغ	No diagnosis for this report
+f03b.title	خبير سيراجع بلاغك شخصيًا	An expert will review your report personally
+f03b.subtitle	حالتك تحتاج نظرة دقيقة من خبير — أسندناها مباشرةً لخبير معتمد	Your case needs a closer look — we've assigned it straight to a verified expert
+f03c.tip.leak	تسرب أو قناة أو أنبوب	A leak, a canal or a pipe
+f03c.tip.light	في ضوء جيد	In good light
+f03c.tip.close	وعن قرب	And up close
+f04.loadErrorTitle	تعذر تحميل البلاغ	Couldn't load the report
+f04.voiceSectionTitle	التسجيل الصوتي	Voice recording	§8.2 F-04
+f04.voiceReportLabel	بلاغ صوتي	Voice report	Shown on a card with no photo
+f04.sendCommentA11y	إرسال التعليق	Send comment
+f04.commentsCount	التعليقات ({total})	Comments ({total})
+f04.playbackFailed	تعذر تشغيل التسجيل	Couldn't play the recording
+f04.shareA11y	مشاركة البلاغ	Share report
+f04.step.reported	تم الإبلاغ	Reported	3-node public stepper, B-STEPPER
+f04.step.inProgress	قيد الحل	In progress	§D — a display label only, never written to a status chip
+f05.close	إغلاق	Close
+f05.legendTitle	مستوى الخطورة	Severity
+f05.yourLocation	موقعك	Your location
+f05.yourCurrentLocation	موقعك الحالي	Your current location
+f05.hideLegend	إخفاء مفتاح الخريطة	Hide legend
+f05.showLegend	عرض مفتاح الخريطة	Show legend
+f05.search	بحث	Search
+f05.clearSearch	مسح البحث	Clear search
+f06.viewComments	عرض التعليقات ({total})	View comments ({total})
+f07.tab.review	مراجعة	Review
+f07.tab.all	الكل	All	Tab label — 3 chars
+f07.noResultsTitle	لا توجد بلاغات مطابقة	No matching reports	§5.5
+f07.untitled	بلاغ بدون وصف	Report with no description	D-UNREADABLE placeholder title
+f07.tab.active	نشطة	Active	Tab label
+f07.noResultsBody	جرّب توسيع البحث أو تغيير الفلتر.	Try widening your search or changing the filter.	§5.5
+f07.continue	متابعة	Continue
+f07.view	عرض	View
+f07.unreadMarker	جديد	New	D-QUEUE unread marker
+f07.rescheduled	إعادة الجدولة	Rescheduled
+f07.escalationLine	الحالة تحتاج نظرة دقيقة — سيراجع خبير البلاغ شخصياً	This case needs a closer look — an expert will review it personally	The canonical escalation line, §D. Identical wording wherever the AI block is suppressed.
+f07.loadErrorTitle	تعذر تحميل البلاغات	Couldn't load your reports
+f07.firstUseTitle	لم تُبلّغ عن أي مشكلة بعد	You haven't reported anything yet	§5.5
+f07.firstUseBody	عندما تبلغ عن مشكلة، ستظهر هنا حتى تتمكن من تتبع حالتها.	When you report a problem it appears here, so you can follow what happens to it.	§5.5
+s07.loadErrorTitle	تعذر تحميل الملف الشخصي	Couldn't load your profile
+common.listSeparator	،	, 	NOT PROSE — the separator ProfileScreen joins region and village with. English uses a comma plus a space.
+common.save	حفظ	Save
+s07.landQuestion	أين تقع أرضك؟	Where is your land?
+s07.landWhy	يساعدنا هذا في ربطك بالخبراء والبلاغات القريبة منك.	This helps us connect you with nearby experts and reports.
+s07.governorate	المحافظة	Governorate
+s07.searchGovernorate	ابحث عن المحافظة	Search governorates
+s07.area	المنطقة	Area
+s07.searchArea	ابحث عن المنطقة	Search areas
+s07.pickGovernorateFirst	اختر المحافظة أولاً	Choose a governorate first
+s07.changePhoto	تغيير الصورة الشخصية	Change profile photo
+s07.sectionAccount	الحساب	Account
+s07.changeArea	تغيير المنطقة	Change area
+s07.sectionSecurity	الأمان و تسجيل الدخول	Security and sign-in	§12.2: the Arabic uses a spaced "و"; left as authored
+s07.altEmail	البريد الإلكتروني البديل	Backup email
+s07.sectionApp	إعدادات التطبيق	App settings
+s07.language	اللغة	Language	Navigates to S-12 once E7 builds it
+s07.languageValue	العربية	العربية	DO NOT TRANSLATE — a language names itself in its own script in both locales, §16.4
+s07.noOtherLanguages	لا تتوفر لغات أخرى بعد	No other languages yet	DELETE IN E7 — English ships enabled, so this line becomes false. §14 OA-4.
+s07.notifyLongWait	إشعارات الانتظار الطويل	Long-wait alerts	Expert only
+s07.notifyNewCases	إشعارات الحالات الجديدة	New case alerts	Expert only
+s07.notifyCriticalArea	تنبيهات المنطقة الحرجة	Critical area alerts	Farmer only
+s07.notifyComments	إشعارات التعليقات و المحادثات	Comment and chat alerts
+s07.sectionSupport	الدعم	Support
+s07.helpCentre	مركز المساعدة	Help centre	British spelling, per the spec's own voice
+s07.legal	شروط الاستخدام وسياسة الخصوصية	Terms of Use and Privacy Policy
+s07.logOut	تسجيل الخروج	Log out
+map.clusterCount	{count} بلاغات	{count} reports	Map cluster pin. DELIBERATELY NOT sharing a key with reports.queuedCount.many below — identical Arabic, different meaning. See MERGE-LIST.
+x01.sending	جاري إرسال البلاغات…	Sending your reports…
+x01.offlineQueued	لا يوجد اتصال — {countLabel} في انتظار الإرسال	No connection — {countLabel} waiting to send
+x01.offlineStale	لا يوجد اتصال — تعرض آخر تحديث	No connection — showing the last update	D-STALE
+x01.allSent	تم إرسال جميع البلاغات	All reports sent
+reports.queuedCount.one	بلاغ واحد	1 report	PLURAL SET — the four forms of countLabel. English fills one and many; two and few take the many text.
+reports.queuedCount.two	بلاغان	{count} reports	PLURAL SET — see above
+reports.queuedCount.many	{count} بلاغًا	{count} reports	PLURAL SET — see above
+reports.queuedCount.few	{count} بلاغات	{count} reports	PLURAL SET — QueueBanner's few form. Same Arabic as map.clusterCount, different meaning, separate key by design.
+x02.tooMinorTitle	لا حاجة لبلاغ	No report needed
+x02.analysingTitle	جاري التحليل	Analysing
+x02.tooMinorBody	حلّل الذكاء الاصطناعي الصورة ووجد أن المشكلة بسيطة ولا تستدعي بلاغًا. صوّر مشكلة أخرى إن احتجت.	The AI looked at your photo and found the problem too minor to need a report. Take a photo of something else if you need to.
+x02.captureAnother	تصوير مشكلة أخرى	Photograph another problem
+x02a.viewAll	عرض جميع البلاغات	View all reports
+common.openSettings	فتح الإعدادات	Open settings
+x03.title	لا يمكن الوصول إلى الكاميرا	Can't access the camera
+x03.body	فعّل إذن الكاميرا من الإعدادات لتصوير المشكلة.	Turn on camera permission in Settings to photograph the problem.
+x03.useVoiceInstead	الإبلاغ بالصوت بدلاً من ذلك	Report by voice instead
+x04.reRecord	إعادة التسجيل	Record again
+x04.title	لا يمكن الوصول إلى الميكروفون	Can't access the microphone
+x04.body	فعّل إذن الميكروفون من الإعدادات لتسجيل وصف المشكلة.	Turn on microphone permission in Settings to record a description.
+x04.writeInstead	أو اكتب وصف المشكلة	Or type a description	§12.2 fix — replaced the camera wording
+x04.writeTitle	صف المشكلة بالكتابة	Describe the problem in writing
+x04.placeholder	مثال: القناة مكسورة و الماء يتسرب إلى الحقل	For example: the canal is broken and water is leaking into the field
+x04.send	ارسال المشكلة	Send report	Arabic is missing its hamza (ارسال); add to the §12.2 list
+x04.photoAlsoNeeded	البلاغ يحتاج صورة للمشكلة أيضًا، حتى مع التسجيل أو الكتابة.	A report needs a photo of the problem too, even with a recording or a description.	README: /Issue/analyze requires a photo server-side
+x04.addPhotoToContinue	أضف صورة للمتابعة	Add a photo to continue
+x04.recordFailed	تعذر بدء التسجيل، حاول مرة أخرى	Couldn't start recording. Please try again.
+x05.title	لا يمكن الوصول إلى موقعك	Can't access your location	D-HARD-BLOCK — no fallback link, unlike X-03/X-04
+x05.body	فعّل إذن الموقع من الإعدادات لكي نتمكّن من الوصول لموقعك و حل مشكلتك.	Turn on location permission in Settings so we can find the problem and fix it.
+x05.sessionExpiredTitle	انتهت الجلسة	Your session has ended	§5.1
+errors.case.loadFailed	تعذر تحميل الحالة	Couldn't load the case	9 call sites
+common.cancel	إلغاء	Cancel
+common.unknownAuthor	مزارع من الواحة	A farmer in the oasis	Shown when an author name is missing
+common.viewIssueDetails	عرض تفاصيل المشكلة	View issue details	Map peek CTA for a non-owner, §8.2
+common.takePhoto	التقاط صورة	Take a photo
+common.trackReport	تتبع البلاغ	Track report	B-TRACK — the stepper link, distinct from التشخيص الكامل
+common.aiDiagnosis	تشخيص الذكاء الاصطناعي	AI diagnosis
+common.whyThisDiagnosis	لماذا هذا التشخيص؟	Why this diagnosis?	§12.2 — replaced الأعراض المطابقة
+common.recommendedAction	الإجراء الموصى به	Recommended action
+expert.overrideTitle	تجاوز تشخيص الذكاء الاصطناعي	Override the AI diagnosis	C-OVERRIDE
+common.am	ص	AM	LTR island — a clock period, §6.7
+common.pm	م	PM	LTR island — a clock period, §6.7
+common.yesterday	أمس	Yesterday
+expert.backToInbox	العودة للوارد	Back to inbox	No arrow — G-02, it navigates backward
+expert.scheduleRepair	جدولة الإصلاح	Schedule the repair
+common.fullDiagnosis	التشخيص الكامل	Full diagnosis	B-TRACK — the AI block link, distinct from تتبع البلاغ
+common.assignedExpert	الخبير المسؤول عن البلاغ	The expert handling this report
+x02a.savedBody	البلاغ محفوظ على جهازك — سيُرسل تلقائيًا عند عودة الاتصال بالإنترنت	Saved on your device — it'll send automatically when you're back online	D-QUEUE
+common.tapToRecord	اضغط للتسجيل	Tap to record
+f07.activeReports	البلاغات النشطة	Active reports
+tracker.inProgressSince	جارٍ الآن — {time}	In progress — {time}	Unified across two trackerView branches — one key, two call sites
+f04.commentPlaceholder	أضف تعليقاً أو معلومة...	Add a comment or something you know…	Ellipsis character, not three dots
+f04.commentsDisabled	إضافة التعليقات غير متاحة حاليًا	Commenting isn't available right now	ENABLE_COMMENT_POSTING is off
+f04.noComments	لا توجد تعليقات بعد	No comments yet
+f04.olderComments	عرض تعليقات أقدم	Show older comments
+f04.commentsLoadFailed	تعذر تحميل التعليقات، اضغط لإعادة المحاولة	Couldn't load comments. Tap to try again.
+f01.corroborate	أواجه نفس المشكلة	I have this problem too	§D — not a like, not a duplicate report
+f01.corroborationLabel	تأكيدات	Also affected	§D — never "Corroborations" on screen
+common.verifiedExpert	خبير معتمد	Verified expert	§D. Farmers are never verified.
+f01.statusA11y	حالة البلاغ: {label}	Report status: {label}
+f01.commentsA11y	التعليقات: {commentCount}	Comments: {commentCount}
+f01.sharesA11y	مشاركة البلاغ: {shareCount}	Shares: {shareCount}
+f01.sort.severity	الخطورة	Severity
+f01.sort.newest	الأحدث	Newest	§12.2 — الاحدث corrected to الأحدث
+f01.sort.nearest	الأقرب	Nearest	§12.2 — this is the default sort, not الخطورة
+f01.filter.nearMe	قريب مني	Near me
+f01.sortSheetTitle	ترتيب البلاغات	Sort reports
+errors.community.loadFailed	تعذر تحميل المجتمع، حاول مرة أخرى	Couldn't load the community feed. Please try again.
+errors.comments.loadFailed	تعذر تحميل التعليقات	Couldn't load comments
+errors.comments.sendFailed	تعذر إرسال التعليق، حاول مرة أخرى	Couldn't send your comment. Please try again.
+errors.issue.contextFailed	تعذر تحميل بيانات البلاغ	Couldn't load the report's details
+f01.emptyTitle	لا توجد بلاغات بعد	No reports yet	§15 listed F-01's empty state as not designed — this is it
+f01.emptyBody	كن أول من يبلغ عن مشكلة في الواحة، وسيظهر بلاغك هنا للجميع.	Be the first to report a problem in the oasis, and it'll appear here for everyone.
+expert.overrideReplaced	استبدل الخبير التشخيص بتشخيصه الخاص	The expert replaced the diagnosis with their own
+expert.overrideNoneTitle	لم يتم تجاوز تشخيص الذكاء الاصطناعي	The AI diagnosis wasn't overridden
+expert.overrideAccepted	تم قبول تشخيص الذكاء الاصطناعي كما هو	The AI diagnosis was accepted as it stands
+expert.overrideHint	فعّل إذا كان تقييمك مختلف	Turn this on if your assessment differs
+expert.correctedDiagnosis	التشخيص المصحّح	Corrected diagnosis	§D. Required when the override toggle is on, C-OVERRIDE
+expert.correctedPlaceholder	اكتب تشخيصك هنا...	Type your diagnosis here…
+chat.voiceMessage	🎤 رسالة صوتية	🎤 Voice message	Glyph is baked into the string; kept
+chat.photoMessage	🖼 صورة	🖼 Photo	Glyph is baked into the string; kept
+e09.sortNewest	ترتيب: الأحدث	Sort: Newest
+e09.filterUnread	غير مقروءة	Unread
+e09.filterActiveOnly	نشطة فقط	Active only	§12.1 — this chip was listed as not designed
+e01.sortSeverity	ترتيب: الخطورة	Sort: Severity
+e01.filterLowConfidence	ثقة منخفضة	Low confidence	C-CONFIDENCE-CHIP — below 80%
+expert.step.schedule	الجدولة	Scheduling	4-node expert stepper
+expert.step.confirmRepair	تأكيد الحل	Confirm repair
+expert.step.farmerConfirm	تأكيد المزارع	Farmer confirms
+e04.photoPrompt	أرفق صورة لإثبات إصلاح المشكلة	Attach a photo showing the problem is fixed	Photo and notes are both mandatory, §13
+e04.photoHint	اضغط لإضافة صورة من الكاميرا أو المعرض	Tap to add a photo from the camera or gallery
+e04.changePhoto	اضغط لتغيير الصورة	Tap to change the photo
+e04.addPhoto	إضافة صورة	Add a photo
+common.chooseFromGallery	اختيار من المعرض	Choose from gallery
+e03.prevMonth	الشهر السابق	Previous month	Directional — the glyph flips, the label doesn't
+e03.nextMonth	الشهر التالي	Next month
+e03.reasonLabel	سبب التغيير	Reason for the change	§D. Farmer-visible and required on a reschedule.
+e03.reasonPlaceholder	اكتب السبب...	Type the reason…
+errors.expert.reviewFailed	تعذر إرسال المراجعة، حاول مرة أخرى	Couldn't submit your review. Please try again.
+errors.expert.confirmFailed	تعذر تأكيد الحل، حاول مرة أخرى	Couldn't confirm the repair. Please try again.
+errors.expert.chatsFailed	تعذر تحميل المحادثات، حاول مرة أخرى	Couldn't load your chats. Please try again.
+errors.expert.inboxFailed	تعذر تحميل الحالات، حاول مرة أخرى	Couldn't load your cases. Please try again.
+e01.section.new	مشاكل جديدة تحتاج مراجعة	New problems needing review
+e01.section.underReview	مشاكل قيد المراجعة	Problems under review	§12.2 — قيد المعالجة corrected to قيد المراجعة
+e01.section.scheduled	مشاكل مجدولة	Scheduled problems
+e01.section.resolved	مشاكل تم حلها	Resolved problems
+errors.expert.scheduleFailed	تعذر تأكيد الجدولة، حاول مرة أخرى	Couldn't confirm the appointment. Please try again.
+e05.title	بإنتظار موافقة المزارع	Waiting for the farmer	S-TERMINAL: only the farmer can close a case
+e05.subtitle	تم إرسال تأكيد الإصلاح إلى المزارع. سيتم إغلاق الحالة تلقائياً بعد موافقته.	The repair confirmation has gone to the farmer. The case closes once they confirm.	WORDING RISK: the Arabic says "closes automatically", but §3.6 says there is no timeout transition anywhere — nothing auto-closes. The English avoids claiming it does. Flag the Arabic for the §12.2 list.
+e05.summaryTitle	ملخص ما تم إرساله للمزارع	What the farmer received
+e06.title	تم إغلاق الحالة	Case closed
+e06.subtitle	وافق المزارع على الحل، وتم إغلاق الحالة بنجاح.	The farmer confirmed the repair, and the case is closed.
+e06.summaryTitle	ملخص الإصلاح	Repair summary
+e02.title	مراجعة الحالة	Case review
+expert.notesLabel	ملاحظات الخبير	Expert notes	§D — publishes as a PUBLIC comment
+expert.notesPlaceholder	أي ملاحظة تريد نشرها للمزارع...	Anything you want to publish for the farmer…
+e02.primaryCta	الخطوة التالية — تحديد موعد الإصلاح	Next — set a repair time	C-CTA: the CTA tracks the case's current step
+e09.emptyTitle	لا توجد محادثات	No chats	§5.5
+e09.emptyBody	ستظهر هنا المحادثات فور بدئها.	Chats appear here as soon as they start.	§12.2 — فور بدأها corrected to فور بدئها
+e09.loadErrorTitle	تعذر تحميل المحادثات	Couldn't load your chats
+e04.title	تأكيد حل المشكلة	Confirm the repair
+expert.resolutionNotes	ملاحظات الحل	Resolution notes	§D — the node-5 timeline entry
+expert.resolutionPlaceholder	صف الإجراء الذي تم تنفيذه...	Describe what you did…
+e04.primaryCta	✈ تأكيد الحل و إشعار المزارع	✈ Confirm and notify the farmer	Glyph baked into the string. Over the seeded 26 but this is a full-width primary, so the container governs.
+e03.dayLabel	يوم الإصلاح	Repair day
+e03.currentAppointment	الموعد الحالي	Current appointment
+expert.noteToFarmer	ملاحظة للمزارع (اختياري)	Message to the farmer (optional)	§D — "Message", not "note": it OPENS THE PRIVATE CHAT and must not be confusable with Expert notes
+expert.noteToFarmerPlaceholder	أي تعليمات للمزارع قبل الإصلاح...	Any instructions for the farmer before the repair…
+e03.primaryCta	✈ تأكيد الجدولة و إشعار المزارع	✈ Confirm and notify the farmer	Full-width primary; container governs
+e03.reschedulePrimaryCta	✈ تأكيد إعادة الجدولة و إشعار المزارع	✈ Confirm the change and notify	Full-width primary. Shortened from "Confirm the new time and notify the farmer" to stay on one line.
+expert.correctedPrefix	[تصحيح]	[corrected]	A marker expertService prefixes to an overridden diagnosis, not prose
+f05.searchPlaceholder	ابحث عن منطقة أو بلاغ...	Search for an area or a report…
+f05.emptyTitle	لا توجد بلاغات على الخريطة	No reports on the map
+f05.emptyBody	لم يبلغ أحد عن مشكلة في الواحة بعد. هذه أخبار جيدة.	Nobody has reported a problem in the oasis yet. That's good news.
+f05.noSearchResults	جرّب كلمة أخرى للبحث في بلاغات الواحة.	Try a different word to search the oasis's reports.
+f05.loadErrorTitle	تعذر تحميل الخريطة	Couldn't load the map
+f05.staleBanner	تعذر تحديث الخريطة، قد تكون البيانات قديمة	Couldn't refresh the map — this may be out of date	D-STALE
+f05.locateMe	العودة إلى موقعي	Back to my location
+errors.map.loadFailed	تعذر تحميل الخريطة، حاول مرة أخرى	Couldn't load the map. Please try again.
+s06.markAllRead	تعليم الكل كمقروء	Mark all as read	Appears on the اليوم row only, §8.1
+errors.notifications.loadFailed	تعذر تحميل الإشعارات، حاول مرة أخرى	Couldn't load notifications. Please try again.
+s06.emptyTitle	لا توجد إشعارات في الوقت الحالي	No notifications right now	§5.5
+s06.emptyBody	ستظهر هنا جميع الإشعارات.	All your notifications appear here.	§5.5
+s06.loadErrorTitle	تعذر تحميل الإشعارات	Couldn't load notifications
+s06.yesterdayAt	أمس، {hour12}:{minute} {period}	Yesterday, {hour12}:{minute} {period}
+s06.dateLong	{weekdays}، {getDate} {months}	{weekdays}, {getDate} {months}	Arabic comma becomes a Latin comma
+s06.group.today	اليوم	Today
+s06.group.lastWeek	الأسبوع الماضي	Last week
+x02.analysingPhoto	يحلل الذكاء الاصطناعي الصورة	The AI is analysing your photo
+x02.analysingVoice	يحلل الذكاء الاصطناعي تسجيلك	The AI is analysing your recording
+x02.analysingText	يحلل الذكاء الاصطناعي كتابتك	The AI is analysing what you wrote
+x02.mayTakeSeconds	قد يستغرق هذا بضع ثوانٍ	This may take a few seconds
+f02.photoTitle	الابلاغ بالصورة	Report with a photo	Arabic is missing its hamza (الابلاغ); add to the §12.2 list
+f02.photoSubtitle	وجه الكاميرا نحو مشكلتك أو ارفق صورة لها	Point the camera at the problem, or attach a photo of it
+f02.voiceTitle	الابلاغ بالصوت	Report with your voice	Arabic missing hamza; §12.2
+f02.voiceSubtitle	اوصف المشكلة بصوتك أو بالكتابة	Describe the problem by voice or in writing	Arabic missing hamza (اوصف); §12.2
+f02.mode.photo	صورة	Photo	B-TOGGLE: segment order is intentional and mirrors; only the label is keyed
+f02.mode.voice	صوت	Voice	B-TOGGLE
+f03a.whatYouCanDo	ما يمكنك فعله الآن	What you can do now	§D — a real model field
+f03a.severityLabel	مستوى الخطورة:	Severity level:
+f03a.unspecifiedTitle	مشكلة غير محددة	Unspecified problem
+f03a.title	نتيجة التشخيص	Diagnosis result
+f03a.subtitle	تحليل الذكاء الاصطناعي للمشكلة	The AI's analysis of the problem
+f03b.headerTitle	حالة بلاغك	Your report's status
+f04.escalationTitle	خبير سيراجع البلاغ شخصياً	An expert will review this report personally
+f04.escalationWhy	لماذا سيراجعها خبير؟	Why will an expert review it?
+common.online	متاح	Online	§D — this is PRESENCE, not a setting. "Available" would read as a preference the expert set.
+f03b.statCasesResolved	حالة محلولة	cases resolved	Sits under a number; lowercase
+f03b.statAvgRepairTime	متوسط زمن الإصلاح	average repair time	Sits under a number; lowercase
+common.day	يوم	days	Follows a number, e.g. "2.1 days"
+f03b.trackCta	تتبّع حالة البلاغ	Track your report
+f02.flipCamera	تبديل الكاميرا	Switch camera
+f02.gallery	اختيار صورة من المعرض	Choose a photo from the gallery
+f04.statusSectionTitle	حالة البلاغ	Report status
+f04.transcriptTitle	النص من التسجيل	Transcript	§8.2 — the speech-to-text output
+x02a.savedTitle	بلاغك محفوظ	Your report is saved
+x02a.nothingToDo	لا تحتاج لفعل أي شيء	There's nothing you need to do
+x02a.deleteReport	حذف البلاغ	Delete report
+x02a.sending	جاري الإرسال	Sending
+x02a.sendFailed	تعذر الإرسال	Couldn't send
+x02a.waitingToSend	في انتظار الإرسال	Waiting to send
+f02.tapToStop	اضغط لإيقاف التسجيل	Tap to stop recording	F-02 state:recording, §12.1's largest farmer gap
+f02.cancelRecordingTitle	إلغاء التسجيل؟	Cancel the recording?
+f02.cancelRecordingBody	سيُفقد ما تم تسجيله حتى الآن.	What you've recorded so far will be lost.
+f02.cancelRecording	إلغاء التسجيل	Cancel recording
+f02.keepRecording	الاستمرار في التسجيل	Keep recording
+f07.ctaCard	صوّر المشكلة أو سجّلها صوتياً — ودعنا نتابعها معك	Photograph the problem or record it — and let's follow it together
+f06.repairedQuestion	هل تم إصلاح المشكلة؟	Has the problem been fixed?	F-06 node 6. The blue chip — an action is required from the farmer, §6.4.
+f06.yesFixed	نعم، تم إصلاح المشكلة	Yes, it's fixed	T7 — the only path to تم الحل
+f06.notFixed	لا، لم يتم إصلاح المشكلة	No, it isn't fixed	T8 — clears nodes 4-5, C-REOPEN-CLEAN
+f03c.subtitle	تأكد أن الصورة تُظهر مصدر المشكلة بوضوح	Make sure the photo shows the source of the problem clearly
+f03c.notSavedLine	لا بأس — لن نحفظ هذه المحاولة، وصورة أوضح ستكفي	It's alright — we won't keep this attempt, and a clearer photo will do	§12.2 addition. Forward-looking, because D-UNREADABLE keeps the record until the CTA is pressed.
+f03c.retakeCta	التقاط صورة أخرى	Take another photo
+f03c.voiceInstead	أو صف المشكلة بصوتك بدلاً من ذلك	Or describe the problem by voice instead
+f02.describeByVoice	صف المشكلة بصوتك	Describe the problem by voice
+f02.recording	جارِ التسجيل...	Recording…
+f02b.useRecording	استخدام هذا التسجيل	Use this recording
+errors.report.serviceBusy	الخدمة مشغولة حالياً، سيُعاد إرسال البلاغ تلقائياً	The service is busy right now. We'll send your report again automatically.
+errors.report.sendFailed	تعذر إرسال البلاغ، حاول مرة أخرى	Couldn't send your report. Please try again.
+errors.report.loadFailed	تعذر تحميل البلاغ، حاول مرة أخرى	Couldn't load the report. Please try again.
+errors.reports.loadFailed	تعذر تحميل البلاغات، حاول مرة أخرى	Couldn't load your reports. Please try again.
+f07.tab.allReports	كل البلاغات	All reports
+f07.tab.resolved	البلاغات التي تم حلها	Resolved reports
+f07.tab.critical	البلاغات الحرجة	Critical reports	B-CRIT-TAB — a severity cut among status tabs, intentional
+f07.resolvedCount	بلاغات تم حلها	Resolved	§12.2: F-07 first-use must show (0) or hide the count
+f07.savedOnDevice	محفوظ على جهازك	Saved on your device
+errors.report.locationRequired	نحتاج موقع المشكلة حتى يصل الخبير إليها — لا يمكن إرسال البلاغ بدونه.	We need the problem's location so an expert can reach it — a report can't be sent without it.	X-05 is a hard block, D-HARD-BLOCK
+errors.diagnosis.loadFailed	تعذر تحميل التشخيص، حاول مرة أخرى	Couldn't load the diagnosis. Please try again.
+errors.tracker.loadFailed	تعذر تحميل مسار البلاغ، حاول مرة أخرى	Couldn't load the report timeline. Please try again.
+errors.resolution.failed	تعذر إرسال الإجراء، حاول مرة أخرى	Couldn't send that. Please try again.
+x02.analysingPhotoEllipsis	يحلل الذكاء الاصطناعي الصورة...	The AI is analysing your photo…
+x02.analysingVoiceEllipsis	يحلل الذكاء الاصطناعي تسجيلك...	The AI is analysing your recording…
+x02.analysingTextEllipsis	يحلل الذكاء الاصطناعي كتابتك...	The AI is analysing what you wrote…
+f03c.title	لم نتعرف على المشكلة	We couldn't identify the problem
+f03c.reassurance	لا تقلق، سنحاول مرة أخرى معًا	Don't worry — let's try that again together	Warm-redirect register, §5.4. The warmth must survive translation.
+x02.tooMinorHeadline	المشكلة تبدو بسيطة	This looks minor
+x02a.reportSaved	تم حفظ البلاغ	Report saved
+x02a.willSendAutomatically	سيُرسل تلقائيًا عند عودة الاتصال	It'll send automatically when you're back online
+f06.title	مسار البلاغ	Report timeline	§D
+f06.contactExpert	التواصل مع الخبير	Message the expert	Opens F-08, the private chat — "Message", consistent with expert.noteToFarmer
+tracker.node.reported	تم الابلاغ	Reported	Node 1. Arabic missing hamza (الابلاغ); §12.2
+tracker.node.expertReview	المراجعة من الخبير	Expert review	Node 3
+tracker.node.repairCarriedOut	تنفيذ الإصلاح	Repair carried out	Node 5
+tracker.node.confirmAndFollow	تأكيد الحل ومتابعة	Confirm and follow up	Node 6
+tracker.appointmentSoon	سيُحدَّد الموعد قريباً	A time will be set soon
+tracker.awaitingScheduling	في انتظار الجدولة	Waiting to be scheduled
+tracker.lastStep	آخر خطوة — سيُطلب تأكيدك	Last step — we'll ask you to confirm
+tracker.voiceNoteLogged	تم تسجيل ملاحظة صوتية. تم نشرها مع تحديد الموقع تلقائياً	Voice note recorded. Published with your location attached automatically.
+tracker.photoLogged	تم إرفاق صورة للمشكلة. تم نشرها مع تحديد الموقع تلقائياً	Photo attached. Published with your location attached automatically.
+tracker.diagnosisConfidence	{diagnosis} — ثقة {percent}%	{diagnosis} — {percent}% confidence
+tracker.expertReassigned	تم إعادة تعيين الخبير	The expert was reassigned	T15 — a new chat thread starts
+tracker.diagnosisConfirmedWith	تم تأكيد التشخيص — {diagnosis}	Diagnosis confirmed — {diagnosis}
+tracker.diagnosisConfirmed	تم تأكيد التشخيص	Diagnosis confirmed
+tracker.rescheduled	تمت إعادة الجدولة	Rescheduled
+tracker.appointment	موعد الإصلاح	Repair appointment
+tracker.changeReason	سبب التغيير: {reason}	Reason for the change: {reason}	Farmer-visible and required, §D
+tracker.appointmentWindow	{prefix}\n{date} — {windowStart} إلى {windowEnd}{reason}	{prefix}\n{date} — {windowStart} to {windowEnd}{reason}	COMPOSED MESSAGE: {prefix} and {reason} are themselves keys, not data. Whoever edits this is composing, not filling in.
+tracker.adminClosed	تم إغلاق البلاغ بعد مراجعة الإدارة	The report was closed after an administrative review	T12 — renders to the farmer as تم الحل / Resolved
+tracker.farmerConfirmed	أكّد المزارع الحل\nتم إغلاق البلاغ #{id} بنجاح	The farmer confirmed the fix\nReport #{id} closed successfully
+tracker.repairOnSchedule	سيتم تنفيذ الإصلاح في الموعد المحدد	The repair will happen at the scheduled time
+tracker.repairedSuccessfully	تم الإصلاح بنجاح	Repaired successfully
+errors.profile.loadFailed	تعذر تحميل الملف الشخصي، حاول مرة أخرى	Couldn't load your profile. Please try again.
+errors.profile.saveFailed	تعذر حفظ التغييرات، حاول مرة أخرى	Couldn't save your changes. Please try again.
+errors.profile.photoFailed	تعذر رفع الصورة، حاول مرة أخرى	Couldn't upload the photo. Please try again.
+s13a.uploading	تحميل الصورة	Uploading photo
+s13a.addPhotoTitle	اضف صورتك الشخصية	Add a profile photo	Arabic missing hamza (اضف); §12.2
+s13a.addPhotoBody	أضف صورتك حتى يتعرف عليك الأعضاء الآخرون.	Add a photo so other members recognise you.
+s13a.chooseMethod	اختر طريقة إضافة الصورة	How would you like to add a photo?
+s13a.fromGallery	رفع صورة من المعرض	Upload from gallery
+s07.deviceOnly	على هذا الجهاز فقط	On this device only	Neither toggle has anywhere to persist, so the row says so
+errors.media.permission	يرجى السماح بالوصول إلى الكاميرا أو المعرض.	Please allow access to the camera or gallery.
+errors.media.pickFailed	تعذر اختيار الصورة، حاول مرة أخرى.	Couldn't choose that photo. Please try again.

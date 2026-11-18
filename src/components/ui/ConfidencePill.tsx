@@ -1,5 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
+import { t } from '@/i18n';
 import { colors, radii, shadows, spacing } from '@/theme';
 
 import { ProgressRing } from './ProgressRing';
@@ -10,7 +11,6 @@ export type ConfidencePillProps = {
   confidence: number;
 };
 
-const CAPTION = 'ثقة';
 const RING_SIZE = 20;
 
 /** Small and beside the severity badge, so the score reads as a footnote to the diagnosis. */
@@ -22,14 +22,14 @@ export function ConfidencePill({ confidence }: ConfidencePillProps) {
       style={styles.pill}
       accessible
       accessibilityRole="progressbar"
-      accessibilityLabel={`${CAPTION} ${percent}%`}
+      accessibilityLabel={t('common.confidencePercent', { percent })}
     >
-      {/* row-reverse, so the caption reads rightmost and the ring anchors the left. */}
-      <Text variant="label12" color="textSecondary">
-        {CAPTION}
-      </Text>
-      <Text variant="label12Bold" color="textPrimary">
+      {/* C48: F-03a reads figure, then caption, then ring in both locales - the layout's order, not the copy's. */}
+      <Text variant="label12Bold" color="textPrimary" style={styles.percent}>
         {percent}%
+      </Text>
+      <Text variant="label12" color="textSecondary">
+        {t('common.confidence')}
       </Text>
       <ProgressRing progress={confidence} size={RING_SIZE} />
     </View>
@@ -37,8 +37,10 @@ export function ConfidencePill({ confidence }: ConfidencePillProps) {
 }
 
 const styles = StyleSheet.create({
+  // A percentage is an LTR island in both locales (SPEC 6.7).
+  percent: { writingDirection: 'ltr' },
   pill: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[4],
     paddingVertical: spacing[4],

@@ -2,6 +2,7 @@ import { Check, Circle } from 'lucide-react-native';
 import { StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/ui';
+import { t } from '@/i18n';
 import { colors, spacing } from '@/theme';
 
 import { PASSWORD_RULES } from '../passwordRules';
@@ -26,7 +27,7 @@ export function PasswordRequirementsHint({ password }: PasswordRequirementsHintP
               <Circle size={ICON_SIZE} color={colors.textMuted} />
             )}
             <Text variant="label12" color={met ? 'successText' : 'textMuted'}>
-              {rule.label}
+              {t(rule.labelKey)}
             </Text>
           </View>
         );
@@ -40,8 +41,8 @@ const styles = StyleSheet.create({
     gap: spacing[4],
   },
   row: {
-    // row-reverse: Arabic label on the right, icon leading it on the left.
-    flexDirection: 'row-reverse',
+    // The icon leads the label, and direction decides which edge that is.
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[4],
   },

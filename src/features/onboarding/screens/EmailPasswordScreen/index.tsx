@@ -2,17 +2,14 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Screen, Text, TextField } from '@/components/ui';
+import { t } from '@/i18n';
 import type { ScreenProps } from '@/navigation/types';
-import { screenPadding, spacing } from '@/theme';
+import { roleVariants, screenPadding, spacing } from '@/theme';
 
 import { PasswordRequirementsHint } from '../../components/PasswordRequirementsHint';
 import { WizardHeader } from '../../components/WizardHeader';
 import { useRegistrationDraft } from '../../context/RegistrationContext';
 import { isPasswordValid } from '../../passwordRules';
-
-const EMAIL_REQUIRED_ERROR = 'يرجى إدخال البريد الإلكتروني';
-const PASSWORD_WEAK_ERROR = 'كلمة المرور لا تحقق الشروط أدناه';
-const PASSWORD_MISMATCH_ERROR = 'كلمة المرور غير متطابقة';
 
 /** Step 3 of the registration wizard. */
 export default function EmailPasswordScreen({
@@ -30,10 +27,14 @@ export default function EmailPasswordScreen({
     email.trim().length > 0 && isPasswordValid(password) && confirmPassword === password;
 
   const handleNext = () => {
-    const nextEmailError = email.trim().length > 0 ? '' : EMAIL_REQUIRED_ERROR;
-    const nextPasswordError = isPasswordValid(password) ? '' : PASSWORD_WEAK_ERROR;
+    const nextEmailError = email.trim().length > 0 ? '' : t('errors.auth.emailRequired');
+    const nextPasswordError = isPasswordValid(password)
+      ? ''
+      : t('errors.auth.passwordWeak');
     const nextConfirmError =
-      nextPasswordError || confirmPassword === password ? '' : PASSWORD_MISMATCH_ERROR;
+      nextPasswordError || confirmPassword === password
+        ? ''
+        : t('errors.auth.passwordMismatch');
 
     setEmailError(nextEmailError);
     setPasswordError(nextPasswordError);
@@ -50,7 +51,12 @@ export default function EmailPasswordScreen({
   return (
     <Screen
       footer={
-        <Button label="التالي" onPress={handleNext} showArrow disabled={!isValid} />
+        <Button
+          label={t('common.next')}
+          onPress={handleNext}
+          showArrow
+          disabled={!isValid}
+        />
       }
     >
       <WizardHeader step={3} onBack={() => navigation.goBack()} />
@@ -58,16 +64,17 @@ export default function EmailPasswordScreen({
       <View style={styles.form}>
         <View style={styles.intro}>
           <Text variant="h3" color="textStrong" align="center">
-            أدخل بريدك الإلكتروني
+            {t('s05.emailTitle')}
           </Text>
-          <Text variant="body14" color="textMuted" align="center">
-            استخدمه للدخول في حال فقدان الوصول لرقم هاتفك.
+          <Text variant="body14" color="textMuted" align="center" style={styles.subtitle}>
+            {t('s05.emailSubtitle')}
           </Text>
         </View>
 
         <View style={styles.fields}>
           <TextField
-            label="البريد الإلكتروني"
+            label={t('common.email')}
+            labelVariant={roleVariants.authFieldLabel}
             value={email}
             onChangeText={text => {
               setEmail(text);
@@ -82,7 +89,8 @@ export default function EmailPasswordScreen({
 
           <View style={styles.passwordGroup}>
             <TextField
-              label="كلمة المرور"
+              label={t('common.password')}
+              labelVariant={roleVariants.authFieldLabel}
               value={password}
               onChangeText={text => {
                 setPassword(text);
@@ -99,7 +107,8 @@ export default function EmailPasswordScreen({
           </View>
 
           <TextField
-            label="تأكيد كلمة المرور"
+            label={t('common.confirmPassword')}
+            labelVariant={roleVariants.authFieldLabel}
             value={confirmPassword}
             onChangeText={text => {
               setConfirmPassword(text);
@@ -107,7 +116,7 @@ export default function EmailPasswordScreen({
             }}
             onBlur={() => {
               if (confirmPassword && confirmPassword !== password) {
-                setConfirmError(PASSWORD_MISMATCH_ERROR);
+                setConfirmError(t('errors.auth.passwordMismatch'));
               }
             }}
             placeholder="••••••••"
@@ -124,6 +133,10 @@ export default function EmailPasswordScreen({
 }
 
 const styles = StyleSheet.create({
+  // C6: the frames set an auth subtitle at a narrower measure than the fields below it.
+  subtitle: {
+    paddingHorizontal: spacing[56],
+  },
   form: {
     gap: spacing[40],
     paddingHorizontal: screenPadding,

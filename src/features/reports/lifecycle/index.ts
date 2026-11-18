@@ -51,13 +51,13 @@ export type {
 export {
   describeStatus,
   describeWireStatus,
-  ESCALATION_LINE,
-  ESCALATION_SUBTITLE,
-  ESCALATION_TITLE,
-  EXPERT_ACTION_LABELS,
-  RESCHEDULE_LABEL,
+  escalationLine,
+  escalationSubtitle,
+  escalationTitle,
+  expertActionLabel,
+  rescheduleLabel,
   stageFor,
-  UNTITLED_REPORT,
+  untitledReport,
 } from './display';
 export type { StatusDisplay, StatusIconToken, StatusStage } from './display';
 

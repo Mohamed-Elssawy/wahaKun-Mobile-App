@@ -1,6 +1,7 @@
 import { Search, X } from 'lucide-react-native';
 import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 
+import { t } from '@/i18n';
 import { colors, maxFontScale, radii, shadows, spacing, textStyles } from '@/theme';
 
 import { MAP_CONTROL_ICON, MapControlButton } from './MapControlButton';
@@ -14,7 +15,6 @@ export type MapSearchBarProps = {
 };
 
 const FIELD_ICON = 18;
-const PLACEHOLDER = 'ابحث عن منطقة أو بلاغ...';
 
 /** The glyph is 18, and it is the only way out of a search, so the target is widened to 50. */
 const CLEAR_HIT_SLOP = {
@@ -35,7 +35,7 @@ export function MapSearchBar({
     <MapControlButton
       icon={<Search size={MAP_CONTROL_ICON} color={colors.primary} />}
       onPress={onToggle}
-      accessibilityLabel="بحث"
+      accessibilityLabel={t('f05.search')}
     />
   );
 
@@ -46,49 +46,48 @@ export function MapSearchBar({
 
   return (
     <View style={styles.row}>
+      {button}
+
       <View style={styles.field}>
         <Search size={FIELD_ICON} color={colors.textSecondary} />
         <TextInput
           style={styles.input}
           value={value}
           onChangeText={onChange}
-          placeholder={PLACEHOLDER}
+          placeholder={t('f05.searchPlaceholder')}
           placeholderTextColor={colors.textPlaceholder}
           maxFontSizeMultiplier={maxFontScale}
           returnKeyType="search"
-          accessibilityLabel={PLACEHOLDER}
+          accessibilityLabel={t('f05.searchPlaceholder')}
         />
         {value.length > 0 ? (
           <TouchableOpacity
             onPress={() => onChange('')}
             hitSlop={CLEAR_HIT_SLOP}
             accessibilityRole="button"
-            accessibilityLabel="مسح البحث"
+            accessibilityLabel={t('f05.clearSearch')}
           >
             <X size={FIELD_ICON} color={colors.textSecondary} />
           </TouchableOpacity>
         ) : null}
       </View>
-
-      {button}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  // Plain row, not row-reverse: the frame puts the field left and the button right.
+  // The toggle leads and the field follows, which direction then places.
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[8],
   },
   collapsed: {
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
   },
   field: {
     flex: 1,
-    // The magnifier sits at the trailing edge of an Arabic line, so the row reverses.
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[8],
     height: 45,
@@ -101,7 +100,6 @@ const styles = StyleSheet.create({
     flex: 1,
     ...textStyles.label14,
     color: colors.textPrimary,
-    textAlign: 'right',
     // Android gives TextInput its own vertical padding, which breaks the 45 height.
     paddingVertical: 0,
     // Android also aligns to the top of what is left, so both props are needed to centre it.

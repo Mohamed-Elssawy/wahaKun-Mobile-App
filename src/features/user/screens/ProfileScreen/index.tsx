@@ -1,5 +1,4 @@
 import {
-  ChevronRight,
   FilePlus2,
   FileText,
   HelpCircle,
@@ -24,9 +23,13 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Text } from '@/components/ui';
+import { LanguageDialog, Text } from '@/components/ui';
 import { useLogout } from '@/features/auth/hooks/useLogout';
+import { toNationalDisplay } from '@/features/auth/phoneNumber';
 import { ReportErrorView } from '@/features/reports/components/ReportErrorView';
+import { useLanguageSwitch } from '@/hooks/useLanguageSwitch';
+import { isRTL, ltrIsolate, t } from '@/i18n';
+import { BackIcon } from '@/i18n/icons';
 import type { ScreenProps } from '@/navigation/types';
 import { colors, radii, screenPadding, shadows, spacing } from '@/theme';
 
@@ -44,15 +47,17 @@ const BACK_ICON = 24;
 const PIN_ICON = 16;
 
 /** Neither toggle has anywhere to persist, so the row says so rather than implying sync. */
-const DEVICE_ONLY = 'على هذا الجهاز فقط';
 
 /** S-07. */
 export default function ProfileScreen({ navigation }: ScreenProps<'Profile'>) {
   const insets = useSafeAreaInsets();
   const { user, preferences, isLoading, error, retry, togglePreference } = useProfile();
   const logout = useLogout();
+  const language = useLanguageSwitch();
 
-  const region = [user?.region, user?.village].filter(Boolean).join('، ');
+  const region = [user?.region, user?.village]
+    .filter(Boolean)
+    .join(t('common.listSeparator'));
   const isExpert = resolveRole(user).role === 'expert';
   // Branches on the resolved url, not on `picture`: a key storage cannot serve is not an avatar.
   const avatarUrl = user?.picture ? resolveProfilePictureUrl(user.picture) : undefined;
@@ -66,19 +71,19 @@ export default function ProfileScreen({ navigation }: ScreenProps<'Profile'>) {
   return (
     <View style={styles.screen}>
       <View style={[styles.header, { paddingTop: insets.top + spacing[12] }]}>
+        {/* G-01, green header: back takes the end edge, so the title leads and it trails. */}
         <View style={styles.headerRow}>
+          <Text variant="h3" color="textInverse" style={styles.headerTitle}>
+            {t('common.profile')}
+          </Text>
+
           <TouchableOpacity
             onPress={navigation.goBack}
             accessibilityRole="button"
-            accessibilityLabel="رجوع"
+            accessibilityLabel={t('common.back')}
           >
-            {/* G-01: the back glyph is always the chevron, and it follows the reading direction. */}
-            <ChevronRight size={BACK_ICON} color={colors.textInverse} />
+            <BackIcon size={BACK_ICON} color={colors.textInverse} />
           </TouchableOpacity>
-
-          <Text variant="h3" color="textInverse" align="right" style={styles.headerTitle}>
-            الملف الشخصي
-          </Text>
         </View>
       </View>
 
@@ -90,7 +95,7 @@ export default function ProfileScreen({ navigation }: ScreenProps<'Profile'>) {
         <View style={styles.fallback}>
           <ReportErrorView
             error={error}
-            unknownTitle="تعذر تحميل الملف الشخصي"
+            unknownTitle={t('s07.loadErrorTitle')}
             onRetry={retry}
           />
         </View>
@@ -104,7 +109,7 @@ export default function ProfileScreen({ navigation }: ScreenProps<'Profile'>) {
               onPress={() => navigation.navigate('EditProfilePicture')}
               activeOpacity={0.8}
               accessibilityRole="button"
-              accessibilityLabel="تغيير الصورة الشخصية"
+              accessibilityLabel={t('s07.changePhoto')}
             >
               {avatarUrl ? (
                 <Image source={{ uri: avatarUrl }} style={styles.avatar} />
@@ -119,12 +124,11 @@ export default function ProfileScreen({ navigation }: ScreenProps<'Profile'>) {
             </TouchableOpacity>
 
             <View style={styles.identityText}>
-              <Text variant="h4" align="right">
-                {user?.fullName || 'مزارع'}
-              </Text>
+              {/* Not s05.roleFarmer (told an expert they were a farmer) or common.unknownAuthor (third-person, wrong for a viewer's own profile). */}
+              <Text variant="h4">{user?.fullName || t('s07.noName')}</Text>
               {region ? (
                 <View style={styles.regionRow}>
-                  <Text variant="label14" color="textSecondary" align="right">
+                  <Text variant="label14" color="textSecondary">
                     {region}
                   </Text>
                   <MapPin size={PIN_ICON} color={colors.primary} />
@@ -133,27 +137,36 @@ export default function ProfileScreen({ navigation }: ScreenProps<'Profile'>) {
             </View>
           </View>
 
-          <SettingsSection title="الحساب">
+          <SettingsSection title={t('s07.sectionAccount')}>
             <SettingsRow
               icon={MapPin}
-              label="تغيير المنطقة"
+              label={t('s07.changeArea')}
               value={region || undefined}
               onPress={() => navigation.navigate('EditRegion')}
             />
             {/* No chevron: AuthService owns the number and offers no change endpoint. */}
-            <SettingsRow icon={Phone} label="رقم الهاتف" value={user?.phoneNumber} />
+            <SettingsRow
+              icon={Phone}
+              label={t('common.phoneNumber')}
+              // C26: the local form the owner would write, not the wire's E.164.
+              value={
+                user?.phoneNumber
+                  ? ltrIsolate(toNationalDisplay(user.phoneNumber))
+                  : undefined
+              }
+            />
           </SettingsSection>
 
-          <SettingsSection title="الأمان و تسجيل الدخول">
+          <SettingsSection title={t('s07.sectionSecurity')}>
             <SettingsRow
               icon={Mail}
-              label="البريد الإلكتروني البديل"
-              value={user?.email}
+              label={t('s07.altEmail')}
+              value={user?.email ? ltrIsolate(user.email) : undefined}
               onPress={() => navigation.navigate('EmailPassword')}
             />
             <SettingsRow
               icon={Lock}
-              label="تغيير كلمة المرور"
+              label={t('s11.title')}
               // There is no authenticated change-password endpoint, only the email link.
               onPress={() =>
                 navigation.navigate('ForgotPassword', { email: user?.email })
@@ -161,19 +174,19 @@ export default function ProfileScreen({ navigation }: ScreenProps<'Profile'>) {
             />
           </SettingsSection>
 
-          <SettingsSection title="إعدادات التطبيق">
+          <SettingsSection title={t('s07.sectionApp')}>
             <SettingsRow
               icon={Languages}
-              label="اللغة"
-              value="العربية"
-              note="لا تتوفر لغات أخرى بعد"
+              label={t('s07.language')}
+              value={t('s07.languageValue')}
+              onPress={language.open}
             />
             {isExpert ? (
               <>
                 <SettingsRow
                   icon={NotificationBell}
-                  label="إشعارات الانتظار الطويل"
-                  note={DEVICE_ONLY}
+                  label={t('s07.notifyLongWait')}
+                  note={t('s07.deviceOnly')}
                   toggle={{
                     isOn: preferences?.longWait ?? true,
                     onChange: () => togglePreference('longWait'),
@@ -181,8 +194,8 @@ export default function ProfileScreen({ navigation }: ScreenProps<'Profile'>) {
                 />
                 <SettingsRow
                   icon={FilePlus2}
-                  label="إشعارات الحالات الجديدة"
-                  note={DEVICE_ONLY}
+                  label={t('s07.notifyNewCases')}
+                  note={t('s07.deviceOnly')}
                   toggle={{
                     isOn: preferences?.newCase ?? true,
                     onChange: () => togglePreference('newCase'),
@@ -192,8 +205,8 @@ export default function ProfileScreen({ navigation }: ScreenProps<'Profile'>) {
             ) : (
               <SettingsRow
                 icon={NotificationBell}
-                label="تنبيهات المنطقة الحرجة"
-                note={DEVICE_ONLY}
+                label={t('s07.notifyCriticalArea')}
+                note={t('s07.deviceOnly')}
                 toggle={{
                   isOn: preferences?.criticalArea ?? true,
                   onChange: () => togglePreference('criticalArea'),
@@ -202,8 +215,8 @@ export default function ProfileScreen({ navigation }: ScreenProps<'Profile'>) {
             )}
             <SettingsRow
               icon={MessageCircle}
-              label="إشعارات التعليقات و المحادثات"
-              note={DEVICE_ONLY}
+              label={t('s07.notifyComments')}
+              note={t('s07.deviceOnly')}
               toggle={{
                 isOn: preferences?.comments ?? true,
                 onChange: () => togglePreference('comments'),
@@ -211,15 +224,15 @@ export default function ProfileScreen({ navigation }: ScreenProps<'Profile'>) {
             />
           </SettingsSection>
 
-          <SettingsSection title="الدعم">
+          <SettingsSection title={t('s07.sectionSupport')}>
             <SettingsRow
               icon={HelpCircle}
-              label="مركز المساعدة"
+              label={t('s07.helpCentre')}
               onPress={() => navigation.navigate('TermsOfUse')}
             />
             <SettingsRow
               icon={FileText}
-              label="شروط الاستخدام وسياسة الخصوصية"
+              label={t('s07.legal')}
               onPress={() => navigation.navigate('PrivacyPolicy')}
             />
           </SettingsSection>
@@ -227,13 +240,25 @@ export default function ProfileScreen({ navigation }: ScreenProps<'Profile'>) {
           <View style={styles.logoutCard}>
             <SettingsRow
               icon={LogOut}
-              label="تسجيل الخروج"
+              label={t('s07.logOut')}
               tone="error"
               onPress={handleLogout}
             />
           </View>
         </ScrollView>
       )}
+
+      {/* S-12: a dialog over S-07, not a route, shared with the pre-login control. */}
+      <LanguageDialog
+        isVisible={language.isOpen}
+        active={language.active}
+        selected={language.selected}
+        onSelect={language.select}
+        onConfirm={language.confirm}
+        onDismiss={language.dismiss}
+        isApplying={language.state === 'applying'}
+        error={language.error}
+      />
     </View>
   );
 }
@@ -265,8 +290,8 @@ const styles = StyleSheet.create({
     padding: screenPadding,
     gap: spacing[24],
   },
+  // C24: a column, not a row. Both S-07 frames centre the avatar and set the name beneath it.
   identity: {
-    flexDirection: 'row-reverse',
     alignItems: 'center',
     gap: spacing[16],
     padding: spacing[16],
@@ -286,8 +311,8 @@ const styles = StyleSheet.create({
   },
   avatarBadge: {
     position: 'absolute',
-    // RTL: the badge sits on the avatar's outer corner, which is the left one.
-    left: 0,
+    // C83: bottom-RIGHT in both locales; `right` wouldn't do it since RN swaps left/right under RTL.
+    ...(isRTL() ? { start: 0 } : { end: 0 }),
     bottom: 0,
     width: BADGE_SIZE,
     height: BADGE_SIZE,
@@ -297,11 +322,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   identityText: {
-    flex: 1,
+    alignItems: 'center',
     gap: spacing[4],
   },
   regionRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[4],
   },

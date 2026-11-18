@@ -3,13 +3,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ENABLE_COMMENT_POSTING } from '@/config/env';
 import { describeError } from '@/features/reports/errors';
 import type { ReportError } from '@/features/reports/errors';
+import { t } from '@/i18n';
 
 import { communityApi } from '../services';
 
 import type { Comment } from '../types';
-
-const LOAD_ERROR = 'تعذر تحميل التعليقات';
-const POST_ERROR = 'تعذر إرسال التعليق، حاول مرة أخرى';
 
 const PAGE_SIZE = 10;
 
@@ -51,7 +49,7 @@ export function useIssueComments(issueId: string) {
       }
     } catch (err) {
       if (isMounted.current) {
-        setError(describeError(err, LOAD_ERROR));
+        setError(describeError(err, t('errors.comments.loadFailed')));
       }
     } finally {
       if (isMounted.current) {
@@ -146,7 +144,7 @@ export function useIssueComments(issueId: string) {
         return true;
       } catch (err) {
         if (isMounted.current) {
-          setPostError(describeError(err, POST_ERROR));
+          setPostError(describeError(err, t('errors.comments.sendFailed')));
         }
         return false;
       } finally {

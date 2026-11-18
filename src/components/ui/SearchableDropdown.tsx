@@ -2,6 +2,7 @@ import { Search } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { FlatList, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 
+import { t } from '@/i18n';
 import { colors, radii, spacing, textStyles } from '@/theme';
 import type { LocationItem } from '@/types/location';
 
@@ -66,7 +67,7 @@ export function SearchableDropdown({
 
   return (
     <View style={styles.container}>
-      <Text variant="label14" color="textMuted" align="right">
+      <Text variant="label14" color="textMuted">
         {label}
       </Text>
 
@@ -105,9 +106,7 @@ export function SearchableDropdown({
               ItemSeparatorComponent={ItemSeparator}
               renderItem={({ item }) => (
                 <TouchableOpacity style={styles.item} onPress={() => handleSelect(item)}>
-                  <Text variant="label16" align="right">
-                    {item.name}
-                  </Text>
+                  <Text variant="label16">{item.name}</Text>
                 </TouchableOpacity>
               )}
               ListEmptyComponent={ListEmpty}
@@ -125,7 +124,7 @@ const ItemSeparator = () => <View style={styles.itemSeparator} />;
 const ListEmpty = () => (
   <View style={styles.empty}>
     <Text variant="label14" color="textMuted">
-      لا توجد نتائج
+      {t('ui.dropdown.noResults')}
     </Text>
   </View>
 );
@@ -150,7 +149,7 @@ const styles = StyleSheet.create({
   inputRow: {
     width: '100%',
     height: 44,
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing[12],

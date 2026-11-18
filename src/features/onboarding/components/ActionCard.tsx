@@ -1,7 +1,7 @@
-import { ChevronLeft } from 'lucide-react-native';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { Text } from '@/components/ui';
+import { ForwardIcon } from '@/i18n/icons';
 import { colors, radii, spacing } from '@/theme';
 
 import type { ReactNode } from 'react';
@@ -34,29 +34,21 @@ export function ActionCard({
     >
       {icon}
       <View style={styles.text}>
-        <Text
-          variant="h4"
-          color={selected ? 'primaryStrong' : 'textStrong'}
-          align="right"
-        >
+        <Text variant="h4" color={selected ? 'primaryStrong' : 'textStrong'}>
           {title}
         </Text>
-        <Text
-          variant="body12"
-          color={selected ? 'primaryStrong' : 'textMuted'}
-          align="right"
-        >
+        <Text variant="body12" color={selected ? 'primaryStrong' : 'textMuted'}>
           {subtitle}
         </Text>
       </View>
-      {showChevron ? <ChevronLeft size={24} color={colors.textPrimary} /> : null}
+      {showChevron ? <ForwardIcon size={24} color={colors.textPrimary} /> : null}
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[24],
     width: '100%',

@@ -1,3 +1,4 @@
+import { Send } from 'lucide-react-native';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -12,6 +13,7 @@ import { ReportHeader } from '@/features/reports/components/ReportHeader';
 import { formatReportReference } from '@/features/reports/format';
 import { formatRelativeTime } from '@/features/reports/relativeTime';
 import { describeSeverity } from '@/features/reports/severity';
+import { t } from '@/i18n';
 import type { ScreenProps } from '@/navigation/types';
 import { colors, screenPadding, spacing } from '@/theme';
 
@@ -19,11 +21,8 @@ import { ExpertStepper } from '../../components/ExpertStepper';
 import { RepairPhotoUpload } from '../../components/RepairPhotoUpload';
 import { useConfirmRepair } from '../../hooks/useConfirmRepair';
 
-const TITLE = 'تأكيد حل المشكلة';
-const NOTES_LABEL = 'ملاحظات الحل';
-const NOTES_PLACEHOLDER = 'صف الإجراء الذي تم تنفيذه...';
-const PRIMARY_LABEL = '✈ تأكيد الحل و إشعار المزارع';
-const LOAD_ERROR_TITLE = 'تعذر تحميل الحالة';
+/** Matches C45's secondary glyphs, which are the only other icons inside a Button. */
+const CTA_ICON = 20;
 
 /** E-04, node 5. Exactly one photo is structural: useImagePicker can never hold more. */
 export default function ExpertResolutionConfirmationScreen({
@@ -44,11 +43,16 @@ export default function ExpertResolutionConfirmationScreen({
   if (confirmRepair.error || !confirmRepair.detail) {
     return (
       <View style={styles.screen}>
-        <ReportHeader title={TITLE} onBack={navigation.goBack} />
+        <ReportHeader title={t('e04.title')} onBack={navigation.goBack} />
         <View style={styles.body}>
           <ReportErrorView
-            error={confirmRepair.error ?? { kind: 'unknown', message: LOAD_ERROR_TITLE }}
-            unknownTitle={LOAD_ERROR_TITLE}
+            error={
+              confirmRepair.error ?? {
+                kind: 'unknown',
+                message: t('errors.case.loadFailed'),
+              }
+            }
+            unknownTitle={t('errors.case.loadFailed')}
             onRetry={confirmRepair.retry}
           />
         </View>
@@ -78,19 +82,21 @@ export default function ExpertResolutionConfirmationScreen({
       style={styles.screen}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ReportHeader title={TITLE} onBack={navigation.goBack} />
+      <ReportHeader title={t('e04.title')} onBack={navigation.goBack} />
 
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
+        {/* C71/SPEC 376: trailing chevron opens E-07's full report, an edge SPEC 232's chain omits, added per Islam's ruling in E10. */}
         <ReportSummaryCard
           title={detail.title}
           reference={formatReportReference(detail.reportId)}
           timeLabel={formatRelativeTime(detail.createdAt)}
           borderColor={severity.color}
           photoUrl={detail.photoUrl}
+          onPress={() => navigation.navigate('ExpertIssueDetails', { reportId })}
         />
 
         <ExpertStepper current={3} />
@@ -103,8 +109,8 @@ export default function ExpertResolutionConfirmationScreen({
         />
 
         <TextField
-          label={NOTES_LABEL}
-          placeholder={NOTES_PLACEHOLDER}
+          label={t('expert.resolutionNotes')}
+          placeholder={t('expert.resolutionPlaceholder')}
           value={confirmRepair.notes}
           onChangeText={confirmRepair.setNotes}
           multiline
@@ -115,13 +121,16 @@ export default function ExpertResolutionConfirmationScreen({
         {confirmRepair.submitError ? (
           <ReportErrorView
             error={confirmRepair.submitError}
-            unknownTitle="تعذر تأكيد الحل"
+            unknownTitle={t('e04.confirmErrorTitle')}
             onRetry={handleSubmit}
           />
         ) : null}
 
+        {/* C74: paper-plane icon trails, matching E-02's arrow and the original Arabic frames for E-03/E-04. */}
         <Button
-          label={PRIMARY_LABEL}
+          label={t('e04.primaryCta')}
+          icon={<Send size={CTA_ICON} color={colors.textInverse} />}
+          iconTrails
           onPress={handleSubmit}
           disabled={!confirmRepair.canSubmit}
           loading={confirmRepair.isSubmitting}
@@ -152,7 +161,6 @@ const styles = StyleSheet.create({
     gap: spacing[24],
   },
   notesInput: {
-    textAlign: 'right',
     minHeight: 96,
     textAlignVertical: 'top',
   },

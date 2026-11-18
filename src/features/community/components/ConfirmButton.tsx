@@ -2,6 +2,7 @@ import { Check, TriangleAlert } from 'lucide-react-native';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { Text } from '@/components/ui';
+import { t } from '@/i18n';
 import { colors, controlHeight, radii, spacing } from '@/theme';
 
 export type ConfirmButtonProps = {
@@ -9,9 +10,6 @@ export type ConfirmButtonProps = {
   confirmations: number;
   onPress: () => void;
 };
-
-const LABEL = 'أواجه نفس المشكلة';
-const COUNT_LABEL = 'تأكيدات';
 
 const ICON_SIZE = 20;
 
@@ -36,24 +34,23 @@ export function ConfirmButton({
         hitSlop={{ top: TOUCH_PADDING, bottom: TOUCH_PADDING }}
         accessibilityRole="button"
         accessibilityState={{ selected: hasConfirmed }}
-        accessibilityLabel={LABEL}
+        accessibilityLabel={t('f01.corroborate')}
       >
-        {/* Leading, so row-reverse puts it to the right of the label. */}
+        {/* Leading, so it takes the start edge beside the label. */}
         <Icon size={ICON_SIZE} color={tint} />
 
         <Text variant="h6" color={hasConfirmed ? 'textInverse' : 'primary'}>
-          {LABEL}
+          {t('f01.corroborate')}
         </Text>
       </TouchableOpacity>
 
-      {/* Stacked, and stays at zero rather than hiding: the row's height must not jump on the
-          first vote. */}
+      {/* Stacked, and stays at zero rather than hiding: the row's height must not jump on the first vote. */}
       <View style={styles.count} accessibilityRole="text">
         <Text variant="label16Bold" align="center">
           {confirmations}
         </Text>
         <Text variant="label12" color="textMuted" align="center">
-          {COUNT_LABEL}
+          {t('f01.corroborationLabel')}
         </Text>
       </View>
     </View>
@@ -62,13 +59,13 @@ export function ConfirmButton({
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[16],
   },
   button: {
     flex: 1,
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing[8],

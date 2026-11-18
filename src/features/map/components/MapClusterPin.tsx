@@ -1,6 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/ui';
+import { tPlural } from '@/i18n';
 import { colors, radii, shadows } from '@/theme';
 
 import { describeTierDisplay } from '../tier';
@@ -23,7 +24,7 @@ export function MapClusterPin({ tier, count }: MapClusterPinProps) {
   return (
     <View
       style={[styles.cluster, { borderColor: colors[color] }]}
-      accessibilityLabel={`${count} بلاغات`}
+      accessibilityLabel={tPlural('map.clusterCount', count)}
     >
       <Text variant="label20Bold" color={color}>
         {String(count)}

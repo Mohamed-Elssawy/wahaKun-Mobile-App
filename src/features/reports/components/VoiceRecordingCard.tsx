@@ -1,6 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { LiveWaveform, Text } from '@/components/ui';
+import { t } from '@/i18n';
 import { colors, radii, screenPadding, spacing } from '@/theme';
 
 export type VoiceRecordingCardProps = {
@@ -10,7 +11,6 @@ export type VoiceRecordingCardProps = {
   level: number;
 };
 
-const RECORDING_LABEL = 'جارِ التسجيل...';
 const DOT_SIZE = 8;
 
 /** m:ss with no leading zero on the minute, matching the frame's 0:10. */
@@ -27,8 +27,9 @@ export function VoiceRecordingCard({ elapsedSeconds, level }: VoiceRecordingCard
       <View style={styles.header}>
         <View style={styles.status}>
           <View style={styles.dot} />
-          <Text variant="h5" color="textStrong">
-            {RECORDING_LABEL}
+          {/* h4 in both locales: the frames draw this label at 18 in each (Islam, E10). */}
+          <Text variant="h4" color="textStrong">
+            {t('f02.recording')}
           </Text>
         </View>
 
@@ -55,12 +56,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   header: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   status: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[8],
   },

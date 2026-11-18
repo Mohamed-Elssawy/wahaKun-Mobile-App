@@ -2,7 +2,9 @@ import { Eye, EyeOff } from 'lucide-react-native';
 import { useState } from 'react';
 import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 
+import { t } from '@/i18n';
 import { colors, controlHeight, radii, spacing, textStyles } from '@/theme';
+import type { TextVariant } from '@/theme';
 
 import { InlineFieldError } from './InlineFieldError';
 import { Text } from './Text';
@@ -14,17 +16,20 @@ export type TextFieldProps = Omit<TextInputProps, 'style'> & {
   /** React 19 passes ref as a prop; it lands on the inner TextInput via the spread (focus chaining). */
   ref?: Ref<TextInput>;
   label?: string;
+  /** Defaults to h5 (expert case forms); sign-in/sign-up pass roleVariants.authFieldLabel. */
+  labelVariant?: TextVariant;
   /** Renders below the field and puts the border in the error colour. */
   error?: string;
   /** Adds a show/hide toggle and masks input by default. */
   secure?: boolean;
   containerStyle?: StyleProp<ViewStyle>;
-  /** Mainly `textAlign: 'right'`: the default is left, which suits email and phone. */
+  /** The box defaults to `textAlign: 'left'`, an LTR island for email and phone (§6.7). */
   inputStyle?: StyleProp<TextStyle>;
 };
 
 export function TextField({
   label,
+  labelVariant = 'h5',
   error,
   secure = false,
   containerStyle,
@@ -37,7 +42,7 @@ export function TextField({
   return (
     <View style={[styles.group, containerStyle]}>
       {label ? (
-        <Text variant="h5" color="textSecondary" align="right">
+        <Text variant={labelVariant} color="textSecondary">
           {label}
         </Text>
       ) : null}
@@ -48,6 +53,8 @@ export function TextField({
           // A multiline box grows, so the caret and reveal control belong at the top.
           inputProps.multiline && styles.boxMultiline,
           hasError && styles.boxError,
+          // C9: a password types left to right in either language, so the row follows the content, not the locale.
+          secure && styles.boxLtr,
         ]}
       >
         <TextInput
@@ -62,7 +69,9 @@ export function TextField({
             onPress={() => setIsRevealed(current => !current)}
             hitSlop={hitSlop}
             accessibilityRole="button"
-            accessibilityLabel={isRevealed ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+            accessibilityLabel={
+              isRevealed ? t('ui.password.hide') : t('ui.password.show')
+            }
           >
             {isRevealed ? (
               <EyeOff size={20} color={colors.textMuted} />
@@ -101,6 +110,9 @@ const styles = StyleSheet.create({
   boxMultiline: {
     alignItems: 'flex-start',
     paddingVertical: spacing[12],
+  },
+  boxLtr: {
+    direction: 'ltr',
   },
   boxError: {
     borderColor: colors.error,

@@ -7,6 +7,7 @@ import { useUnreadChats } from '@/features/expert/hooks/useUnreadChats';
 import ExpertChatsScreen from '@/features/expert/screens/ExpertChatsScreen';
 import ExpertInboxScreen from '@/features/expert/screens/ExpertInboxScreen';
 import ExpertMapScreen from '@/features/expert/screens/ExpertMapScreen';
+import { t } from '@/i18n';
 import { colors, radii, shadows, spacing, textStyles } from '@/theme';
 
 import MapFilledIcon from '@assets/icons/map-filled.svg';
@@ -50,7 +51,7 @@ export function ExpertTabs() {
 
   return (
     <Tab.Navigator
-      // Declared left to right as the bar shows them, so the landing tab must be named.
+      // §8.3: الوارد is the landing tab; registration order is the bar order, start to end.
       initialRouteName="ExpertInbox"
       screenOptions={{
         headerShown: false,
@@ -64,21 +65,21 @@ export function ExpertTabs() {
         ],
       }}
     >
-      <Tab.Screen
-        name="ExpertChats"
-        component={ExpertChatsScreen}
-        options={{ tabBarLabel: 'المحادثات', tabBarIcon: ExpertChatsIcon }}
-      />
-      <Tab.Screen
-        name="ExpertMap"
-        component={ExpertMapScreen}
-        options={{ tabBarLabel: 'خريطة الواحة', tabBarIcon: ExpertMapIcon }}
-      />
       {/* §8.3: الوارد carries no badge and no count, however long the queue is. */}
       <Tab.Screen
         name="ExpertInbox"
         component={ExpertInboxScreen}
-        options={{ tabBarLabel: 'الوارد', tabBarIcon: ExpertInboxIcon }}
+        options={{ tabBarLabel: t('tabs.inbox'), tabBarIcon: ExpertInboxIcon }}
+      />
+      <Tab.Screen
+        name="ExpertMap"
+        component={ExpertMapScreen}
+        options={{ tabBarLabel: t('tabs.map'), tabBarIcon: ExpertMapIcon }}
+      />
+      <Tab.Screen
+        name="ExpertChats"
+        component={ExpertChatsScreen}
+        options={{ tabBarLabel: t('tabs.chats'), tabBarIcon: ExpertChatsIcon }}
       />
     </Tab.Navigator>
   );
@@ -104,8 +105,8 @@ const styles = StyleSheet.create({
   dot: {
     position: 'absolute',
     top: 0,
-    // Trailing edge of the glyph, which is the leading edge of the row under RTL.
-    right: 0,
+    // Trailing corner of the glyph, which direction now resolves.
+    end: 0,
     width: DOT_SIZE,
     height: DOT_SIZE,
     borderRadius: radii.pill,

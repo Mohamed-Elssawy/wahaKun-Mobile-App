@@ -1,6 +1,7 @@
 import { Sparkles } from 'lucide-react-native';
 import { StyleSheet, View } from 'react-native';
 
+import { t } from '@/i18n';
 import { colors, radii, spacing } from '@/theme';
 
 import { Text } from './Text';
@@ -13,7 +14,6 @@ export type AiConfidenceChipProps = {
   isConfident: boolean;
 };
 
-const CAPTION = 'ثقة';
 const ICON_SIZE = 16;
 
 /** E-01's card only: green above the 80% threshold, amber below, and the only sub-threshold view. */
@@ -28,7 +28,7 @@ export function AiConfidenceChip({
     <View
       style={[styles.chip, isConfident ? styles.chipConfident : styles.chipLow]}
       accessibilityRole="text"
-      accessibilityLabel={`${diagnosis} — ${CAPTION} ${percent}%`}
+      accessibilityLabel={`${diagnosis} — ${t('common.confidencePercent', { percent })}`}
     >
       <Sparkles
         size={ICON_SIZE}
@@ -45,7 +45,7 @@ export function AiConfidenceChip({
       </Text>
 
       <Text variant="body12" color={isConfident ? 'primaryPressed' : 'warningText'}>
-        {`— ${CAPTION} ${percent}%`}
+        {`— ${t('common.confidencePercent', { percent })}`}
       </Text>
     </View>
   );
@@ -53,7 +53,7 @@ export function AiConfidenceChip({
 
 const styles = StyleSheet.create({
   chip: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[10],
     borderWidth: 1,

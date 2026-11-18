@@ -4,13 +4,11 @@ import { describeError } from '@/features/reports/errors';
 import type { ReportError } from '@/features/reports/errors';
 import { attempt } from '@/features/reports/lifecycle';
 import { useImagePicker } from '@/hooks/useImagePicker';
+import { t } from '@/i18n';
 
 import { expertApi } from '../services';
 
 import type { ExpertCaseDetail } from '../types';
-
-const LOAD_ERROR = 'تعذر تحميل الحالة';
-const SUBMIT_ERROR = 'تعذر تأكيد الحل، حاول مرة أخرى';
 
 /** E-04. Both the photo and the note are mandatory; useImagePicker already holds at most one. */
 export function useConfirmRepair(reportId: string) {
@@ -48,7 +46,7 @@ export function useConfirmRepair(reportId: string) {
       }
     } catch (err) {
       if (isMounted.current) {
-        setError(describeError(err, LOAD_ERROR));
+        setError(describeError(err, t('errors.case.loadFailed')));
       }
     } finally {
       if (isMounted.current) {
@@ -71,7 +69,7 @@ export function useConfirmRepair(reportId: string) {
     const result = attempt({ event: 'confirmRepair', actor: 'expert', facts: detail });
     if (!result.ok) {
       // D9: a refusal with no error left the button looking dead.
-      setSubmitError(describeError(result.refusal, SUBMIT_ERROR));
+      setSubmitError(describeError(result.refusal, t('errors.expert.confirmFailed')));
       return false;
     }
 
@@ -83,7 +81,7 @@ export function useConfirmRepair(reportId: string) {
       return true;
     } catch (err) {
       if (isMounted.current) {
-        setSubmitError(describeError(err, SUBMIT_ERROR));
+        setSubmitError(describeError(err, t('errors.expert.confirmFailed')));
       }
       return false;
     } finally {

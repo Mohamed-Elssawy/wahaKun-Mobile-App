@@ -1,6 +1,8 @@
 import type { LifecycleFacts } from '@/features/reports/lifecycle';
 import type { WirePriority } from '@/features/reports/severity';
 import type { ReportStatus, Severity } from '@/features/reports/types';
+import { t } from '@/i18n';
+import type { TranslationKey } from '@/i18n';
 import type { PickedImage } from '@/types/image';
 
 /** E-01's card. LifecycleFacts is spread in, so expertCtaFor needs no adapter. */
@@ -38,27 +40,54 @@ export type ExpertCaseDetail = ExpertCaseSummary & {
   repair?: ExpertRepair;
 };
 
-/** §8.3's six fixed E-03 slots, identical every day - availability is never modelled. */
-export const SCHEDULE_SLOTS = [
-  '7:00 ص',
-  '9:00 ص',
-  '11:00 ص',
-  '1:00 م',
-  '3:00 م',
-  '5:00 م',
-] as const;
+/** §8.3's six fixed E-03 slots. These are ids, not labels - the Arabic label used to be the union member, so translating it broke the lookups keyed by it. */
+export const SCHEDULE_SLOTS = ['0700', '0900', '1100', '1300', '1500', '1700'] as const;
 
 export type ScheduleSlot = (typeof SCHEDULE_SLOTS)[number];
 
-/** §8.3's E-03 reschedule-only chips. `أخرى` alone takes the free-text note. */
+/** Keys, not resolved strings: this table is module scope, and a `t()` call at import time would freeze the boot locale before §16.2 resolves it. */
+const SLOT_LABEL_KEYS = {
+  '0700': 'e03.slot.0700',
+  '0900': 'e03.slot.0900',
+  '1100': 'e03.slot.1100',
+  '1300': 'e03.slot.1300',
+  '1500': 'e03.slot.1500',
+  '1700': 'e03.slot.1700',
+} as const satisfies Record<ScheduleSlot, TranslationKey>;
+
+/** The conversion, written explicitly at the one boundary where a slot becomes readable. */
+export function slotLabel(slot: ScheduleSlot): string {
+  return t(SLOT_LABEL_KEYS[slot]);
+}
+
+/**
+ * §8.3's E-03 reschedule-only chips, as ids for the same reason as the slots. `other` alone
+ * takes the free-text note, and that comparison is why this one could not stay a label:
+ * `scripts/i18n-wire.js` pinned `أخرى` out of every catalogue precisely because translating
+ * the chip would have stopped the sentinel matching, leaving the form accepting an empty reason.
+ */
 export const RESCHEDULE_REASON_CHIPS = [
-  'ظروف الطقس',
-  'طارئ في حالة أخرى',
-  'بطلب من المزارع',
-  'أخرى',
+  'weather',
+  'emergency',
+  'farmerRequest',
+  'other',
 ] as const;
 
 export type RescheduleReasonChip = (typeof RESCHEDULE_REASON_CHIPS)[number];
+
+/** The sentinel, named once so that no comparison anywhere has to spell it. */
+export const OTHER_REASON: RescheduleReasonChip = 'other';
+
+const REASON_LABEL_KEYS = {
+  weather: 'e03.reason.weather',
+  emergency: 'e03.reason.emergency',
+  farmerRequest: 'e03.reason.farmerRequest',
+  other: 'e03.reason.other',
+} as const satisfies Record<RescheduleReasonChip, TranslationKey>;
+
+export function reasonLabel(chip: RescheduleReasonChip): string {
+  return t(REASON_LABEL_KEYS[chip]);
+}
 
 export type ExpertAppointment = {
   /** YYYY-MM-DD in the device's local calendar, matching `scheduleWindow`'s own dates. */

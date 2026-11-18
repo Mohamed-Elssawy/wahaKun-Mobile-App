@@ -2,17 +2,20 @@ import { useRef, useState } from 'react';
 import {
   FlatList,
   Image,
+  ScrollView,
   StyleSheet,
   TouchableOpacity,
   useWindowDimensions,
   View,
+  ImageSourcePropType,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
-  ImageSourcePropType,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button, Text } from '@/components/ui';
+import { isRTL, t } from '@/i18n';
+import type { TranslationKey } from '@/i18n';
 import type { ScreenProps } from '@/navigation/types';
 import { colors, screenPadding, spacing } from '@/theme';
 
@@ -24,12 +27,13 @@ import { BrandLockup } from '../../components/BrandLockup';
 import { SlideshowDots } from '../../components/SlideshowDots';
 import { markIntroSeen } from '../../services/firstRunStore';
 
-type Slide = { key: string; image: ImageSourcePropType; headline: string };
+/** headlineKey, not headline: this table is module scope and §16.2 resolves later. */
+type Slide = { key: string; image: ImageSourcePropType; headlineKey: TranslationKey };
 
 const SLIDES: Slide[] = [
-  { key: 'report', image: introOne, headline: 'بلّغ عن مشكلتك بالصوت أو الصورة' },
-  { key: 'expert', image: introTwo, headline: 'خبير معتمد يراجع ويحل المشكلة' },
-  { key: 'track', image: introThree, headline: 'تابع حالة بلاغك حتى إصلاح المشكلة' },
+  { key: 'report', image: introOne, headlineKey: 's01a.headline' },
+  { key: 'expert', image: introTwo, headlineKey: 's01b.headline' },
+  { key: 'track', image: introThree, headlineKey: 's01c.headline' },
 ];
 
 /** S-01a to S-01c. Shown once, on the first launch, before the Welcome decision. */
@@ -42,8 +46,22 @@ export default function IntroSlideshowScreen({
 
   const isLast = index === SLIDES.length - 1;
 
+  // W21: pages are read by physical position in the app's own direction; VirtualizedList's own RTL conversion uses the stale pre-boot I18nManager.isRTL (E7), so this uses isRTL() for this process instead.
+  const positionOf = (page: number) => (isRTL() ? SLIDES.length - 1 - page : page);
+
   const handleMomentumEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    setIndex(Math.round(event.nativeEvent.contentOffset.x / width));
+    const position = Math.round(event.nativeEvent.contentOffset.x / width);
+    const page = positionOf(Math.min(Math.max(position, 0), SLIDES.length - 1));
+
+    setIndex(page);
+  };
+
+  // Scrolls the raw ScrollView, not scrollToIndex, to skip the converted RTL frame; getScrollResponder() is typed as JSX (FlatList.js:391), hence the cast.
+  const scrollToPage = (page: number) => {
+    const scrollView =
+      listRef.current?.getScrollResponder() as unknown as ScrollView | null;
+
+    scrollView?.scrollTo({ x: positionOf(page) * width, animated: true });
   };
 
   const completeIntro = async () => {
@@ -56,7 +74,7 @@ export default function IntroSlideshowScreen({
     if (!isLast) {
       // Clamped: one swipe can fire onMomentumScrollEnd twice, so index can lag reality.
       const next = Math.min(index + 1, SLIDES.length - 1);
-      listRef.current?.scrollToIndex({ index: next, animated: true });
+      scrollToPage(next);
       return;
     }
 
@@ -67,7 +85,7 @@ export default function IntroSlideshowScreen({
   const handleSkip = completeIntro;
 
   const handleSelectSlide = (nextIndex: number) => {
-    listRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+    scrollToPage(nextIndex);
   };
 
   return (
@@ -77,11 +95,11 @@ export default function IntroSlideshowScreen({
         data={SLIDES}
         keyExtractor={slide => slide.key}
         horizontal
-        // inverted: slide one sits right and progress runs leftward, the way an Arabic reader turns a page.
-        inverted
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={handleMomentumEnd}
+        // Android's clipping computed the wrong side in RTL and left the far page blank (measured, E9); safe to disable since all three pages mount anyway.
+        removeClippedSubviews={false}
         getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
         renderItem={({ item }) => (
           // contain, not cover: Figma centres the artwork at full width over the ground.
@@ -98,22 +116,26 @@ export default function IntroSlideshowScreen({
         edges={['top', 'bottom']}
         pointerEvents="box-none"
       >
-        <BrandLockup />
-
-        <TouchableOpacity
-          onPress={handleSkip}
-          style={styles.skip}
-          accessibilityRole="button"
-          accessibilityLabel="تخطّي"
-        >
-          <Text variant="label14Bold" color="primary">
-            تخطّي
-          </Text>
-        </TouchableOpacity>
+        {/* C17: one row, as the frames draw it - the lockup at the start, a quiet Skip opposite. */}
+        <BrandLockup
+          trailing={
+            <TouchableOpacity
+              onPress={handleSkip}
+              style={styles.skip}
+              accessibilityRole="button"
+              accessibilityLabel={t('s01a.skip')}
+            >
+              <Text variant="label14" color="textSecondary">
+                {t('s01a.skip')}
+              </Text>
+            </TouchableOpacity>
+          }
+        />
 
         <View style={styles.footer}>
-          <Text variant="h3" color="primary" align="center">
-            {SLIDES[index].headline}
+          {/* C18: dark, and at the frames' narrower measure, so it breaks where they break it. */}
+          <Text variant="h3" color="textStrong" align="center" style={styles.headline}>
+            {t(SLIDES[index].headlineKey)}
           </Text>
 
           <View style={styles.controls}>
@@ -123,7 +145,7 @@ export default function IntroSlideshowScreen({
               onSelect={handleSelectSlide}
             />
             <Button
-              label={isLast ? 'ابدأ استخدام التطبيق' : 'التالي'}
+              label={isLast ? t('s01c.cta') : t('common.next')}
               onPress={handleNext}
               showArrow
             />
@@ -151,11 +173,13 @@ const styles = StyleSheet.create({
     left: 0,
     justifyContent: 'space-between',
   },
-  // Absolute, not a row with BrandLockup: that component is shared with S-02, which has no skip.
+  // Padding is the touch target here, sized to match the frames' 52dp Skip inset.
   skip: {
-    position: 'absolute',
-    top: spacing[56],
-    left: screenPadding,
+    paddingHorizontal: spacing[24],
+    paddingVertical: spacing[12],
+  },
+  headline: {
+    paddingHorizontal: spacing[16],
   },
   footer: {
     gap: spacing[40],

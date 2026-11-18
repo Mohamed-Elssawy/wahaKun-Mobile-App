@@ -1,4 +1,4 @@
-import { Clock } from 'lucide-react-native';
+import { Clock, Send } from 'lucide-react-native';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -19,6 +19,7 @@ import { ReportHeader } from '@/features/reports/components/ReportHeader';
 import { formatReportReference } from '@/features/reports/format';
 import { formatRelativeTime } from '@/features/reports/relativeTime';
 import { describeSeverity } from '@/features/reports/severity';
+import { t } from '@/i18n';
 import type { ScreenProps } from '@/navigation/types';
 import { colors, radii, screenPadding, spacing } from '@/theme';
 
@@ -29,15 +30,10 @@ import { ScheduleReasonChips } from '../../components/ScheduleReasonChips';
 import { ScheduleSlots } from '../../components/ScheduleSlots';
 import { useScheduleRepair } from '../../hooks/useScheduleRepair';
 import { formatSlotDay } from '../../scheduleWindow';
+import { slotLabel } from '../../types';
 
-const TITLE = 'جدولة الإصلاح';
-const DAY_LABEL = 'يوم الإصلاح';
-const CURRENT_APPOINTMENT_LABEL = 'الموعد الحالي';
-const NOTE_LABEL = 'ملاحظة للمزارع (اختياري)';
-const NOTE_PLACEHOLDER = 'أي تعليمات للمزارع قبل الإصلاح...';
-const PRIMARY_LABEL = '✈ تأكيد الجدولة و إشعار المزارع';
-const RESCHEDULE_PRIMARY_LABEL = '✈ تأكيد إعادة الجدولة و إشعار المزارع';
-const LOAD_ERROR_TITLE = 'تعذر تحميل الحالة';
+/** Matches C45's secondary glyphs, which are the only other icons inside a Button. */
+const CTA_ICON = 20;
 
 /** E-03, node 4/5. schedule.isReschedule tells a reschedule from a first scheduling. */
 export default function ExpertScheduleScreen({
@@ -58,11 +54,13 @@ export default function ExpertScheduleScreen({
   if (schedule.error || !schedule.detail) {
     return (
       <View style={styles.screen}>
-        <ReportHeader title={TITLE} onBack={navigation.goBack} />
+        <ReportHeader title={t('expert.scheduleRepair')} onBack={navigation.goBack} />
         <View style={styles.body}>
           <ReportErrorView
-            error={schedule.error ?? { kind: 'unknown', message: LOAD_ERROR_TITLE }}
-            unknownTitle={LOAD_ERROR_TITLE}
+            error={
+              schedule.error ?? { kind: 'unknown', message: t('errors.case.loadFailed') }
+            }
+            unknownTitle={t('errors.case.loadFailed')}
             onRetry={schedule.retry}
           />
         </View>
@@ -85,19 +83,21 @@ export default function ExpertScheduleScreen({
       style={styles.screen}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ReportHeader title={TITLE} onBack={navigation.goBack} />
+      <ReportHeader title={t('expert.scheduleRepair')} onBack={navigation.goBack} />
 
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
+        {/* C71/SPEC 376: trailing chevron opens E-07's full report, an edge SPEC 232's chain omits, added per Islam's ruling in E10. */}
         <ReportSummaryCard
           title={detail.title}
           reference={formatReportReference(detail.reportId)}
           timeLabel={formatRelativeTime(detail.createdAt)}
           borderColor={severity.color}
           photoUrl={detail.photoUrl}
+          onPress={() => navigation.navigate('ExpertIssueDetails', { reportId })}
         />
 
         <ExpertStepper current={2} />
@@ -108,17 +108,16 @@ export default function ExpertScheduleScreen({
             <Text
               variant="label14"
               color="primaryPressed"
-              align="right"
               style={styles.currentAppointmentText}
             >
-              {`${CURRENT_APPOINTMENT_LABEL}: ${formatSlotDay(detail.appointment.date)} — ${detail.appointment.slot}`}
+              {`${t('e03.currentAppointment')}: ${formatSlotDay(detail.appointment.date)} — ${slotLabel(detail.appointment.slot)}`}
             </Text>
           </View>
         ) : null}
 
         <View style={styles.dayBlock}>
-          <Text variant="h5" color="textSecondary" align="right">
-            {DAY_LABEL}
+          <Text variant="h5" color="textSecondary">
+            {t('e03.dayLabel')}
           </Text>
           <ScheduleCalendar
             initialMonth={
@@ -136,7 +135,9 @@ export default function ExpertScheduleScreen({
 
         {schedule.selectedDate ? (
           <ScheduleSlots
-            label={`اختر موعداً — ${formatSlotDay(schedule.selectedDate)}`}
+            label={t('e03.slotHeading', {
+              selectedDate: formatSlotDay(schedule.selectedDate),
+            })}
             value={schedule.selectedSlot}
             onChange={schedule.setSelectedSlot}
           />
@@ -157,8 +158,8 @@ export default function ExpertScheduleScreen({
         />
 
         <TextField
-          label={NOTE_LABEL}
-          placeholder={NOTE_PLACEHOLDER}
+          label={t('expert.noteToFarmer')}
+          placeholder={t('expert.noteToFarmerPlaceholder')}
           value={schedule.noteToFarmer}
           onChangeText={schedule.setNoteToFarmer}
           multiline
@@ -169,13 +170,18 @@ export default function ExpertScheduleScreen({
         {schedule.submitError ? (
           <ReportErrorView
             error={schedule.submitError}
-            unknownTitle="تعذر تأكيد الجدولة"
+            unknownTitle={t('e03.confirmErrorTitle')}
             onRetry={handleSubmit}
           />
         ) : null}
 
+        {/* C74: paper-plane icon trails, matching E-02's arrow and the original Arabic frames for E-03/E-04. */}
         <Button
-          label={schedule.isReschedule ? RESCHEDULE_PRIMARY_LABEL : PRIMARY_LABEL}
+          label={
+            schedule.isReschedule ? t('e03.reschedulePrimaryCta') : t('e03.primaryCta')
+          }
+          icon={<Send size={CTA_ICON} color={colors.textInverse} />}
+          iconTrails
           onPress={handleSubmit}
           disabled={!schedule.canSubmit}
           loading={schedule.isSubmitting}
@@ -209,7 +215,7 @@ const styles = StyleSheet.create({
     gap: spacing[8],
   },
   currentAppointment: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[8],
     padding: spacing[12],
@@ -220,7 +226,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   noteInput: {
-    textAlign: 'right',
     minHeight: 72,
     textAlignVertical: 'top',
   },

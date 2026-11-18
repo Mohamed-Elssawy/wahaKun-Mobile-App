@@ -53,6 +53,15 @@ export const SEED_NOTIFICATIONS_FARMER: readonly NotificationItem[] = [
     isRead: false,
     destination: { screen: 'ReportTracker', reportId: '1043' },
   },
+  // §12.1's last missing template (n-f-08/n-f-09 are the other two); with this row S-06 walks every destination in §8.1's table.
+  {
+    id: 'n-f-05b',
+    type: 'scheduling',
+    title: 'تم تغيير موعد الإصلاح لبلاغك #1041 — الخميس، 15 يونيو، 11 ص',
+    createdAt: daysAgoAt(1, 16, 5),
+    isRead: false,
+    destination: { screen: 'ReportTracker', reportId: '1041' },
+  },
   {
     id: 'n-f-06',
     type: 'confirmationRequest',

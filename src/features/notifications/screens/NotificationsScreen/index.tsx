@@ -3,6 +3,7 @@ import { ActivityIndicator, SectionList, StyleSheet, View } from 'react-native';
 
 import { BackHeader, EmptyState } from '@/components/ui';
 import { ReportErrorView } from '@/features/reports/components/ReportErrorView';
+import { t } from '@/i18n';
 import type { ScreenProps } from '@/navigation/types';
 import { colors, screenPadding, spacing } from '@/theme';
 
@@ -12,11 +13,6 @@ import { useNotifications } from '../../hooks/useNotifications';
 import { groupNotifications } from '../../time';
 
 import type { NotificationDestination, NotificationItem } from '../../types';
-
-const TITLE = 'الإشعارات';
-const EMPTY_TITLE = 'لا توجد إشعارات في الوقت الحالي';
-const EMPTY_MESSAGE = 'ستظهر هنا جميع الإشعارات.';
-const LOAD_ERROR_TITLE = 'تعذر تحميل الإشعارات';
 
 /** S-06. A plain root-stack push, which shows no tab bar and so satisfies §4.3 already. */
 export default function NotificationsScreen({
@@ -34,13 +30,14 @@ export default function NotificationsScreen({
     isEmpty,
   } = useNotifications();
 
+  // Tab destinations go back to the shell already under this screen; navigate would push a second copy.
   const goTo = (destination: NotificationDestination) => {
     switch (destination.screen) {
       case 'OasisMap':
-        navigation.navigate('Home', { screen: 'OasisMap' });
+        navigation.popTo('Home', { screen: 'OasisMap' });
         return;
       case 'ExpertInbox':
-        navigation.navigate('ExpertHome', { screen: 'ExpertInbox' });
+        navigation.popTo('ExpertHome', { screen: 'ExpertInbox' });
         return;
       case 'ReportTracker':
         navigation.navigate('ReportTracker', { reportId: destination.reportId });
@@ -70,7 +67,7 @@ export default function NotificationsScreen({
         <View style={styles.fallback}>
           <ReportErrorView
             error={error}
-            unknownTitle={LOAD_ERROR_TITLE}
+            unknownTitle={t('s06.loadErrorTitle')}
             onRetry={retry}
           />
         </View>
@@ -88,7 +85,11 @@ export default function NotificationsScreen({
     if (isEmpty) {
       return (
         <View style={styles.fallback}>
-          <EmptyState icon={Bell} title={EMPTY_TITLE} message={EMPTY_MESSAGE} />
+          <EmptyState
+            icon={Bell}
+            title={t('s06.emptyTitle')}
+            message={t('s06.emptyBody')}
+          />
         </View>
       );
     }
@@ -124,7 +125,7 @@ export default function NotificationsScreen({
 
   return (
     <View style={styles.screen}>
-      <BackHeader title={TITLE} onBack={() => navigation.goBack()} />
+      <BackHeader title={t('common.notifications')} onBack={() => navigation.goBack()} />
       {renderBody()}
     </View>
   );

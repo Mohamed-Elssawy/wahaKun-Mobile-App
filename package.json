@@ -8,6 +8,9 @@
     "start": "react-native start",
     "postinstall": "node scripts/setup-env.js && node scripts/install-hooks.js",
     "setup:env": "node scripts/setup-env.js",
+    "i18n:check": "node scripts/i18n-check.js",
+    "i18n:extract": "node scripts/i18n-extract.js",
+    "i18n:deck": "node scripts/i18n-deck.js",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
@@ -16,7 +19,8 @@
     "test": "jest",
     "test:flags": "jest src/config/__tests__/env.test.ts",
     "verify": "npm run test:flags && npm run typecheck && npm run lint && npm test",
-    "tokens:figma": "node scripts/gen-figma-tokens.js"
+    "tokens:figma": "node scripts/gen-figma-tokens.js",
+    "figma:plugin": "node scripts/gen-figma-i18n-plugin.js"
   },
   "dependencies": {
     "@gorhom/bottom-sheet": "^5.2.14",
@@ -40,6 +44,7 @@
     "react-native-nitro-modules": "^0.36.5",
     "react-native-nitro-sound": "^0.2.20",
     "react-native-reanimated": "^4.5.1",
+    "react-native-restart": "^0.0.29",
     "react-native-safe-area-context": "^5.8.0",
     "react-native-screens": "^4.25.2",
     "react-native-svg": "^15.15.5",

@@ -25,7 +25,7 @@ export function IssueMetaLine({ icons, labels }: IssueMetaLineProps) {
 
         return (
           <View key={index} style={styles.pair}>
-            {/* Leading, so row-reverse puts the glyph to the right of its label. */}
+            {/* Leading, so the glyph takes the start edge beside its label. */}
             <Icon size={ICON_SIZE} color={colors.textMuted} />
             <Text variant="label12" color="textMuted">
               {label}
@@ -39,12 +39,12 @@ export function IssueMetaLine({ icons, labels }: IssueMetaLineProps) {
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[16],
   },
   pair: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[4],
   },

@@ -1,9 +1,10 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { Text } from '@/components/ui';
-import { MONTHS, SHORT_WEEKDAYS } from '@/features/reports/relativeTime';
+import { formatMonthYear, shortWeekdays } from '@/features/reports/relativeTime';
+import { t } from '@/i18n';
+import { BackIcon, ForwardIcon } from '@/i18n/icons';
 import { colors, radii, spacing } from '@/theme';
 
 import { dateKey } from '../scheduleWindow';
@@ -59,28 +60,28 @@ export function ScheduleCalendar({
         <TouchableOpacity
           onPress={() => setMonth(current => addMonths(current, -1))}
           accessibilityRole="button"
-          accessibilityLabel="الشهر السابق"
+          accessibilityLabel={t('e03.prevMonth')}
           hitSlop={hitSlop}
         >
-          <ChevronRight size={20} color={colors.textPrimary} />
+          <BackIcon size={20} color={colors.textPrimary} />
         </TouchableOpacity>
 
-        <Text variant="h5">{`${MONTHS[month.getMonth()]} ${month.getFullYear()}`}</Text>
+        <Text variant="h5">{formatMonthYear(month)}</Text>
 
         <TouchableOpacity
           onPress={() => setMonth(current => addMonths(current, 1))}
           accessibilityRole="button"
-          accessibilityLabel="الشهر التالي"
+          accessibilityLabel={t('e03.nextMonth')}
           hitSlop={hitSlop}
         >
-          <ChevronLeft size={20} color={colors.textPrimary} />
+          <ForwardIcon size={20} color={colors.textPrimary} />
         </TouchableOpacity>
       </View>
 
       <View style={styles.weekRow}>
-        {SHORT_WEEKDAYS.map(day => (
+        {shortWeekdays().map((day, index) => (
           <Text
-            key={day}
+            key={index}
             variant="label12"
             color="textSecondary"
             align="center"
@@ -152,12 +153,12 @@ const styles = StyleSheet.create({
     padding: spacing[16],
   },
   nav: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   weekRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
   },
   weeks: {
     gap: spacing[4],

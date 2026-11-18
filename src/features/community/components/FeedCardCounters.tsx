@@ -13,6 +13,7 @@ import { StatusChip, Text } from '@/components/ui';
 import { describeWireStatus } from '@/features/reports/lifecycle';
 import type { StatusIconToken } from '@/features/reports/lifecycle';
 import type { ReportStatus } from '@/features/reports/types';
+import { t } from '@/i18n';
 import { colors, spacing } from '@/theme';
 
 import type { LucideIcon } from 'lucide-react-native';
@@ -54,7 +55,7 @@ export function FeedCardCounters({
       <StatusChip
         icon={STATUS_ICONS[icon]}
         label={label}
-        accessibilityLabel={`حالة البلاغ: ${label}`}
+        accessibilityLabel={t('f01.statusA11y', { label })}
       />
 
       <View style={styles.counters}>
@@ -64,7 +65,7 @@ export function FeedCardCounters({
           onPress={onOpenComments}
           hitSlop={TOUCH_PADDING}
           accessibilityRole="button"
-          accessibilityLabel={`التعليقات: ${commentCount}`}
+          accessibilityLabel={t('f01.commentsA11y', { commentCount })}
         >
           <MessageCircle size={ICON_SIZE} color={colors.textSecondary} />
           <Text variant="label16" color="textSecondary">
@@ -77,7 +78,7 @@ export function FeedCardCounters({
           onPress={onShare}
           hitSlop={TOUCH_PADDING}
           accessibilityRole="button"
-          accessibilityLabel={`مشاركة البلاغ: ${shareCount}`}
+          accessibilityLabel={t('f01.sharesA11y', { shareCount })}
         >
           <Share2 size={ICON_SIZE} color={colors.textSecondary} />
           <Text variant="label16" color="textSecondary">
@@ -91,11 +92,13 @@ export function FeedCardCounters({
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  // Pinned, not mirrored: F-01 draws icon-then-count left to right in Arabic too, its natural English order.
   counters: {
+    direction: 'ltr',
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[16],

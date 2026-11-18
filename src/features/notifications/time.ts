@@ -1,5 +1,12 @@
 // The three formats S-06's frames draw; today reuses formatRelativeTime verbatim.
-import { formatRelativeTime, MONTHS, WEEKDAYS } from '@/features/reports/relativeTime';
+import {
+  formatCalendarDate,
+  formatRelativeTime,
+  formatYesterdayAt,
+  yesterdayLabel,
+} from '@/features/reports/relativeTime';
+import { t } from '@/i18n';
+import type { TranslationKey } from '@/i18n';
 
 import type { NotificationItem } from './types';
 
@@ -24,20 +31,6 @@ export function groupFor(iso: string, now: Date = new Date()): NotificationGroup
   return 'lastWeek';
 }
 
-/** 12-hour with no leading zero, and no weekday or month: the frame draws no date here. */
-function formatYesterday(date: Date): string {
-  const hour24 = date.getHours();
-  const period = hour24 < 12 ? 'ص' : 'م';
-  const hour12 = hour24 % 12 || 12;
-  const minute = String(date.getMinutes()).padStart(2, '0');
-  return `أمس، ${hour12}:${minute} ${period}`;
-}
-
-/** Weekday and date, deliberately no time: the الأسبوع الماضي rows never print one. */
-function formatLastWeek(date: Date): string {
-  return `${WEEKDAYS[date.getDay()]}، ${date.getDate()} ${MONTHS[date.getMonth()]}`;
-}
-
 /** Picked by the same calendar-day grouping as the section header, so the two cannot disagree. */
 export function formatNotificationTime(iso: string, now: Date = new Date()): string {
   const date = new Date(iso);
@@ -49,19 +42,24 @@ export function formatNotificationTime(iso: string, now: Date = new Date()): str
     case 'today':
       return formatRelativeTime(iso, now);
     case 'yesterday':
-      return formatYesterday(date);
+      return formatYesterdayAt(date);
     case 'lastWeek':
-      return formatLastWeek(date);
+      // Weekday and date, deliberately no time: the الأسبوع الماضي rows never print one.
+      return formatCalendarDate(date);
   }
 }
 
 const GROUP_ORDER: readonly NotificationGroup[] = ['today', 'yesterday', 'lastWeek'];
 
-const GROUP_LABEL: Record<NotificationGroup, string> = {
-  today: 'اليوم',
-  yesterday: 'أمس',
-  lastWeek: 'الأسبوع الماضي',
-};
+/** The last two of E3's seven local tables; yesterday is common.yesterday, shared with E-09. */
+const GROUP_LABEL_KEYS = {
+  today: 's06.group.today',
+  lastWeek: 's06.group.lastWeek',
+} as const satisfies Record<Exclude<NotificationGroup, 'yesterday'>, TranslationKey>;
+
+function groupLabel(group: NotificationGroup): string {
+  return group === 'yesterday' ? yesterdayLabel() : t(GROUP_LABEL_KEYS[group]);
+}
 
 export type NotificationSection = {
   group: NotificationGroup;
@@ -86,7 +84,7 @@ export function groupNotifications(
 
   return GROUP_ORDER.filter(group => buckets[group].length > 0).map(group => ({
     group,
-    title: GROUP_LABEL[group],
+    title: groupLabel(group),
     data: buckets[group],
   }));
 }

@@ -2,17 +2,12 @@ import { Camera, Mic, Sun, ZoomIn } from 'lucide-react-native';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { Button, Text } from '@/components/ui';
+import { t } from '@/i18n';
 import { colors, radii, screenPadding, spacing } from '@/theme';
 
 import WaterDropIcon from '@assets/icons/water-drop.svg';
 
 import { PhotoTipTile } from './PhotoTipTile';
-
-const TITLE = 'لم نتمكن من رؤية مشكلة واضحة في الصورة';
-const SUBTITLE = 'تأكد أن الصورة تُظهر مصدر المشكلة بوضوح';
-const REASSURANCE = 'لا بأس — لن نحفظ هذه المحاولة، وصورة أوضح ستكفي';
-const RETAKE = 'التقاط صورة أخرى';
-const USE_VOICE = 'أو صف المشكلة بصوتك بدلاً من ذلك';
 
 const HERO_SIZE = 100;
 const HERO_ICON_SIZE = 48;
@@ -25,15 +20,15 @@ const HERO_STROKE = 1.5;
 const TIP_STROKE = 1.75;
 
 export type UnrecognizedPhotoStateProps = {
-  /** The vision service's own Arabic reason and suggestion, when it sent one. */
-  reason?: string;
+  /** The vision service's own reason, never this screen's fallback copy — provenance, not text, decides. */
+  serverReason?: string;
   onRetakePhoto: () => void;
   onUseVoice: () => void;
 };
 
 /** F-03c. Not an error a retry fixes, so this shows what a readable photo looks like. */
 export function UnrecognizedPhotoState({
-  reason,
+  serverReason,
   onRetakePhoto,
   onUseVoice,
 }: UnrecognizedPhotoStateProps) {
@@ -52,14 +47,14 @@ export function UnrecognizedPhotoState({
 
           <View style={styles.copy}>
             <Text variant="h4" align="center">
-              {TITLE}
+              {t('errors.report.unreadable')}
             </Text>
             {/* N700, not the frame's N500, which is 2.9:1 on this background. */}
             <Text variant="label14" color="textSecondary" align="center">
-              {reason && reason !== TITLE ? reason : SUBTITLE}
+              {serverReason ?? t('f03c.subtitle')}
             </Text>
             <Text variant="label14" color="textSecondary" align="center">
-              {REASSURANCE}
+              {t('f03c.notSavedLine')}
             </Text>
           </View>
         </View>
@@ -74,7 +69,7 @@ export function UnrecognizedPhotoState({
                 color={colors.primaryPressed}
               />
             }
-            label="تسرب أو قناة أو أنبوب"
+            label={t('f03c.tip.leak')}
           />
           <PhotoTipTile
             icon={
@@ -84,7 +79,7 @@ export function UnrecognizedPhotoState({
                 color={colors.primaryPressed}
               />
             }
-            label="في ضوء جيد"
+            label={t('f03c.tip.light')}
           />
           <PhotoTipTile
             icon={
@@ -94,14 +89,14 @@ export function UnrecognizedPhotoState({
                 color={colors.primaryPressed}
               />
             }
-            label="وعن قرب"
+            label={t('f03c.tip.close')}
           />
         </View>
       </View>
 
       <View style={styles.actions}>
         <Button
-          label={RETAKE}
+          label={t('f03c.retakeCta')}
           onPress={onRetakePhoto}
           icon={<Camera size={BUTTON_ICON_SIZE} color={colors.textInverse} />}
         />
@@ -112,10 +107,10 @@ export function UnrecognizedPhotoState({
           onPress={onUseVoice}
           hitSlop={hitSlop}
           accessibilityRole="button"
-          accessibilityLabel={USE_VOICE}
+          accessibilityLabel={t('f03c.voiceInstead')}
         >
           <Text variant="label14" color="primary">
-            {USE_VOICE}
+            {t('f03c.voiceInstead')}
           </Text>
           <Mic size={LINK_ICON_SIZE} color={colors.primary} />
         </TouchableOpacity>
@@ -154,14 +149,14 @@ const styles = StyleSheet.create({
     gap: spacing[8],
   },
   tips: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     gap: spacing[16],
   },
   actions: {
     gap: spacing[10],
   },
   link: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing[4],

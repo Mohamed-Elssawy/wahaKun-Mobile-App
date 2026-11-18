@@ -179,3 +179,23 @@ jest.mock('@maplibre/maplibre-react-native', () => {
 
 // No test may reach the network; rejecting like a dead connection maps to client.ts's offline ApiError.
 global.fetch = jest.fn(() => Promise.reject(new TypeError('Network request failed')));
+
+// Tests assert the committed product, not the machine they run on. env.local.ts is gitignored
+// and holds per-developer overrides, and FORCE_LOCALE is the one that bites: it lands at module
+// init, so a developer who set it to photograph an English screen turns sixteen assertions in
+// five suites red - including the Arabic relative-time contract - and every one reads as a
+// regression. Only the locale is pinned; the host and gateway overrides stay as the machine has
+// them, which is what the wire tests already run against.
+jest.mock('./src/config/env.local', () => ({
+  ...jest.requireActual('./src/config/env.local'),
+  FORCE_LOCALE_OVERRIDE: null,
+}));
+
+// Linked natively and imported by src/i18n/relaunch.ts. Importing 0.0.29 does NOT throw under Jest
+// - it resolves a null TurboModule quietly - but calling restart() throws its linking error, which
+// is the relaunch screen's `absent` branch. A spy keeps a test that presses Restart on the path it
+// meant to exercise, and lets it assert the call.
+jest.mock('react-native-restart', () => ({
+  __esModule: true,
+  default: { restart: jest.fn(), Restart: jest.fn(), getReason: jest.fn() },
+}));

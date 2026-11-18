@@ -1,6 +1,7 @@
 import { MapPinOff } from 'lucide-react-native';
 
 import { StateScreen } from '@/components/ui';
+import { t } from '@/i18n';
 
 export type LocationPermissionDeniedProps = {
   onOpenSettings: () => void;
@@ -13,9 +14,9 @@ export function LocationPermissionDenied({
   return (
     <StateScreen
       icon={MapPinOff}
-      title="لا يمكن الوصول إلى موقعك"
-      message="فعّل إذن الموقع من الإعدادات لكي نتمكّن من الوصول لموقعك و حل مشكلتك."
-      action={{ label: 'فتح الإعدادات', onPress: onOpenSettings }}
+      title={t('x05.title')}
+      message={t('x05.body')}
+      action={{ label: t('common.openSettings'), onPress: onOpenSettings }}
     />
   );
 }

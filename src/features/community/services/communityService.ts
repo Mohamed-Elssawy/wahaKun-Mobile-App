@@ -7,6 +7,7 @@ import {
   getUserDetails,
   resolveProfilePictureUrl,
 } from '@/features/user/services/userService';
+import { t } from '@/i18n';
 
 import * as hub from './communityHub';
 import * as mock from './communityService.mock';
@@ -23,8 +24,6 @@ import type {
 
 const BASE = API_BASE_URLS.community;
 
-const UNKNOWN_AUTHOR = 'مزارع من الواحة';
-
 /** Issue ids are Guids; the seed's `i-1043` style ids would bind to nothing and come back 400. */
 const GUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -39,20 +38,20 @@ const authorCache = new Map<string, Promise<Author>>();
 
 function resolveAuthor(userId: string): Promise<Author> {
   if (!userId || userId === '00000000-0000-0000-0000-000000000000') {
-    return Promise.resolve({ name: UNKNOWN_AUTHOR });
+    return Promise.resolve({ name: t('common.unknownAuthor') });
   }
 
   let pending = authorCache.get(userId);
   if (!pending) {
     pending = getUserDetails(userId)
       .then(user => ({
-        name: user.fullName || UNKNOWN_AUTHOR,
+        name: user.fullName || t('common.unknownAuthor'),
         picture: user.picture ? resolveProfilePictureUrl(user.picture) : undefined,
       }))
       .catch(() => {
         // A missing name must not empty the thread; forget the failure so a later load retries.
         authorCache.delete(userId);
-        return { name: UNKNOWN_AUTHOR };
+        return { name: t('common.unknownAuthor') };
       });
     authorCache.set(userId, pending);
   }
@@ -73,7 +72,7 @@ function toComment(wire: CommentEventWire, author: Author | undefined): Comment 
     id: wire.id,
     issueId: wire.issueId,
     authorId: wire.userId,
-    authorName: author?.name ?? UNKNOWN_AUTHOR,
+    authorName: author?.name ?? t('common.unknownAuthor'),
     authorPicture: author?.picture,
     // UserDetailsResponse has no role, so the خبير معتمد badge can never be earned yet.
     isExpert: false,

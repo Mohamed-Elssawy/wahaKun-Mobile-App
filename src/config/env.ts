@@ -1,6 +1,12 @@
 import { Platform } from 'react-native';
 
-import { API_GATEWAY_URL_OVERRIDE, API_MODE_OVERRIDE, HOST_OVERRIDE } from './env.local';
+import {
+  API_GATEWAY_URL_OVERRIDE,
+  API_MODE_OVERRIDE,
+  FORCE_LANGUAGE_FAILURE_OVERRIDE,
+  FORCE_LOCALE_OVERRIDE,
+  HOST_OVERRIDE,
+} from './env.local';
 
 export type ApiMode = 'gateway' | 'direct';
 
@@ -91,6 +97,9 @@ export const USE_MOCK_TRACKER = DEMO_MODE || false;
 /** Seeded feed. CommunityService has no feed endpoint, and the MapService fallback has no author or counts. */
 export const USE_MOCK_COMMUNITY = DEMO_MODE || true;
 
+/** On under DEMO_MODE: map was the one feature the master switch didn't reach, and F-05's marker states need fixture control. */
+export const USE_MOCK_MAP = DEMO_MODE || false;
+
 /** A signed-in farmer with no AuthService. Without it DEMO_MODE has no identity to show. */
 export const USE_MOCK_USER = DEMO_MODE || false;
 
@@ -122,6 +131,18 @@ export const USE_MOCK_EXPERT_CHATS = DEMO_MODE || true;
 
 /** On by backend gap: NotificationService has no route the app has ever found. */
 export const USE_MOCK_NOTIFICATIONS = DEMO_MODE || true;
+
+/** §16.1's two locales, plus the pseudo-locale that exposes clipping and untranslated strings. */
+export type ForcedLocale = 'ar' | 'en' | 'pseudo';
+
+// Set in the gitignored env.local.ts; L-DEFAULT pins the committed fallback null, never a committed "en".
+export const FORCE_LOCALE: ForcedLocale | null = FORCE_LOCALE_OVERRIDE ?? null;
+
+/** S-12's three failure states have no USE_MOCK_* to flip; set these in env.local.ts instead, like FORCE_LOCALE_OVERRIDE. */
+export type ForcedLanguageFailure = 'persist' | 'relaunchThrows' | 'relaunchSilent';
+
+export const FORCE_LANGUAGE_FAILURE: ForcedLanguageFailure | null =
+  FORCE_LANGUAGE_FAILURE_OVERRIDE ?? null;
 
 /** Which state every mock serves, so loading, empty and error can be walked on a device. */
 export type MockScenario = 'content' | 'empty' | 'error' | 'slow';

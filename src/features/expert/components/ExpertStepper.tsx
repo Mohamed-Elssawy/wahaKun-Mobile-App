@@ -2,6 +2,8 @@ import { Check } from 'lucide-react-native';
 import { StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/ui';
+import { t } from '@/i18n';
+import type { TranslationKey } from '@/i18n';
 import { colors, radii, spacing } from '@/theme';
 
 /** A view of canonical nodes 3-6, not a second state machine; 5 is E-06's closed state. */
@@ -11,23 +13,32 @@ export type ExpertStepperProps = {
   current: ExpertStepNode;
 };
 
-const LABELS: readonly string[] = ['مراجعة', 'الجدولة', 'تأكيد الحل', 'تأكيد المزارع'];
+/** Node 1 reuses `f07.tab.review` rather than minting an `e02.*` twin: it's the same Arabic string as F-07/E-01, and a twin would double-maintain one English behind it. */
+const LABEL_KEYS: readonly TranslationKey[] = [
+  'f07.tab.review',
+  'expert.step.schedule',
+  'expert.step.confirmRepair',
+  'expert.step.farmerConfirm',
+];
 
 const DOT_SIZE = 42;
 const CHECK_SIZE = 24;
 const RAIL_HEIGHT = 2;
+/** Measured on E-05: a 42dp ring, 2dp stroke, and a solid disc of this across the middle. */
+const CURRENT_DOT_SIZE = 22;
 
 /** Right to left, mirroring ReportStatusTrack with a third current state it never needed. */
 export function ExpertStepper({ current }: ExpertStepperProps) {
   return (
     <View style={styles.track} accessibilityRole="progressbar">
-      {LABELS.map((label, index) => {
+      {LABEL_KEYS.map((labelKey, index) => {
         const node = (index + 1) as ExpertStepNode;
         const isDone = node < current;
         const isCurrent = node === current;
+        const label = t(labelKey);
 
         return (
-          <View key={label} style={styles.step}>
+          <View key={labelKey} style={styles.step}>
             <View style={styles.dotRow}>
               <View
                 style={[
@@ -44,19 +55,22 @@ export function ExpertStepper({ current }: ExpertStepperProps) {
                 ]}
               >
                 {isDone ? <Check size={CHECK_SIZE} color={colors.textInverse} /> : null}
+                {/* C70: the current node is a ring around a filled centre, not a bare ring. */}
+                {isCurrent ? <View style={styles.dotCurrentCore} /> : null}
               </View>
               <View
                 style={[
                   styles.rail,
                   node < current - 1 && styles.railDone,
-                  index === LABELS.length - 1 && styles.railHidden,
+                  index === LABEL_KEYS.length - 1 && styles.railHidden,
                 ]}
               />
             </View>
 
+            {/* Reached nodes, done or current, are green; only nodes still ahead are grey. */}
             <Text
               variant="label12"
-              color={isCurrent ? 'primary' : isDone ? 'textPrimary' : 'textSecondary'}
+              color={node <= current ? 'primary' : 'textSecondary'}
               align="center"
             >
               {label}
@@ -70,7 +84,7 @@ export function ExpertStepper({ current }: ExpertStepperProps) {
 
 const styles = StyleSheet.create({
   track: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'flex-start',
   },
   step: {
@@ -79,7 +93,7 @@ const styles = StyleSheet.create({
     gap: spacing[8],
   },
   dotRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'stretch',
   },
@@ -110,5 +124,11 @@ const styles = StyleSheet.create({
   },
   dotCurrent: {
     borderColor: colors.primary,
+  },
+  dotCurrentCore: {
+    width: CURRENT_DOT_SIZE,
+    height: CURRENT_DOT_SIZE,
+    borderRadius: radii.pill,
+    backgroundColor: colors.primary,
   },
 });

@@ -15,10 +15,10 @@ const ICON_SIZE = 16;
 /** §5.4's inline register, which the design never drew. TextField renders it under the box. */
 export function InlineFieldError({ message }: InlineFieldErrorProps) {
   return (
-    // row-reverse: Figma draws this row LTR, but the message it carries is Arabic.
+    // The glyph leads the message, and direction decides which edge that is.
     <View style={styles.row}>
       <AlertCircle size={ICON_SIZE} color={colors.error} />
-      <Text variant="label12Bold" color="errorText" align="right" style={styles.message}>
+      <Text variant="label12Bold" color="errorText" style={styles.message}>
         {message}
       </Text>
     </View>
@@ -27,7 +27,7 @@ export function InlineFieldError({ message }: InlineFieldErrorProps) {
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[4],
   },

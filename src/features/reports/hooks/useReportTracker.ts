@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { t } from '@/i18n';
+
 import { describeError } from '../errors';
 import { useResolutionAction } from './useResolutionAction';
 import { reportApi } from '../services';
@@ -8,8 +10,6 @@ import { buildTrackerView, reopenedMarker } from '../trackerView';
 
 import type { ReportError } from '../errors';
 import type { Report, ReportTrackerDetails } from '../types';
-
-const LOAD_ERROR = 'تعذر تحميل مسار البلاغ، حاول مرة أخرى';
 
 /** F-06. Takes an id, not a report: the route param stays serialisable. */
 export function useReportTracker(reportId: string) {
@@ -44,7 +44,7 @@ export function useReportTracker(reportId: string) {
       }
     } catch (err) {
       if (isMounted.current) {
-        setError(describeError(err, LOAD_ERROR));
+        setError(describeError(err, t('errors.tracker.loadFailed')));
       }
     } finally {
       if (isMounted.current) {

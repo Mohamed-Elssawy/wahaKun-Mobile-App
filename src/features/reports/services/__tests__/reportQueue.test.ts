@@ -359,7 +359,8 @@ describe('delivery', () => {
 
     const [item] = getQueueSnapshot().items;
     expect(item.failureKind).toBe('unrecognized');
-    expect(item.failureMessage).toBe('الصورة لا تظهر مشكلة ري واضحة');
+    // The server's own text, raw: this used to pass without the full stop because it stored this app's PHOTO_NOT_IRRIGATION copy, not the server's reason.
+    expect(item.serverMessage).toBe('الصورة لا تظهر مشكلة ري واضحة.');
   });
 
   // AI or MinIO down is not the farmer's fault: keep the report and retry later.
@@ -374,7 +375,9 @@ describe('delivery', () => {
     const [item] = getQueueSnapshot().items;
     expect(item.state).toBe('queued');
     expect(item.attempts).toBe(1);
-    expect(item.lastError).toBeTruthy();
+    // Nothing resolved is kept: the row says why it waits from its kind and its attempts, and
+    // the sentence it used to store was frozen in whichever locale the failure happened in.
+    expect(item.serverMessage).toBeUndefined();
   });
 });
 
@@ -400,6 +403,33 @@ describe('persistence', () => {
       expect.objectContaining({ description: 'queued overnight' }),
     );
     expect(getQueueSnapshot().items).toHaveLength(0);
+  });
+
+  // E4.1: an older build's index holds two resolved sentences this build can't re-translate, so it drops them and resolves from failureKind.
+  it('drops the resolved copy an older build stored', async () => {
+    asyncStorage.__store.set(
+      'wk.queue.index',
+      JSON.stringify([
+        {
+          localId: 'q-legacy',
+          state: 'failed',
+          attempts: 1,
+          nextAttemptAt: 0,
+          createdAt: new Date().toISOString(),
+          failureKind: 'unrecognized',
+          failureMessage: 'لم نتمكن من رؤية مشكلة واضحة في الصورة',
+          lastError: 'تحقق من اتصالك وحاول مرة أخرى',
+        },
+      ]),
+    );
+
+    await simulateRestart();
+
+    const [restored] = getQueueSnapshot().items;
+    expect(restored.localId).toBe('q-legacy');
+    expect(restored.failureKind).toBe('unrecognized');
+    expect(restored).not.toHaveProperty('failureMessage');
+    expect(restored).not.toHaveProperty('lastError');
   });
 
   it('re-queues an item a kill left mid-upload', async () => {

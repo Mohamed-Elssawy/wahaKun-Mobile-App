@@ -2,6 +2,7 @@ import { Mic } from 'lucide-react-native';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { Text } from '@/components/ui';
+import { t } from '@/i18n';
 import { colors, radii, spacing } from '@/theme';
 
 const BUTTON_SIZE = 90;
@@ -19,12 +20,12 @@ export function VoiceRecordButton({ onPress }: VoiceRecordButtonProps) {
         style={styles.button}
         onPress={onPress}
         accessibilityRole="button"
-        accessibilityLabel="اضغط للتسجيل"
+        accessibilityLabel={t('common.tapToRecord')}
       >
         <Mic size={32} color={colors.textInverse} />
       </TouchableOpacity>
       <Text variant="label16" color="textSecondary" align="center">
-        اضغط للتسجيل
+        {t('common.tapToRecord')}
       </Text>
     </View>
   );

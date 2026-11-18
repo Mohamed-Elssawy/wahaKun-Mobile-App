@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 
+import { t } from '@/i18n';
 import type { PickedImage } from '@/types/image';
 
 import type { ImagePickerResponse } from 'react-native-image-picker';
@@ -20,8 +21,8 @@ export function useImagePicker() {
     if (response.errorCode) {
       setError(
         response.errorCode === 'permission'
-          ? 'يرجى السماح بالوصول إلى الكاميرا أو المعرض.'
-          : 'تعذر اختيار الصورة، حاول مرة أخرى.',
+          ? t('errors.media.permission')
+          : t('errors.media.pickFailed'),
       );
       return;
     }

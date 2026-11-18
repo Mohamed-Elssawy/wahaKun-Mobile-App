@@ -1,6 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import { Path, Svg } from 'react-native-svg';
 
+import { t } from '@/i18n';
 import { colors, radii, spacing } from '@/theme';
 import type { ColorToken } from '@/theme';
 
@@ -85,10 +86,9 @@ export function SeverityBadge({ level, label, color, style }: SeverityBadgeProps
     <View
       style={[styles.badge, { backgroundColor: colors[color] }, style]}
       accessibilityRole="text"
-      accessibilityLabel={`الخطورة: ${label}`}
+      accessibilityLabel={t('ui.severityBadge.prefix', { label })}
     >
-      {/* First child, so row-reverse puts the glyph on the leading edge - to the right of
-          the label, which is where the frame draws every icon on these screens. */}
+      {/* First child, so the glyph takes the leading edge, whichever way the locale runs. */}
       <Droplet level={level} size={GLYPH_SIZE} />
 
       <Text variant="label12Bold" color="textInverse">
@@ -100,7 +100,7 @@ export function SeverityBadge({ level, label, color, style }: SeverityBadgeProps
 
 const styles = StyleSheet.create({
   badge: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[4],
     minHeight: HEIGHT,

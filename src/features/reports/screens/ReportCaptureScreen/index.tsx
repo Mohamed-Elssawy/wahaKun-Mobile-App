@@ -3,8 +3,9 @@ import { useState } from 'react';
 import { Linking, StyleSheet, View } from 'react-native';
 import { Camera } from 'react-native-vision-camera';
 
-import { StateScreen } from '@/components/ui';
+import { BackHeader, Screen, StateScreen } from '@/components/ui';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
+import { t } from '@/i18n';
 import type { ScreenProps } from '@/navigation/types';
 import { colors } from '@/theme';
 
@@ -86,19 +87,13 @@ export default function ReportCaptureScreen({
   };
 
   /** The queue keeps working after this screen closes, so the list is the place to be. */
-  const goToMyReports = () => navigation.navigate('Home', { screen: 'MyReports' });
+  // popTo, not navigate: RN 7's navigate to a lower route PUSHES a second copy (W18's twin).
+  const goToMyReports = () => navigation.popTo('Home', { screen: 'MyReports' });
 
-  const renderBody = () => {
-    // X-02a moved to ReportAnalyzing: offline is only known once the drain has tried.
+  /** C37: which X-screen, if any, takes the whole canvas rather than sitting inside F-02's body. */
+  const renderGuard = () => {
     if (outcome === 'full') {
-      return (
-        <StateScreen
-          icon={CloudOff}
-          title="لديك بلاغات في انتظار الإرسال"
-          message="انتظر حتى يعود الاتصال وتُرسل بلاغاتك السابقة، ثم أرسل هذا البلاغ."
-          action={{ label: 'عرض بلاغاتي', onPress: goToMyReports }}
-        />
-      );
+      return null;
     }
 
     // X-05/D-HARD-BLOCK: location is mandatory, so the whole capture surface is blocked.
@@ -106,12 +101,62 @@ export default function ReportCaptureScreen({
       return <LocationPermissionDenied onOpenSettings={Linking.openSettings} />;
     }
 
+    if (submitError || photo) {
+      return null;
+    }
+
+    if (mode === 'voice') {
+      // The text field lives inside voice mode and needs no microphone, so this is one step.
+      return isMicrophoneDenied ? (
+        <MicrophonePermissionDenied
+          onOpenSettings={Linking.openSettings}
+          onUseText={() => {
+            setIsMicrophoneDenied(false);
+            setFocusTextFieldTrigger(current => current + 1);
+          }}
+        />
+      ) : null;
+    }
+
+    // The mode toggle is gone with the header, so the way to voice is the guard's own link.
+    return hasPermission ? null : (
+      <CameraPermissionDenied
+        onOpenSettings={Linking.openSettings}
+        onUseVoice={() => changeMode('voice')}
+      />
+    );
+  };
+
+  const guard = renderGuard();
+
+  if (guard) {
+    return (
+      <Screen>
+        <BackHeader onBack={navigation.goBack} />
+        {guard}
+      </Screen>
+    );
+  }
+
+  const renderBody = () => {
+    // X-02a moved to ReportAnalyzing: offline is only known once the drain has tried.
+    if (outcome === 'full') {
+      return (
+        <StateScreen
+          icon={CloudOff}
+          title={t('f02.queuedTitle')}
+          message={t('f02.queuedBody')}
+          action={{ label: t('f02.viewMyReports'), onPress: goToMyReports }}
+        />
+      );
+    }
+
     // No draft option alongside this one either, because saving is exactly what just failed.
     if (submitError) {
       return (
         <ReportErrorView
           error={submitError}
-          unknownTitle="تعذر إرسال البلاغ"
+          unknownTitle={t('f02.submitErrorTitle')}
           onRetry={handleUsePhoto}
         />
       );
@@ -131,18 +176,6 @@ export default function ReportCaptureScreen({
     }
 
     if (mode === 'voice') {
-      if (isMicrophoneDenied) {
-        return (
-          <MicrophonePermissionDenied
-            onOpenSettings={Linking.openSettings}
-            onUseText={() => {
-              setIsMicrophoneDenied(false);
-              setFocusTextFieldTrigger(current => current + 1);
-            }}
-          />
-        );
-      }
-
       return (
         <VoiceCapture
           description={description}
@@ -156,17 +189,8 @@ export default function ReportCaptureScreen({
       );
     }
 
-    if (!hasPermission) {
-      return (
-        <CameraPermissionDenied
-          onOpenSettings={Linking.openSettings}
-          onUseVoice={() => changeMode('voice')}
-        />
-      );
-    }
-
     if (!device) {
-      return <CaptureNotice title="لا توجد كاميرا متاحة" />;
+      return <CaptureNotice title={t('f02.noCameraTitle')} />;
     }
 
     // The preview itself is mounted at the root, below; this is just the controls.

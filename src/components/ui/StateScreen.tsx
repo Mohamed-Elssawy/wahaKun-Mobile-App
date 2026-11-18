@@ -1,6 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
-import { colors, radii, screenPadding, spacing } from '@/theme';
+import type { Locale } from '@/i18n';
+import { colors, radii, screenPadding, scriptFonts, spacing } from '@/theme';
 
 import { Button } from './Button';
 import { Text } from './Text';
@@ -14,10 +15,13 @@ export type StateScreenProps = {
   icon: LucideIcon;
   title: string;
   message: string;
-  action?: { label: string; onPress: () => void };
+  /** showArrowEnd is G-02's backward arrow, for an action that returns rather than advances (S-08's "Back to home"); forward has no caller here. */
+  action?: { label: string; onPress: () => void; showArrowEnd?: boolean };
   /** The non-obvious way out, e.g. voice instead of the camera on X-03. Ghost styling. */
   secondaryAction?: { label: string; onPress: () => void };
   register?: StateRegister;
+  /** Sets the message's script face; only S-12's relaunch needs it, since label14/Inter carries no Arabic and falls back silently on Android. */
+  script?: Locale;
 };
 
 const CIRCLE_SIZE = 100;
@@ -37,6 +41,7 @@ export function StateScreen({
   action,
   secondaryAction,
   register = 'blocking',
+  script,
 }: StateScreenProps) {
   const { fill, glyph } = REGISTERS[register];
 
@@ -52,19 +57,32 @@ export function StateScreen({
             {title}
           </Text>
           {/* N700, not N650: this copy is the only explanation of what went wrong. */}
-          <Text variant="label14" color="textSecondary" align="center">
+          <Text
+            variant="label14"
+            color="textSecondary"
+            align="center"
+            style={script ? { fontFamily: scriptFonts[script].regular } : null}
+          >
             {message}
           </Text>
         </View>
       </View>
 
       <View style={styles.actions}>
-        {action ? <Button label={action.label} onPress={action.onPress} /> : null}
+        {action ? (
+          <Button
+            label={action.label}
+            onPress={action.onPress}
+            showArrowEnd={action.showArrowEnd}
+            script={script}
+          />
+        ) : null}
         {secondaryAction ? (
           <Button
             label={secondaryAction.label}
             variant="ghost"
             onPress={secondaryAction.onPress}
+            script={script}
           />
         ) : null}
       </View>

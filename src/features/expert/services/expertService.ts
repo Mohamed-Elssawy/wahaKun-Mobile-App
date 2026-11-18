@@ -16,6 +16,7 @@ import {
 } from '@/features/reports/services/reportService';
 import { severityFromPriority } from '@/features/reports/severity';
 import type { ReportStatus, Severity } from '@/features/reports/types';
+import { t } from '@/i18n';
 
 import type {
   CaseReviewWire,
@@ -185,9 +186,6 @@ function toReviewHistory(reviews: ExpertReviewWire[]): {
   };
 }
 
-// G7: no endpoint resolves a user by id, so the card names no one rather than inventing a farmer.
-const REPORTER_PLACEHOLDER = 'مزارع';
-
 /** E-01's card. `detail` is null when the fan-out's call for this row failed. */
 export function toCaseSummary(
   row: ExpertInboxRowWire,
@@ -204,7 +202,12 @@ export function toCaseSummary(
     // A missing analysis reads as the amber chip: failing toward trust this less is the safe way.
     confidence: analysis ? normalizeConfidence(analysis.confidence) : 0,
     photoUrl: detail ? problemPhotoUrl(detail.attachments) : undefined,
-    reporterName: REPORTER_PLACEHOLDER,
+    // G7: no endpoint resolves a user by id, so the card names no one rather than inventing a
+    // farmer. The app's own sentence standing in for a name it could not resolve is chrome, not
+    // data - E5's step 3, and `common.unknownAuthor` is already that exact pattern on F-01 and
+    // F-04. Resolved here because `toCaseSummary` runs on the READ path and nothing persists
+    // what it returns; a stored row would have to keep the key instead (E4.1).
+    reporterName: t('common.unknownAuthor'),
     // BACKEND-GAP G5: no corroboration count exists on any endpoint.
     corroborationCount: 0,
   };
@@ -235,7 +238,7 @@ const REFUSAL_STATUS = 500;
 /** C13: the role guard answers from middleware, before the controller, with an empty body. */
 const FORBIDDEN_STATUS = 403;
 
-/** The only two `code` values seen in 120 probe calls. Both are already in CODE_MESSAGES. */
+/** The only two `code` values seen in 120 probe calls. Both are already in CODE_KEYS. */
 const ISSUE_NOT_FOUND = 'ISSUE_NOT_FOUND';
 const INVALID_OPERATION = 'INVALID_OPERATION';
 
@@ -325,14 +328,14 @@ export function classifyExpertError(error: unknown): ExpertRefusal {
   return 'unknown';
 }
 
-/** The six fixed slots as the TimeOnly pair. Two hours each is this app's assumption. */
+/** Six fixed slots as TimeOnly pairs (two hours each), keyed by slot id since E6 - used to be keyed by the Arabic label, so a copy edit could break the lookup. */
 export const SLOT_TIMES: Record<ScheduleSlot, { slotStart: string; slotEnd: string }> = {
-  '7:00 ص': { slotStart: '07:00:00', slotEnd: '09:00:00' },
-  '9:00 ص': { slotStart: '09:00:00', slotEnd: '11:00:00' },
-  '11:00 ص': { slotStart: '11:00:00', slotEnd: '13:00:00' },
-  '1:00 م': { slotStart: '13:00:00', slotEnd: '15:00:00' },
-  '3:00 م': { slotStart: '15:00:00', slotEnd: '17:00:00' },
-  '5:00 م': { slotStart: '17:00:00', slotEnd: '19:00:00' },
+  '0700': { slotStart: '07:00:00', slotEnd: '09:00:00' },
+  '0900': { slotStart: '09:00:00', slotEnd: '11:00:00' },
+  '1100': { slotStart: '11:00:00', slotEnd: '13:00:00' },
+  '1300': { slotStart: '13:00:00', slotEnd: '15:00:00' },
+  '1500': { slotStart: '15:00:00', slotEnd: '17:00:00' },
+  '1700': { slotStart: '17:00:00', slotEnd: '19:00:00' },
 };
 
 const BASE = API_BASE_URLS.issue;

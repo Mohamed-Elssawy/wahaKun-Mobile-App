@@ -13,6 +13,8 @@ import {
 } from '@/components/ui';
 import { ReportErrorView } from '@/features/reports/components/ReportErrorView';
 import { useIdentity } from '@/features/user/hooks/useIdentity';
+import { t } from '@/i18n';
+import type { TranslationKey } from '@/i18n';
 import { colors, radii, screenPadding, shadows, spacing } from '@/theme';
 
 import { FeedChipRow } from '../../components/FeedChipRow';
@@ -22,25 +24,23 @@ import { useCommunityFeed } from '../../hooks/useCommunityFeed';
 
 import type { FeedPost, FeedSort, FeedTab } from '../../types';
 
-const TITLE = 'المجتمع';
-
 // All three fit at the widest Arabic label, so this row does not scroll; the severity chips do.
-const TABS: { key: FeedTab; label: string }[] = [
-  { key: 'all', label: 'الكل' },
-  { key: 'active', label: 'نشطة' },
-  { key: 'resolved', label: 'تم الحل' },
+const TABS: { key: FeedTab; labelKey: TranslationKey }[] = [
+  { key: 'all', labelKey: 'f07.tab.all' },
+  { key: 'active', labelKey: 'f07.tab.active' },
+  { key: 'resolved', labelKey: 'status.resolved' },
 ];
 
 const EMPTY = {
   all: {
-    title: 'لا توجد بلاغات بعد',
-    message: 'كن أول من يبلغ عن مشكلة في الواحة، وسيظهر بلاغك هنا للجميع.',
+    title: 'f01.emptyTitle',
+    message: 'f01.emptyBody',
   },
   filtered: {
-    title: 'لا توجد بلاغات مطابقة',
-    message: 'جرّب توسيع البحث أو تغيير الفلتر.',
+    title: 'f07.noResultsTitle',
+    message: 'f07.noResultsBody',
   },
-} as const;
+} as const satisfies Record<string, { title: TranslationKey; message: TranslationKey }>;
 
 /** F-01. */
 export default function CommunityFeedScreen() {
@@ -104,7 +104,7 @@ export default function CommunityFeedScreen() {
         <View style={styles.fallback}>
           <ReportErrorView
             error={error}
-            unknownTitle="تعذر تحميل المجتمع"
+            unknownTitle={t('f01.loadErrorTitle')}
             onRetry={refresh}
           />
         </View>
@@ -123,19 +123,14 @@ export default function CommunityFeedScreen() {
 
     return (
       <>
-        {error ? (
-          <StaleBanner
-            message="تعذر تحديث المجتمع، قد تكون البيانات قديمة"
-            onRetry={refresh}
-          />
-        ) : null}
+        {error ? <StaleBanner message={t('f01.staleBanner')} onRetry={refresh} /> : null}
 
         {isEmpty ? (
           <View style={styles.fallback}>
             <EmptyState
               icon={Users}
-              title={emptyCopy.title}
-              message={emptyCopy.message}
+              title={t(emptyCopy.title)}
+              message={t(emptyCopy.message)}
             />
           </View>
         ) : (
@@ -163,13 +158,18 @@ export default function CommunityFeedScreen() {
     <View style={styles.screen}>
       {/* No location prop: F-01 has no region line under the bar, unlike F-05 and F-07. */}
       <AppHeader
-        title={TITLE}
+        title={t('tabs.community')}
         avatarUrl={avatarUrl}
         onOpenProfile={() => navigation.navigate('Profile')}
         onOpenNotifications={() => navigation.navigate('Notifications')}
       />
 
-      <SegmentedTabs items={TABS} value={tab} onChange={changeTab} variant="floating" />
+      <SegmentedTabs
+        items={TABS.map(({ key, labelKey }) => ({ key, label: t(labelKey) }))}
+        value={tab}
+        onChange={changeTab}
+        variant="floating"
+      />
 
       <FeedChipRow
         sort={sort}
@@ -180,11 +180,10 @@ export default function CommunityFeedScreen() {
         onToggleSeverity={toggleSeverity}
       />
 
-      {/* No error screen for a vote on the card itself: the count snapping back on failure is
-          the card's own message. This banner is only for the message a rejected vote carries. */}
+      {/* A failed vote snaps its own count back; this banner is only for a rejected vote's message. */}
       {actionError ? (
         <View style={styles.banner}>
-          <Text variant="body14" color="error" align="right">
+          <Text variant="body14" color="error">
             {actionError}
           </Text>
         </View>

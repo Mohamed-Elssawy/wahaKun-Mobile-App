@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 
+import { t } from '@/i18n';
 import { colors, radii, spacing, textStyles } from '@/theme';
 
 import type { NativeSyntheticEvent, TextInputKeyPressEventData } from 'react-native';
@@ -75,7 +76,7 @@ export function OtpInput({
           maxLength={length}
           textAlign="center"
           autoFocus={autoFocus && index === 0}
-          accessibilityLabel={`رقم ${index + 1} من ${length}`}
+          accessibilityLabel={t('ui.otp.digitOf', { n: index + 1, length })}
         />
       ))}
     </View>
@@ -83,8 +84,9 @@ export function OtpInput({
 }
 
 const styles = StyleSheet.create({
-  // row, not row-reverse: digits read left to right even on an Arabic screen.
+  // S-04 fills left to right in both locales (SPEC 6.7), so this row pins its own direction.
   row: {
+    direction: 'ltr',
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: spacing[8],

@@ -34,7 +34,7 @@ describe('formatDistance', () => {
 
   // "0.0 كم" would claim a precision a phone GPS fix does not have.
   it('does not pretend to metre accuracy up close', () => {
-    expect(formatDistance(0.02)).toBe('قريب جدًا');
+    expect(formatDistance(0.02)).toBe('قريب جداً');
   });
 
   it('says nothing rather than something wrong for a bad value', () => {

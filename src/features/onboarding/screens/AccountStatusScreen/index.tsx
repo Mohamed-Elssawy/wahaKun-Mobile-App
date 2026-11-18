@@ -1,16 +1,17 @@
-import { CircleAlert, Hourglass } from 'lucide-react-native';
+import { CircleAlert, Hourglass, OctagonAlert } from 'lucide-react-native';
 
 import { Screen, StateScreen } from '@/components/ui';
+import { t } from '@/i18n';
+import type { TranslationKey } from '@/i18n';
 import type { ScreenProps, AccountStatusState } from '@/navigation/types';
 
 import type { LucideIcon } from 'lucide-react-native';
 
-const BACK_LABEL = 'العودة للرئيسية';
-
 type StatusCopy = {
   icon: LucideIcon;
-  title: string;
-  message: string;
+  /** Keys: this table is module scope, so a resolved string would predate §16.2's lookup. */
+  titleKey: TranslationKey;
+  messageKey: TranslationKey;
   /** §5.4's registers: pending is warm because nothing has gone wrong yet. */
   register: 'warm' | 'blocking';
 };
@@ -18,20 +19,21 @@ type StatusCopy = {
 const COPY: Record<AccountStatusState, StatusCopy> = {
   pending: {
     icon: Hourglass,
-    title: 'طلبك قيد المراجعة',
-    message: 'سيراجعه المشرف وسنرسل لك بريداً إلكترونياً عند الموافقة',
+    titleKey: 's08.pendingTitle',
+    messageKey: 's08.pendingBody',
     register: 'warm',
   },
   rejected: {
     icon: CircleAlert,
-    title: 'لم تتم الموافقة على طلبك',
-    message: 'راجع المشرف طلب تسجيلك و لم يتم الموافقة عليه',
+    titleKey: 's08.rejectedTitle',
+    messageKey: 's08.rejectedBody',
     register: 'blocking',
   },
   suspended: {
-    icon: CircleAlert,
-    title: 'تم حظرك من استخدام التطبيق',
-    message: 'تم حظرك من قبل المشرف ولا يمكنك استخدام التطبيق',
+    // C29: an octagon, not the circle rejected uses - a suspension is a stop, not a refusal.
+    icon: OctagonAlert,
+    titleKey: 's08.suspendedTitle',
+    messageKey: 's08.suspendedBody',
     register: 'blocking',
   },
 };
@@ -41,19 +43,21 @@ export default function AccountStatusScreen({
   route,
   navigation,
 }: ScreenProps<'AccountStatus'>) {
-  const { icon, title, message, register } = COPY[route.params.state];
+  const { icon, titleKey, messageKey, register } = COPY[route.params.state];
 
   return (
     <Screen>
       <StateScreen
         icon={icon}
-        title={title}
-        message={message}
+        title={t(titleKey)}
+        message={t(messageKey)}
         register={register}
         // S-02, per §4.1. A reset, so the back stack cannot return to a half-made session.
         action={{
-          label: BACK_LABEL,
+          label: t('common.backToHome'),
           onPress: () => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] }),
+          // C28: returns to S-02, so G-02 gives it the BACKWARD arrow (settled for S-05.6b in E4), flipping with the locale.
+          showArrowEnd: true,
         }}
       />
     </Screen>

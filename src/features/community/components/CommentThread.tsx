@@ -1,7 +1,8 @@
 import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { Text } from '@/components/ui';
-import { colors, spacing } from '@/theme';
+import { t } from '@/i18n';
+import { colors, roleVariants, spacing } from '@/theme';
 
 import { CommentBubble } from './CommentBubble';
 
@@ -17,10 +18,6 @@ export type CommentThreadProps = {
   onLoadMore: () => void;
   onRetry: () => void;
 };
-
-const EMPTY = 'لا توجد تعليقات بعد';
-const LOAD_MORE = 'عرض تعليقات أقدم';
-const RETRY = 'تعذر تحميل التعليقات، اضغط لإعادة المحاولة';
 
 /** F-04's thread. The composer is not here: the frame pins it to the screen, not the list. */
 export function CommentThread({
@@ -47,7 +44,7 @@ export function CommentThread({
           accessibilityRole="button"
         >
           <Text variant="label14" color="primary" align="center">
-            {RETRY}
+            {t('f04.commentsLoadFailed')}
           </Text>
         </TouchableOpacity>
       );
@@ -55,8 +52,8 @@ export function CommentThread({
 
     if (comments.length === 0) {
       return (
-        <Text variant="label14" color="textMuted" align="right" style={styles.centred}>
-          {EMPTY}
+        <Text variant="label14" color="textMuted" style={styles.centred}>
+          {t('f04.noComments')}
         </Text>
       );
     }
@@ -77,7 +74,7 @@ export function CommentThread({
               <ActivityIndicator color={colors.primary} />
             ) : (
               <Text variant="label14Bold" color="primary" align="center">
-                {LOAD_MORE}
+                {t('f04.olderComments')}
               </Text>
             )}
           </TouchableOpacity>
@@ -89,8 +86,8 @@ export function CommentThread({
   return (
     <View style={styles.section}>
       {/* The count is the Redis total, not this page's length, so it is right on page one. */}
-      <Text variant="h4" align="right" color="textStrong">
-        {`التعليقات (${total})`}
+      <Text variant={roleVariants.sectionHeader} color="textSecondary">
+        {t('f04.commentsCount', { total })}
       </Text>
 
       {renderBody()}

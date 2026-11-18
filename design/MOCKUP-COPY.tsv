@@ -1,0 +1,163 @@
+ar	en	note
+تسريب كبير في القناة الرئيسية — قرب مزرعة النخيل	Major leak in the main canal — near the palm farm
+تسريب كبير في القناة الرئيسية قرب مزرعة النخيل — المياه تفقد بشكل ملحوظ	Major leak in the main canal near the palm farm — noticeable water loss
+تسريب كبير في القناة	Major canal leak
+انخفاض ضغط المياه في القطاع الشرقي	Low water pressure in the eastern sector
+انخفاض ملحوظ في ضغط المياه في القطاع الشرقي، يؤثر على الري الصباحي	Noticeably low water pressure in the eastern sector, affecting the morning irrigation
+تسريب في أنبوب التغذية الجانبي	Leak in the side feeder pipe
+تلف في بوابة التحكم الرئيسية — المدخل الغربي	Damage to the main control gate — west entrance
+تشقق في جدار القناة الرئيسية — قرب نقطة التحويل	Crack in the main canal wall — near the diversion point
+تسريب في القناة — ثقة 91%	Canal leak — 91% confidence
+تم تأكيد التشخيص — تسريب في القناة	Diagnosis confirmed — canal leak
+سارة محمود	Sara Mahmoud	Transliterated, not replaced. The app serves an Egyptian oasis; an English UI there still has Egyptian users, and swapping in Western names would make the mockup lie about its setting.
+محمود مصطفى	Mahmoud Mostafa
+سيد حسن	Sayed Hassan
+فاطمة سالم	Fatma Salem
+أحمد حسين	Ahmed Hussein
+محمد عمرو	Mohamed Amr
+أنت	You	Chat bubble author label
+خبيرة ري	Irrigation expert	Feminine in Arabic; English has no gendered form
+سارة محمود خبيرة ري	Sara Mahmoud · Irrigation expert
+محمد عمرو خبير ري — تم إعادة تعيين الخبير	Mohamed Amr · Irrigation expert — expert reassigned	T15
+لاحظت نفس الشيء في القناة الفرعية القريبة أيضاً، يبدو أن المشكلة تمتد.	I've noticed the same thing in the nearby side canal too — looks like it's spreading.	Farmer comment; conversational register preserved
+تم استلام البلاغ وسيتم حل المشكلة ميدانياً خلال 24-48 ساعة. يُرجى عدم محاولة الإصلاح بشكل شخصي.	Your report has been received and a field team will fix it within 24–48 hours. Please don't attempt the repair yourself.	Expert comment; formal register preserved
+شكراً للخبيرة سارة. هل يمكن معرفة موعد الإصلاح تحديداً؟	Thanks, Sara. Could we get an exact time for the repair?
+يوصى بإيقاف مصدر المياه فوراً ثم إصلاح أو استبدال الجزء التالف من الأنبوب	Shut off the water supply immediately, then repair or replace the damaged section of pipe	AI recommended action
+وجود تشققات أو كسور أو اثار تسرب للمياه	Cracks, breaks or signs of water escaping	AI "why this diagnosis"
+وجود تشققات أو كسور أو اثار تسرب للمياه و قد يؤدي هذا العطل الى فقدان كميات كبيرة من المياه و انخفاض كفائة الري إذا لم يتم إصلاحه بسرعة	Cracks, breaks or signs of water escaping. Left unrepaired, this can lose large volumes of water and reduce irrigation efficiency.
+إيقاف مصدر المياه.	Shut off the water supply.	Numbered step
+تحديد مكان التلف.	Locate the damage.
+فحص الأنبوب بالكامل.	Inspect the whole pipe.
+استبدال أو إصلاح الجزء التالف.	Replace or repair the damaged section.
+إعادة تشغيل المياه.	Turn the water back on.
+اختبار شبكة الري.	Test the irrigation network.
+التأكد من عدم وجود أي تسرب	Confirm there are no leaks
+تم تبطين الجزء التالف من القناة بمادة عازلة و إيقاف التسرب بالكامل	The damaged section was lined with a sealant and the leak stopped completely	Resolution notes
+”عندي مشكلة في قناة الميه، باين إنها بتسرب. الميه مش بتوصل لآخر الأرض، والمحصول هناك بدأ يعطش.”	"There's a problem with the water canal — looks like it's leaking. The water isn't reaching the far end of the land, and the crop there is starting to go thirsty."	Voice transcript, Egyptian colloquial. Kept plain and spoken, not formalised.
+أهلاً محمود، شفت البلاغ بتاعك عن التسرب. ممكن تبعتلي صورة قريبة من مكان الكسر؟	Hi Mahmoud — I've seen your report about the leak. Could you send me a close-up of the break?	Chat, colloquial
+ده مكان التسرب من الصبح	This is where it's been leaking since this morning
+تمام، واضح إن فيه شرخ كبير. هاجي بكرة الساعة ٩ الصبح للصيانة.	Right — there's clearly a big crack. I'll come at 9 tomorrow morning to repair it.	The Arabic uses ٩ (Arabic-Indic), which contradicts §6.7's Western-numeral rule. English uses 9. Flag the Arabic layer.
+ممكن يكون بدري شوية؟ المية بتزيد بسرعة.	Could it be a bit earlier? The water's rising fast.
+تمام، هحاول اظبط المعاد بدري شوية.	Sure — I'll try to move it earlier.
+سارة خبيرة ري معتمدة، هتساعدك في حل المشكلة	Sara is a verified irrigation expert, and she'll help you sort this out	F-08 state:new
+بترد عادةً خلال أقل من ساعة	Usually replies within an hour
+ابدأ برسالة جاهزة	Start with a ready-made message
+الموعد مش مناسب لي	The time doesn't work for me	Quick-reply chip
+المشكلة زادت	The problem has got worse
+محتاج أوضح أكتر	I need to explain more
+اكتب رسالة...	Write a message…
+تم ربط هذه المحادثة بالبلاغ #1043	This chat is linked to report #1043
+تنبيه — 3 مشكلات حرجة بالقرب من موقعك	Alert — 3 critical problems near you	Notification
+سارة محمود راجعت بلاغك #1043	Sara Mahmoud reviewed your report #1043
+اكتمل تشخيص الذكاء الاصطناعي لبلاغك #1043	The AI diagnosis for your report #1043 is ready
+أحمد حسين رد على تعليقك في بلاغ #1043	Ahmed Hussein replied to your comment on report #1043
+سيد حسن علّق على بلاغك #1041	Sayed Hassan commented on your report #1041
+تم جدولة فريق لإصلاح بلاغك #1043 — الأحد، 14 يونيو، 9 ص	A team is scheduled to fix your report #1043 — Sunday, 14 June, 9 AM
+هل تم إصلاح المشكلة في بلاغك #1038؟ يرجى التأكيد	Has the problem in your report #1038 been fixed? Please confirm
+تم حل البلاغ #1038 بنجاح	Report #1038 resolved successfully
+منذ 20 دقيقة	20 minutes ago
+منذ 30 دقيقة	30 minutes ago
+منذ 45 دقيقة	45 minutes ago
+منذ 52 دقيقة	52 minutes ago
+منذ ساعة	an hour ago
+منذ ساعتين	2 hours ago	Arabic dual; English has no dual form
+منذ 3 ساعات	3 hours ago
+منذ يوم	a day ago
+منذ 3 أيام	3 days ago
+منذ 4 أيام	4 days ago
+منذ اسبوع	last week	Arabic is missing its hamza (اسبوع -> أسبوع); flag the layer
+جارٍ الآن — منذ 30 دقيقة	In progress — 30 minutes ago
+جارٍ الآن — منذ 52 دقيقة	In progress — 52 minutes ago
+الثلاثاء، 10 يونيو — 9:41 ص	Tuesday, 10 June — 9:41 AM
+الثلاثاء، 10 يونيو — 5:32 م	Tuesday, 10 June — 5:32 PM
+الثلاثاء، 10 يونيو — 8:07 م	Tuesday, 10 June — 8:07 PM
+الإثنين، 6 يونيو	Monday, 6 June
+أمس، 5:32 م	Yesterday, 5:32 PM
+أمس، 2:10 م	Yesterday, 2:10 PM
+أمس، 1:30 م	Yesterday, 1:30 PM
+9:02 ص	9:02 AM
+9:11 ص	9:11 AM
+9:14 ص	9:14 AM
+9:20 ص	9:20 AM
+9:22 ص	9:22 AM
+9:24 ص	9:24 AM
+موعد الإصلاح الأحد، 14 يونيو 9:00 ص — 12:00 م	Repair appointment Sunday, 14 June 9:00 AM — 12:00 PM
+تم الإصلاح بنجاح 14 يونيو، 11:30 ص	Repaired successfully 14 June, 11:30 AM
+أكّد المزارع الحل تم إغلاق البلاغ #1043 بنجاح 15 يونيو، 8:00 ص	The farmer confirmed the fix. Report #1043 closed successfully 15 June, 8:00 AM
+0.8 كم	0.8 km
+1.8 كم	1.8 km
+2 كم	2 km
+3.2 كم	3.2 km
+2.1 يوم	2.1 days
+التعليقات (4)	Comments (4)
+عرض التعليقات (4)	View comments (4)
+2 نفس المشكلة	2 also affected	§D: تأكيدات is "Also affected"
+نشطة (3)	Active (3)
+تم الحل (4)	Resolved (4)
+نشطة (0)	Active (0)	§12.2: F-07 first-use shows (0) or hides the count
+تم الحل (0)	Resolved (0)
+مجدول	Scheduled	Figma holds the masculine مجدول; §3.2 makes مجدولة canonical. Flag the Arabic layer.
+قيد المعالجة	Under review	Figma holds the superseded قيد المعالجة; §12.2 replaces it with قيد المراجعة. Flag the Arabic layer.
+ترتيب: الأقرب	Sort: Nearest
+تم التشخيص	Diagnosed
+مُعيَّن	Assigned
+الحالة تحتاج نظرة دقيقة من خبير — أسندناها مباشرةً لخبير معتمد	This case needs a closer look — we've assigned it straight to a verified expert	Matches f03b.subtitle; Figma's wording differs slightly from the code's
+تأكد أن الصورة تُظهر مصدر المشكلة بوضوح لا بأس لن نحفظ هذه المحاولة، وصورة أوضح ستكفي	Make sure the photo shows the source of the problem clearly. It's alright — we won't keep this attempt, and a clearer photo will do	Two sentences merged into one layer in Figma; the code keeps them separate
+جارٍ التسجيل...	Recording…
+ابحث عن بلاغ...	Search for a report…
+تخطي	Skip	Figma has تخطي, the code has تخطّي (with shadda). Same word, two spellings — flag for the §12.2 list.
+التخطي	Skip	Second spelling of the same control on S-05.2
+باستخدامك للتطبيق، أنت توافق على شروط الاستخدام و سياسة الخصوصية	By using the app, you agree to the Terms of Use and Privacy Policy	Figma holds this as ONE layer; the code assembles it from four pieces split by inline links
+إعادة الإرسال خلال 00:24	Resend in 00:24	The timer is a §6.7 LTR island and keeps its direction
+لم تستلم الرمز؟ الدخول بالبريد الإلكتروني	Didn't receive the code? Log in with email	One Figma layer, two code keys
+أو الدخول برقم الهاتف	Or log in with your phone number
+أدخل اسمك بالكامل	Enter your full name	Figma has أدخل, the code has ادخل (missing hamza) — the code is wrong here; §12.2
+لا تحتاج لفعل أي شيئ	There's nothing you need to do	Figma has شيئ, the code has شيء — flag
+فعّل إذن الميكروفون لوصف المشكلة بصوتك.	Turn on microphone permission to describe the problem by voice.	Figma's wording differs from the code's x04.body
+واحة كُن	واحة كُن	DO NOT TRANSLATE. §8.1 S-01 specifies the lockup as "Waha KUN" over "واحة كُن" in BOTH locales — the Arabic half is a brand asset, not copy. This is the one string that stays.
+انخفاض ضغط	Low pressure	SLOT VALUE for tracker.diagnosisConfidence — this row alone paints 4 deck layers
+تشقق خرساني	Concrete crack	SLOT VALUE — paints 4 deck layers
+تسريب أنبوب	Pipe leak	SLOT VALUE — paints 3 deck layers
+تسريب في القناة	Canal leak	SLOT VALUE — paints 2 deck layers
+تلف ميكانيكي	Mechanical damage	SLOT VALUE — paints 2 deck layers
+انسداد محتمل	Possible blockage	SLOT VALUE — paints 2 deck layers. §6.4's amber chip example
+الأحد 14 يونيو	Sunday 14 June	SLOT VALUE for e03.slotHeading — paints 2 deck layers
+ثقة منخفضة — تم إحالة البلاغ تلقائياً لخبير	Low confidence — auto-assigned to an expert	"C-CONFIDENCE-CHIP: below 80% the expert's chip turns amber. §D: إحالة تلقائية is ""Auto-assigned""."
+محمد العزب	Mohamed El Azab	
+أحمد الراشدي	Ahmed El Rashidy	
+عمر أحمد	Omar Ahmed	
+رضا منصور	Reda Mansour	
+تسرب في أنبوب التغذية الجانبي — مزرعة الكروم	Leak in the side feeder pipe — the vineyard	
+تسريب كبير في القناة الرئيسية — مزرعة النخيل	Major leak in the main canal — the palm farm	
+انسداد غير محدد في القناة الفرعية الجنوبية	Unidentified blockage in the southern side canal	
+ترسب طمي يعيق تدفق القناة الفرعية الشمالية	Silt build-up restricting flow in the northern side canal	
+انسداد قناة فرعية — القطاع الشمالي	Side canal blockage — northern sector	
+منذ 50 دقيقة	50 minutes ago	
+منذ 7 ساعات	7 hours ago	
+منذ 8 ساعات	8 hours ago	
+منذ 10 ساعات	10 hours ago	
+منذ يومين	2 days ago	Arabic dual
+منذ 5 أيام	5 days ago	
+منذ أسبوع	last week	
+يونيو 2026	June 2026	
+الأحد، 14 يونيو — 9:00 ص	Sunday, 14 June — 9:00 AM	
+ح	S	E-03 calendar weekday initials. Arabic week runs Sunday to Saturday: ح ن ت ر خ ج س -> S M T W T F S. English repeats T and S, which is correct for English.
+ن	M	
+ت	T	
+ر	W	
+خ	T	
+ج	F	
+س	S	
+قرار الخبير	Expert's decision	
+صورة الإصلاح	Repair photo	
+اكتب تشخيصك للحالة هنا...	Write your diagnosis for this case here…	
+اكتب ملاحظاتك هنا, ستظهر ملاحظاتك كتعليق على المشكلة لكل الناس...	Write your notes here — they'll appear as a public comment on the problem…	The Arabic uses a Latin comma where it needs an Arabic one (هنا, -> هنا،). Flag for the §12.2 list.
+رسالة صوتية	Voice message	Chat list preview
+تمام، واضح إن فيه شرخ كبير. هاجي بكرة الساع...	Right — there's clearly a big crack. I'll come tomo…	Truncated in Figma with a literal ellipsis; the English is truncated to match
+تمام، واضح إن فيه شرخ كبير. فريق الصيانة هييجي بكرة الساعة ٩ الصبح.	Right — there's clearly a big crack. The maintenance team will come at 9 tomorrow morning.	The Arabic uses ٩ (Arabic-Indic) against §6.7's Western-numeral rule. Flag the layer.
+تنبيه — حالتان حرجتان تنتظران أكثر من 6 ساعات دون مراجعة	Alert — 2 critical cases waiting over 6 hours without review	Arabic dual (حالتان); English takes the numeral
+تم تعيين حالة جديدة إليك — تسريب في القناة — #1043	A new case has been assigned to you — canal leak — #1043	
+إحالة تلقائية — ثقة ذكاء اصطناعي منخفضة 61٪ في حالة #1041	Auto-assigned — low AI confidence, 61% on case #1041	The Arabic uses ٪ (U+066A) where §6.7 pins the Western %. Flag the layer.
+أحمد حسين رفض الحل — أُعيد فتح الحالة #1037	Ahmed Hussein rejected the fix — case #1037 reopened	T8
+محمود مصطفى طلب التواصل معك بخصوص #1043	Mahmoud Mostafa asked to contact you about #1043	
+محمود مصطفى أكدَّ الحل — الحالة #1043	Mahmoud Mostafa confirmed the fix — case #1043	T7

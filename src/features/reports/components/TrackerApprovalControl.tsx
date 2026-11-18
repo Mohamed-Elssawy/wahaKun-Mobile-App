@@ -2,11 +2,8 @@ import { Check, X } from 'lucide-react-native';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { ContextChip } from '@/components/ui';
+import { t } from '@/i18n';
 import { colors, radii } from '@/theme';
-
-const QUESTION = 'هل تم إصلاح المشكلة؟';
-const CONFIRM_LABEL = 'نعم، تم إصلاح المشكلة';
-const REJECT_LABEL = 'لا، لم يتم إصلاح المشكلة';
 
 const BUTTON_SIZE = 36;
 const ICON_SIZE = 20;
@@ -26,16 +23,16 @@ export function TrackerApprovalControl({
   return (
     <ContextChip
       tint="action"
-      label={QUESTION}
+      label={t('f06.repairedQuestion')}
       trailing={
-        // The first child lands closest to the label in a row-reverse chip, so accept is listed first.
+        // The first child lands closest to the label, so accept is listed first.
         <View style={styles.row}>
           <TouchableOpacity
             style={[styles.circle, styles.confirmCircle]}
             onPress={onConfirm}
             disabled={disabled}
             accessibilityRole="button"
-            accessibilityLabel={CONFIRM_LABEL}
+            accessibilityLabel={t('f06.yesFixed')}
           >
             <Check size={ICON_SIZE} color={colors.textInverse} />
           </TouchableOpacity>
@@ -45,7 +42,7 @@ export function TrackerApprovalControl({
             onPress={onReject}
             disabled={disabled}
             accessibilityRole="button"
-            accessibilityLabel={REJECT_LABEL}
+            accessibilityLabel={t('f06.notFixed')}
           >
             <X size={ICON_SIZE} color={colors.textStrong} />
           </TouchableOpacity>
@@ -57,7 +54,7 @@ export function TrackerApprovalControl({
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },

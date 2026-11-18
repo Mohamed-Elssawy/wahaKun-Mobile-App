@@ -1,10 +1,13 @@
-import { User } from 'lucide-react-native';
+import { Image as ImageIcon, Mic, User } from 'lucide-react-native';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 
-import { Text } from '@/components/ui';
+import { BiText, Text } from '@/components/ui';
+import { formatTimeOfDay, yesterdayLabel } from '@/features/reports/relativeTime';
+import { contentIsolate, t } from '@/i18n';
 import { colors, spacing } from '@/theme';
 
 import type { ChatThread } from '../types';
+import type { LucideIcon } from 'lucide-react-native';
 
 export type ChatThreadRowProps = {
   thread: ChatThread;
@@ -13,6 +16,7 @@ export type ChatThreadRowProps = {
 
 const AVATAR_SIZE = 48;
 const AVATAR_ICON = 22;
+const PREVIEW_ICON = 16;
 const UNREAD_DOT_SIZE = 8;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -20,15 +24,25 @@ function startOfDay(date: Date): number {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
 }
 
+/** Whether the preview is author text (direction-sensitive) or chrome; C78's glyph is drawn by the component, never typed into the copy. */
+type Preview = { isContent: boolean; text: string; icon?: LucideIcon };
+
 /** Only the expert's own text carries read receipts; voice and image never show their content. */
-function describePreview(message: ChatThread['lastMessage']): string {
+function describePreview(message: ChatThread['lastMessage']): Preview {
   if (message.kind === 'voice') {
-    return '🎤 رسالة صوتية';
+    return { isContent: false, text: t('chat.voiceMessage'), icon: Mic };
   }
   if (message.kind === 'image') {
-    return '🖼 صورة';
+    return { isContent: false, text: t('chat.photoMessage'), icon: ImageIcon };
   }
-  return message.fromExpert ? `✓✓ ${message.text ?? ''}` : (message.text ?? '');
+
+  const body = message.text ?? '';
+
+  // The receipt is chrome wrapped around content, so the content takes an isolate of its own
+  // rather than the whole line taking a direction the ticks do not belong to.
+  return message.fromExpert
+    ? { isContent: false, text: `✓✓ ${contentIsolate(body)}` }
+    : { isContent: true, text: body };
 }
 
 /** Not notifications/time.ts: that formatter's yesterday carries a time this row must not draw. */
@@ -40,20 +54,20 @@ function formatThreadTimestamp(iso: string, now: Date): string {
 
   const diffDays = Math.round((startOfDay(now) - startOfDay(date)) / DAY_MS);
   if (diffDays <= 0) {
-    const hour24 = date.getHours();
-    const period = hour24 < 12 ? 'ص' : 'م';
-    const hour12 = hour24 % 12 || 12;
-    const minute = String(date.getMinutes()).padStart(2, '0');
-    return `${hour12}:${minute} ${period}`;
+    return formatTimeOfDay(date);
   }
   if (diffDays === 1) {
-    return 'أمس';
+    return yesterdayLabel();
   }
+  // Day/month/year, which British English orders the same way Arabic does, so one form serves.
   return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
 }
 
 /** E-09's row: identity and preview lead on the right, time and the unread dot trail left. */
 export function ChatThreadRow({ thread, onPress }: ChatThreadRowProps) {
+  const preview = describePreview(thread.lastMessage);
+  const PreviewIcon = preview.icon;
+
   return (
     <TouchableOpacity
       style={styles.row}
@@ -70,12 +84,33 @@ export function ChatThreadRow({ thread, onPress }: ChatThreadRowProps) {
       )}
 
       <View style={styles.text}>
-        <Text variant="label16Bold" align="right" numberOfLines={1}>
+        <BiText contentRole="title" variant="body16" numberOfLines={1}>
           {thread.farmerName}
-        </Text>
-        <Text variant="body14" color="textSecondary" align="right" numberOfLines={1}>
-          {describePreview(thread.lastMessage)}
-        </Text>
+        </BiText>
+        {preview.isContent ? (
+          <BiText
+            contentRole="title"
+            variant="body14"
+            color="textSecondary"
+            numberOfLines={1}
+          >
+            {preview.text}
+          </BiText>
+        ) : (
+          <View style={styles.preview}>
+            {PreviewIcon ? (
+              <PreviewIcon size={PREVIEW_ICON} color={colors.textSecondary} />
+            ) : null}
+            <Text
+              variant="body14"
+              color="textSecondary"
+              numberOfLines={1}
+              style={styles.previewText}
+            >
+              {preview.text}
+            </Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.meta}>
@@ -90,13 +125,12 @@ export function ChatThreadRow({ thread, onPress }: ChatThreadRowProps) {
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[12],
     paddingVertical: spacing[12],
     paddingHorizontal: spacing[16],
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    // C78: no rule between rows - separated by the avatar's rhythm alone, reading as one surface, not a ruled table.
     backgroundColor: colors.surface,
   },
   avatar: {
@@ -109,9 +143,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // flex-start, not stretch: a stretched box would carry an Arabic name to the row's far edge instead of hugging BiText's own direction.
   text: {
     flex: 1,
+    alignItems: 'flex-start',
     gap: spacing[4],
+  },
+  // The glyph leads the words and both sit on one baseline row, which mirrors with the layout.
+  preview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[4],
+  },
+  // Shrinks so a long preview truncates at the row's edge instead of pushing the glyph out.
+  previewText: {
+    flexShrink: 1,
   },
   meta: {
     alignItems: 'center',

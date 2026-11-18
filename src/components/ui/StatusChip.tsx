@@ -31,7 +31,7 @@ export function StatusChip({
       accessibilityRole="text"
       accessibilityLabel={accessibilityLabel ?? label}
     >
-      {/* Leading, so row-reverse puts it to the right of the label as the frame draws it. */}
+      {/* Leading, so it takes the start edge beside the label, as the frame draws it. */}
       <Icon size={ICON_SIZE} color={colors[color]} />
 
       <Text variant="label14" color={color}>
@@ -43,7 +43,7 @@ export function StatusChip({
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[4],
   },

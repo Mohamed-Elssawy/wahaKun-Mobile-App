@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Screen, Text, TextField } from '@/components/ui';
+import { t } from '@/i18n';
 import type { ScreenProps } from '@/navigation/types';
-import { screenPadding, spacing } from '@/theme';
+import { roleVariants, screenPadding, spacing } from '@/theme';
 
 import { WizardHeader } from '../../components/WizardHeader';
 import { useRegistrationDraft } from '../../context/RegistrationContext';
@@ -17,14 +18,15 @@ export default function FullNameScreen({ navigation }: ScreenProps<'FullName'>) 
   const handleExit = () => {
     // Abandoning discards the draft, so restarting never resumes half-filled.
     reset();
-    navigation.navigate('Welcome');
+    // Back to Welcome, which is always under S-05.1: a navigate would stack a second one.
+    navigation.popTo('Welcome');
   };
 
   const isValid = fullName.trim().length > 0;
 
   const handleNext = () => {
     if (!isValid) {
-      setError('يرجى إدخال اسمك بالكامل للمتابعة');
+      setError(t('errors.auth.fullNameRequired'));
       return;
     }
     setError('');
@@ -35,7 +37,12 @@ export default function FullNameScreen({ navigation }: ScreenProps<'FullName'>) 
   return (
     <Screen
       footer={
-        <Button label="التالي" onPress={handleNext} showArrow disabled={!isValid} />
+        <Button
+          label={t('common.next')}
+          onPress={handleNext}
+          showArrow
+          disabled={!isValid}
+        />
       }
     >
       {/* Step 1 leaves the flow entirely rather than going back a step. */}
@@ -43,11 +50,12 @@ export default function FullNameScreen({ navigation }: ScreenProps<'FullName'>) 
 
       <View style={styles.form}>
         <Text variant="h3" color="textStrong" align="center">
-          ادخل اسمك بالكامل
+          {t('s05.nameTitle')}
         </Text>
 
         <TextField
-          label="الاسم الكامل"
+          label={t('common.fullName')}
+          labelVariant={roleVariants.authFieldLabel}
           value={fullName}
           onChangeText={text => {
             setFullName(text);

@@ -1,6 +1,7 @@
 import { Image, StyleSheet, View } from 'react-native';
 
 import { Button, ProgressBar, Screen, Text } from '@/components/ui';
+import { t } from '@/i18n';
 import type { ScreenProps } from '@/navigation/types';
 import { screenPadding, spacing } from '@/theme';
 
@@ -31,7 +32,7 @@ export default function RegistrationSuccessScreen({
     <Screen
       footer={
         <Button
-          label={pendingApproval ? 'العودة للرئيسية' : 'بداية استخدام التطبيق'}
+          label={pendingApproval ? t('common.backToHome') : t('s05.doneCta')}
           onPress={handleStart}
           showArrow={!pendingApproval}
           showArrowEnd={pendingApproval}
@@ -43,7 +44,7 @@ export default function RegistrationSuccessScreen({
         <View style={styles.brand}>
           <Image source={palmTreeLogo} style={styles.logo} />
           <Text variant="label14Bold" color="textStrong">
-            النهاية
+            {t('s05.finalStep')}
           </Text>
         </View>
         <ProgressBar step={1} totalSteps={1} />
@@ -52,12 +53,10 @@ export default function RegistrationSuccessScreen({
       <View style={styles.body}>
         <SuccessIllustration />
         <Text variant="h2" color="textStrong" align="center">
-          {pendingApproval ? 'تم إرسال طلبك' : 'اكتمل التسجيل!'}
+          {pendingApproval ? t('s05.requestSentTitle') : t('s05.doneTitle')}
         </Text>
         <Text variant="body14" color="textMuted" align="center">
-          {pendingApproval
-            ? 'سيراجعه المشرف وسنرسل لك بريداً إلكترونياً عند الموافقة'
-            : 'يمكنك الآن الاستمتاع بجميع مزايا\nالتطبيق'}
+          {pendingApproval ? t('s08.pendingBody') : t('s05.doneBody')}
         </Text>
       </View>
     </Screen>
@@ -69,7 +68,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   brand: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[12],
     paddingHorizontal: screenPadding,

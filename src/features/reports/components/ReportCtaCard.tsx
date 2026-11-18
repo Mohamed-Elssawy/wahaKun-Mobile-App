@@ -1,7 +1,9 @@
-import { ChevronLeft, Plus } from 'lucide-react-native';
+import { Plus } from 'lucide-react-native';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { Text } from '@/components/ui';
+import { t } from '@/i18n';
+import { ForwardIcon } from '@/i18n/icons';
 import { colors, radii, shadows, spacing } from '@/theme';
 
 export type ReportCtaCardProps = {
@@ -12,9 +14,6 @@ const DISC_SIZE = 56;
 const PLUS_SIZE = 28;
 const CHEVRON_SIZE = 24;
 
-const TITLE = 'الإبلاغ عن مشكلة';
-const SUBTITLE = 'صوّر المشكلة أو سجّلها صوتياً — ودعنا نتابعها معك';
-
 /** Sits above My Issues in every frame, empty ones included, so filing is always one tap. */
 export function ReportCtaCard({ onPress }: ReportCtaCardProps) {
   return (
@@ -23,30 +22,30 @@ export function ReportCtaCard({ onPress }: ReportCtaCardProps) {
       onPress={onPress}
       activeOpacity={0.85}
       accessibilityRole="button"
-      accessibilityLabel={TITLE}
-      accessibilityHint={SUBTITLE}
+      accessibilityLabel={t('f02.screenTitle')}
+      accessibilityHint={t('f07.ctaCard')}
     >
       <View style={styles.disc}>
         <Plus size={PLUS_SIZE} color={colors.primary} />
       </View>
 
       <View style={styles.text}>
-        <Text variant="h4" color="textInverse" align="right">
-          {TITLE}
+        <Text variant="h4" color="textInverse">
+          {t('f02.screenTitle')}
         </Text>
-        <Text variant="label12" color="primaryTint" align="right">
-          {SUBTITLE}
+        <Text variant="label12" color="primaryTint">
+          {t('f07.ctaCard')}
         </Text>
       </View>
 
-      <ChevronLeft size={CHEVRON_SIZE} color={colors.textInverse} />
+      <ForwardIcon size={CHEVRON_SIZE} color={colors.textInverse} />
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[12],
     padding: spacing[16],

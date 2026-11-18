@@ -7,12 +7,12 @@ import { CONFIDENCE_THRESHOLD, expertCtaFor } from '@/features/reports/lifecycle
 import type { ExpertCta, LifecycleStatus } from '@/features/reports/lifecycle';
 import { describeSeverity } from '@/features/reports/severity';
 import type { SeverityTier } from '@/features/reports/severity';
+import { t } from '@/i18n';
+import type { TranslationKey } from '@/i18n';
 
 import { expertApi } from '../services';
 
 import type { ExpertCaseSummary, ExpertFilterChip } from '../types';
-
-const LOAD_ERROR = 'تعذر تحميل الحالات، حاول مرة أخرى';
 
 /** The tabs. Display labels live in the component, the same split the farmer side keeps. */
 export type ExpertTab = 'all' | 'new' | 'underReview' | 'scheduled' | 'resolved';
@@ -38,12 +38,13 @@ const TAB_FOR_STATUS: Record<LifecycleStatus, SectionKey> = {
   AdminClosed: 'resolved',
 };
 
-const SECTION_TITLE: Record<SectionKey, string> = {
-  new: 'مشاكل جديدة تحتاج مراجعة',
-  underReview: 'مشاكل قيد المراجعة',
-  scheduled: 'مشاكل مجدولة',
-  resolved: 'مشاكل تم حلها',
-};
+/** Keys, resolved where the section is built: §12.2's قيد المراجعة correction is in the deck. */
+const SECTION_TITLE_KEYS = {
+  new: 'e01.section.new',
+  underReview: 'e01.section.underReview',
+  scheduled: 'e01.section.scheduled',
+  resolved: 'e01.section.resolved',
+} as const satisfies Record<SectionKey, TranslationKey>;
 
 const SECTION_ORDER: readonly SectionKey[] = [
   'new',
@@ -79,7 +80,7 @@ export function useExpertInbox() {
       }
     } catch (err) {
       if (isFocused.current) {
-        setError(describeError(err, LOAD_ERROR));
+        setError(describeError(err, t('errors.expert.inboxFailed')));
       }
     } finally {
       if (isFocused.current) {
@@ -134,7 +135,7 @@ export function useExpertInbox() {
     return SECTION_ORDER.filter(key => tab === 'all' || tab === key)
       .map(key => ({
         key,
-        title: SECTION_TITLE[key],
+        title: t(SECTION_TITLE_KEYS[key]),
         data: sorted
           .filter(summary => TAB_FOR_STATUS[summary.status] === key)
           .map(summary => ({ summary, cta: expertCtaFor(summary) })),

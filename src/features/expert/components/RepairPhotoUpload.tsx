@@ -1,7 +1,8 @@
-import { Camera } from 'lucide-react-native';
+import { Image as ImageIcon } from 'lucide-react-native';
 import { Alert, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { Text } from '@/components/ui';
+import { t } from '@/i18n';
 import { colors, radii, spacing } from '@/theme';
 import type { PickedImage } from '@/types/image';
 
@@ -15,13 +16,6 @@ export type RepairPhotoUploadProps = {
 const CIRCLE_SIZE = 80;
 const GLYPH_SIZE = 40;
 const PHOTO_HEIGHT = 180;
-const TITLE = 'أرفق صورة لإثبات إصلاح المشكلة';
-const SUBTITLE = 'اضغط لإضافة صورة من الكاميرا أو المعرض';
-const REPLACE_LABEL = 'اضغط لتغيير الصورة';
-const CHOOSER_TITLE = 'إضافة صورة';
-const CAMERA_LABEL = 'التقاط صورة';
-const GALLERY_LABEL = 'اختيار من المعرض';
-const CANCEL_LABEL = 'إلغاء';
 
 /** No action-sheet component exists, so the camera/gallery choice reuses E-02's Alert pattern. */
 export function RepairPhotoUpload({
@@ -31,10 +25,10 @@ export function RepairPhotoUpload({
   onPickFromGallery,
 }: RepairPhotoUploadProps) {
   const openChooser = () => {
-    Alert.alert(CHOOSER_TITLE, undefined, [
-      { text: CAMERA_LABEL, onPress: onPickFromCamera },
-      { text: GALLERY_LABEL, onPress: onPickFromGallery },
-      { text: CANCEL_LABEL, style: 'cancel' },
+    Alert.alert(t('e04.addPhoto'), undefined, [
+      { text: t('common.takePhoto'), onPress: onPickFromCamera },
+      { text: t('common.chooseFromGallery'), onPress: onPickFromGallery },
+      { text: t('common.cancel'), style: 'cancel' },
     ]);
   };
 
@@ -48,7 +42,7 @@ export function RepairPhotoUpload({
           align="center"
           style={styles.replaceLabel}
         >
-          {REPLACE_LABEL}
+          {t('e04.changePhoto')}
         </Text>
       </TouchableOpacity>
     );
@@ -61,14 +55,15 @@ export function RepairPhotoUpload({
       accessibilityRole="button"
     >
       <View style={styles.circle}>
-        <Camera size={GLYPH_SIZE} color={colors.primaryPressed} />
+        {/* C82: picture icon, not camera - this photo is as likely to come from the gallery as the lens. */}
+        <ImageIcon size={GLYPH_SIZE} color={colors.primaryPressed} />
       </View>
 
       <Text variant="h4" align="center">
-        {TITLE}
+        {t('e04.photoPrompt')}
       </Text>
       <Text variant="label14" color="textSecondary" align="center">
-        {SUBTITLE}
+        {t('e04.photoHint')}
       </Text>
 
       {error ? (
@@ -81,14 +76,13 @@ export function RepairPhotoUpload({
 }
 
 const styles = StyleSheet.create({
+  // C82: white card matching E-04's surface, no stroke - a bordered grey tile read as a disabled field.
   card: {
     alignItems: 'center',
     gap: spacing[8],
     padding: spacing[24],
     borderRadius: radii[16],
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceMuted,
+    backgroundColor: colors.surface,
   },
   circle: {
     width: CIRCLE_SIZE,
