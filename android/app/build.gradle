@@ -1,9 +1,6 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
-// Must come after com.android.application. Fails the build with a clear
-// "File google-services.json is missing" if the config was never downloaded,
-// which is why that file is gitignored rather than stubbed from the example.
 apply plugin: "com.google.gms.google-services"
 
 /**
@@ -83,7 +80,7 @@ android {
 
     namespace "com.myapp"
     defaultConfig {
-        applicationId "com.myapp"
+        applicationId "com.wahakun.myapp"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -118,7 +115,6 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
-
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
     } else {
