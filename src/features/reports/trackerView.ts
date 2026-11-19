@@ -1,18 +1,27 @@
 // Everything here is formatting; the node and status facts come from the S1 model.
-import { Calendar, Camera, Check, Mic, Sparkles, User } from 'lucide-react-native';
+import { Calendar, Camera, Check, Mic, Sparkles } from 'lucide-react-native';
 
 import type { ContextChipTint, ReportSummaryCardMarker } from '@/components/ui';
+import { contentIsolate, ltrIsolate, t } from '@/i18n';
+import type { TranslationKey } from '@/i18n';
 
+import { ExpertAvatarIcon } from './components/ExpertAvatarIcon';
 import { STATUS_ICONS } from './components/statusIcon';
+import { formatReportReference } from './format';
 import {
   CONFIDENCE_THRESHOLD,
   currentNode,
   describeStatus,
-  ESCALATION_LINE,
+  escalationLine,
   LIFECYCLE_NODES,
   publicStepperNode,
 } from './lifecycle';
-import { formatAbsoluteDateTime, formatRelativeTime } from './relativeTime';
+import {
+  formatAbsoluteDateTime,
+  formatCalendarDay,
+  formatClockTime,
+  formatRelativeTime,
+} from './relativeTime';
 import { trackerFacts } from './trackerFacts';
 
 import type { LifecycleNode } from './lifecycle';
@@ -42,20 +51,27 @@ export type TimelineNodeView = {
   repairPhoto?: { url: string; notes: string };
 };
 
-const NODE_LABELS: Record<LifecycleNode, string> = {
-  1: 'تم الابلاغ',
-  2: 'تشخيص الذكاء الاصطناعي',
-  3: 'المراجعة من الخبير',
-  4: 'جدولة الإصلاح',
-  5: 'تنفيذ الإصلاح',
-  6: 'تأكيد الحل ومتابعة',
+const NODE_KEYS: Record<LifecycleNode, TranslationKey> = {
+  1: 'tracker.node.reported',
+  2: 'common.aiDiagnosis',
+  3: 'tracker.node.expertReview',
+  4: 'tracker.node.repairScheduled',
+  5: 'tracker.node.repairCarriedOut',
+  6: 'tracker.node.confirmAndFollow',
 };
 
 /** §8.2's Pending column. Nodes 1-3 have none: you cannot reach node 4+ without passing them. */
-const PENDING_SUBTEXT: Partial<Record<LifecycleNode, string>> = {
-  4: 'سيُحدَّد الموعد قريباً',
-  5: 'في انتظار الجدولة',
-  6: 'آخر خطوة — سيُطلب تأكيدك',
+const PENDING_SUBTEXT: Partial<Record<LifecycleNode, TranslationKey>> = {
+  4: 'tracker.appointmentSoon',
+  5: 'tracker.awaitingScheduling',
+  6: 'tracker.lastStep',
+};
+
+/** Undefined for nodes 1-3, which have no pending subtext at all. */
+const pendingSubtext = (node: LifecycleNode) => {
+  const key = PENDING_SUBTEXT[node];
+
+  return key ? t(key) : undefined;
 };
 
 function markerStateFor(
@@ -77,32 +93,35 @@ function evidenceChip(report: Report): TimelineChip {
     ? {
         tint: 'system',
         icon: Mic,
-        label: 'تم تسجيل ملاحظة صوتية. تم نشرها مع تحديد الموقع تلقائياً',
+        label: t('tracker.voiceNoteLogged'),
       }
     : {
         tint: 'system',
         icon: Camera,
-        label: 'تم إرفاق صورة للمشكلة. تم نشرها مع تحديد الموقع تلقائياً',
+        label: t('tracker.photoLogged'),
       };
 }
 
 /** §8.2 node 2: the confidence pill at or above the threshold, the escalation line below it. */
-function diagnosisChip(report: Report): TimelineChip {
-  const analysis = report.analysis;
-  if (!analysis || analysis.confidence < CONFIDENCE_THRESHOLD) {
-    return { tint: 'system', label: ESCALATION_LINE };
+function diagnosisChip(analysis: NonNullable<Report['analysis']>): TimelineChip {
+  if (analysis.confidence < CONFIDENCE_THRESHOLD) {
+    return { tint: 'system', label: escalationLine() };
   }
 
   const percent = Math.round(analysis.confidence * 100);
   const diagnosis = analysis.problemArabic || analysis.problemName;
-  return { tint: 'system', icon: Sparkles, label: `${diagnosis} — ثقة ${percent}%` };
+  return {
+    tint: 'system',
+    icon: Sparkles,
+    // C61: the diagnosis is the author's and the rest is ours. Unisolated, an Arabic diagnosis
+    // gave the whole chip its direction in the English UI and turned our half around
+    // ("...confidence %91"). Isolated, the sentence takes its direction from its own words.
+    label: t('tracker.diagnosisConfidence', {
+      diagnosis: contentIsolate(diagnosis),
+      percent,
+    }),
+  };
 }
-
-/** T15's note, mock-only - see `ReportTrackerDetails.expertReassigned`'s two open unknowns. */
-const EXPERT_REASSIGNED_NOTE = 'تم إعادة تعيين الخبير';
-
-/** §8.3's expert section label, reused when expert.name cannot be shown as a name. */
-const EXPERT_ROLE_LABEL = 'الخبير المسؤول عن البلاغ';
 
 /** W3: nothing says whether expertName holds a name or a phone number, so the shape is guarded. */
 const PHONE_NUMBER_SHAPE = /^\+?\d[\d\s-]{6,}$/;
@@ -111,13 +130,15 @@ function expertChip(
   expert: NonNullable<ReportTrackerDetails['expert']>,
   reassigned?: boolean,
 ): TimelineChip {
-  const name = PHONE_NUMBER_SHAPE.test(expert.name) ? EXPERT_ROLE_LABEL : expert.name;
+  const name = PHONE_NUMBER_SHAPE.test(expert.name)
+    ? t('common.assignedExpert')
+    : expert.name;
   // An empty specialty joined with a newline left a trailing blank line, so the join is conditional.
   const specialtyLine = reassigned
-    ? [expert.specialty, EXPERT_REASSIGNED_NOTE].filter(Boolean).join(' — ')
+    ? [expert.specialty, t('tracker.expertReassigned')].filter(Boolean).join(' — ')
     : expert.specialty;
   const label = specialtyLine ? `${name}\n${specialtyLine}` : name;
-  return { tint: 'system', icon: User, label };
+  return { tint: 'system', icon: ExpertAvatarIcon, label };
 }
 
 /** Node 3's done payload: the expert chip plus the confirmation chip T4 published. */
@@ -131,7 +152,9 @@ function reviewChips(details: ReportTrackerDetails, report: Report): TimelineChi
     chips.push({
       tint: 'system',
       icon: Check,
-      label: diagnosis ? `تم تأكيد التشخيص — ${diagnosis}` : 'تم تأكيد التشخيص',
+      label: diagnosis
+        ? t('tracker.diagnosisConfirmedWith', { diagnosis })
+        : t('tracker.diagnosisConfirmed'),
     });
   }
   return chips;
@@ -140,27 +163,40 @@ function reviewChips(details: ReportTrackerDetails, report: Report): TimelineChi
 function appointmentChip(
   appointment: NonNullable<ReportTrackerDetails['appointment']>,
 ): TimelineChip {
-  const prefix = appointment.rescheduled ? 'تمت إعادة الجدولة' : 'موعد الإصلاح';
+  const prefix = appointment.rescheduled
+    ? t('tracker.rescheduled')
+    : t('tracker.appointment');
   const reason =
     appointment.rescheduled && appointment.reason
-      ? `\nسبب التغيير: ${appointment.reason}`
+      ? t('tracker.changeReason', { reason: contentIsolate(appointment.reason) })
       : '';
+
   return {
     tint: 'system',
     icon: Calendar,
-    label: `${prefix}\n${appointment.date} — ${appointment.windowStart} إلى ${appointment.windowEnd}${reason}`,
+    label: t('tracker.appointmentWindow', {
+      prefix,
+      date: formatCalendarDay(appointment.date),
+      windowStart: formatClockTime(appointment.windowStart),
+      windowEnd: formatClockTime(appointment.windowEnd),
+      reason,
+    }),
   };
 }
 
 /** §8.2's node-6 closure table. Both branches stay coded; only 'farmer' is reachable from mobile. */
 function closureChip(details: ReportTrackerDetails, report: Report): TimelineChip {
   if (details.closedBy === 'admin') {
-    return { tint: 'system', icon: Check, label: 'تم إغلاق البلاغ بعد مراجعة الإدارة' };
+    return { tint: 'system', icon: Check, label: t('tracker.adminClosed') };
   }
+  // The reference arrives whole, `#` included and isolated, the way every other surface shows
+  // it: the copy used to carry its own `#`, which doubled it, and report.id is a server GUID.
   return {
     tint: 'system',
     icon: Check,
-    label: `أكّد المزارع الحل\nتم إغلاق البلاغ #${report.id} بنجاح`,
+    label: t('tracker.farmerConfirmed', {
+      id: ltrIsolate(formatReportReference(report.id)),
+    }),
   };
 }
 
@@ -175,14 +211,14 @@ export function buildTrackerView(
 
   return LIFECYCLE_NODES.map((node): TimelineNodeView => {
     const markerState = markerStateFor(node, current, stepper.isClosed);
-    const label = NODE_LABELS[node];
+    const label = t(NODE_KEYS[node]);
 
     if (markerState === 'pending') {
       return {
         node,
         label,
         markerState,
-        subtext: PENDING_SUBTEXT[node],
+        subtext: pendingSubtext(node),
         chips: [],
         showApproval: false,
       };
@@ -207,7 +243,10 @@ export function buildTrackerView(
           dateTime: report.analysis
             ? formatAbsoluteDateTime(report.analysis.createdAt)
             : undefined,
-          chips: [diagnosisChip(report)],
+          // W13: no analysis is not LOW confidence. The live farmer read carries none at all, and
+          // calling every one of those an escalation told farmers whose photo scored 90-100% that
+          // their case "needs a closer look". With nothing to show, node 2 shows no chip.
+          chips: report.analysis ? [diagnosisChip(report.analysis)] : [],
           showApproval: false,
         };
 
@@ -218,7 +257,9 @@ export function buildTrackerView(
             label,
             markerState,
             subtext: details.assignedAt
-              ? `جارٍ الآن — ${formatRelativeTime(details.assignedAt)}`
+              ? t('tracker.inProgressSince', {
+                  time: formatRelativeTime(details.assignedAt),
+                })
               : undefined,
             chips: details.expert
               ? [expertChip(details.expert, details.expertReassigned)]
@@ -244,7 +285,9 @@ export function buildTrackerView(
             label,
             markerState,
             subtext: details.reviewedAt
-              ? `جارٍ الآن — ${formatRelativeTime(details.reviewedAt)}`
+              ? t('tracker.inProgressSince', {
+                  time: formatRelativeTime(details.reviewedAt),
+                })
               : undefined,
             chips: [],
             showApproval: false,
@@ -268,7 +311,7 @@ export function buildTrackerView(
             node,
             label,
             markerState,
-            subtext: 'سيتم تنفيذ الإصلاح في الموعد المحدد',
+            subtext: t('tracker.repairOnSchedule'),
             chips: [],
             showApproval: false,
           };
@@ -281,7 +324,9 @@ export function buildTrackerView(
           dateTime: details.repair?.confirmedAt
             ? formatAbsoluteDateTime(details.repair.confirmedAt)
             : undefined,
-          chips: [{ tint: 'system', icon: Check, label: 'تم الإصلاح بنجاح' }],
+          chips: [
+            { tint: 'system', icon: Check, label: t('tracker.repairedSuccessfully') },
+          ],
           showApproval: false,
           repairPhoto: details.repair?.photoUrl
             ? { url: details.repair.photoUrl, notes: details.repair.notes }
@@ -295,7 +340,8 @@ export function buildTrackerView(
             node,
             label,
             markerState,
-            subtext: PENDING_SUBTEXT[6],
+            // The frame draws the pending line above the approval card while node 6 is current.
+            subtext: pendingSubtext(6),
             chips: [],
             showApproval: !stepper.isClosed,
           };

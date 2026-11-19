@@ -21,6 +21,21 @@ import type { QueuedReport, QueueReportFields } from '../types';
 
 const INDEX_KEY = 'wk.queue.index';
 
+/** An index written before E4.1 holds two sentences resolved in whatever locale it failed in. */
+type StoredReport = QueuedReport & { failureMessage?: string; lastError?: string };
+
+/** Drops an older build's untranslatable resolved copy, and resets a stuck 'uploading' state that can't survive a cold boot. */
+function restore(stored: StoredReport): QueuedReport {
+  const item: StoredReport = { ...stored };
+
+  delete item.failureMessage;
+  delete item.lastError;
+
+  return item.state === 'uploading'
+    ? { ...item, state: 'queued', nextAttemptAt: 0 }
+    : item;
+}
+
 // Capped at the last step, so a queue left open on a dead connection stops burning battery.
 const BACKOFF_MS = [5_000, 15_000, 45_000, 120_000, 300_000] as const;
 
@@ -113,13 +128,7 @@ async function hydrate(): Promise<void> {
 
   const raw = await AsyncStorage.getItem(INDEX_KEY);
   if (raw) {
-    const stored = JSON.parse(raw) as QueuedReport[];
-    // Nothing is in flight after a cold boot, so an item left 'uploading' would stick.
-    items = stored.map(item =>
-      item.state === 'uploading'
-        ? { ...item, state: 'queued' as const, nextAttemptAt: 0 }
-        : item,
-    );
+    items = (JSON.parse(raw) as StoredReport[]).map(restore);
   }
 
   // A crash between the two writes can leave bytes with no queue entry.
@@ -171,18 +180,17 @@ async function handleFailure(item: QueuedReport, error: ReportError): Promise<Ou
       state: 'queued',
       attempts,
       nextAttemptAt: Date.now() + backoffFor(attempts),
-      lastError: error.message,
     });
     // Offline affects every item; a busy server may still accept the next one, but be gentle.
     return 'retry';
   }
 
   // A refused photo, a too-minor problem or a validation error answer the same every time.
+  // The kind is stored, not the copy: error.message was resolved in the failure's locale, and the row may be read in another.
   await patch(item.localId, {
     state: 'failed',
     failureKind: error.kind,
-    failureMessage: error.message,
-    lastError: undefined,
+    serverMessage: error.serverMessage,
   });
   return 'failed';
 }
@@ -343,8 +351,7 @@ export async function retryQueuedReport(localId: string): Promise<void> {
     attempts: 0,
     nextAttemptAt: 0,
     failureKind: undefined,
-    failureMessage: undefined,
-    lastError: undefined,
+    serverMessage: undefined,
   });
   await drainQueue();
 }

@@ -69,6 +69,9 @@
 	<false/>
 	<key>UIAppFonts</key>
 	<array>
+		<string>Inter-Regular.ttf</string>
+		<string>Inter-Medium.ttf</string>
+		<string>Inter-SemiBold.ttf</string>
 		<string>Cairo-VariableFont_slnt,wght.ttf</string>
 		<string>Cairo-Medium.ttf</string>
 		<string>Cairo-Bold.ttf</string>

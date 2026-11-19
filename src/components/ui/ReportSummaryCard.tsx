@@ -1,9 +1,12 @@
-import { ChevronLeft, Clock, Image as ImageIcon } from 'lucide-react-native';
+import { Clock, Image as ImageIcon } from 'lucide-react-native';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 
+import { ltrIsolate, t } from '@/i18n';
+import { ForwardIcon } from '@/i18n/icons';
 import { colors, radii, spacing } from '@/theme';
 import type { ColorToken } from '@/theme';
 
+import { BiText } from './BiText';
 import { Text } from './Text';
 
 import type { LucideIcon } from 'lucide-react-native';
@@ -38,7 +41,6 @@ const THUMBNAIL_SIZE = 82;
 const META_ICON_SIZE = 12;
 const THUMBNAIL_ICON = 28;
 
-const NO_PHOTO_LABEL = 'لا توجد صورة';
 const CHEVRON_SIZE = 24;
 
 /** The reference chip is a fixed 64 by 24 in the frame, wider only if the text outgrows it. */
@@ -66,8 +68,7 @@ export function ReportSummaryCard({
     <>
       <View style={[styles.stripe, { backgroundColor: colors[borderColor] }]} />
 
-      {/* 8 on the chevron's side, 16 on the photo's: its 24 box carries the other 8 as
-          whitespace, so without the chevron the gutter goes back to a full 16. */}
+      {/* 8 on the chevron side, 16 on the photo side - without the chevron the gutter goes back to a full 16. */}
       <View style={[styles.body, onPress ? styles.bodyTappable : styles.bodyPlain]}>
         {photoUrl ? (
           <Image source={{ uri: photoUrl }} style={styles.thumbnail} />
@@ -76,22 +77,22 @@ export function ReportSummaryCard({
           <View
             style={[styles.thumbnail, styles.thumbnailEmpty]}
             accessible
-            accessibilityLabel={NO_PHOTO_LABEL}
+            accessibilityLabel={t('common.noPhoto')}
           >
             <ImageIcon size={THUMBNAIL_ICON} color={colors.primary} />
           </View>
         )}
 
         <View style={styles.text}>
-          <Text variant="body14Bold" align="right" numberOfLines={2}>
+          <BiText contentRole="title" variant="body14Bold" numberOfLines={2}>
             {title}
-          </Text>
+          </BiText>
 
           {/* The reference reads first in Arabic, so it sits at the trailing edge. */}
           <View style={styles.meta}>
             <View style={styles.pill}>
               <Text variant="label12" color="textSecondary">
-                {reference}
+                {ltrIsolate(reference)}
               </Text>
             </View>
 
@@ -106,7 +107,7 @@ export function ReportSummaryCard({
         </View>
 
         {onPress ? (
-          <ChevronLeft size={CHEVRON_SIZE} color={colors.textSecondary} />
+          <ForwardIcon size={CHEVRON_SIZE} color={colors.textSecondary} />
         ) : null}
       </View>
 
@@ -148,17 +149,17 @@ const styles = StyleSheet.create({
     height: STRIPE_HEIGHT,
   },
   body: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[16],
     paddingVertical: spacing[12],
-    paddingRight: spacing[16],
+    paddingStart: spacing[16],
   },
   bodyTappable: {
-    paddingLeft: spacing[8],
+    paddingEnd: spacing[8],
   },
   bodyPlain: {
-    paddingLeft: spacing[16],
+    paddingEnd: spacing[16],
   },
   thumbnail: {
     width: THUMBNAIL_SIZE,
@@ -176,12 +177,12 @@ const styles = StyleSheet.create({
     gap: spacing[8],
   },
   meta: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[16],
   },
   time: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[4],
   },

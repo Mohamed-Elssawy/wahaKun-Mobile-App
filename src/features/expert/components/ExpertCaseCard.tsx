@@ -3,6 +3,7 @@ import { Image, StyleSheet, View } from 'react-native';
 
 import {
   AiConfidenceChip,
+  BiText,
   Button,
   SeverityBadge,
   StatusChip,
@@ -13,12 +14,14 @@ import { formatReportReference } from '@/features/reports/format';
 import {
   CONFIDENCE_THRESHOLD,
   describeStatus,
-  RESCHEDULE_LABEL,
+  expertActionLabel,
+  rescheduleLabel,
   isClosedStatus,
 } from '@/features/reports/lifecycle';
 import type { ExpertCta } from '@/features/reports/lifecycle';
 import { formatRelativeTime } from '@/features/reports/relativeTime';
 import { describeSeverity } from '@/features/reports/severity';
+import { ltrIsolate, t } from '@/i18n';
 import { colors, radii, shadows, spacing } from '@/theme';
 
 import type { ExpertCaseSummary } from '../types';
@@ -35,11 +38,6 @@ const AVATAR_SIZE = 24;
 const AVATAR_ICON = 12;
 const CORROBORATION_ICON = 14;
 const STRIP_HEIGHT = 4;
-const STEP_LABEL: Record<ExpertCta['action'], string> = {
-  review: 'مراجعة',
-  continue: 'متابعة',
-  view: 'عرض',
-};
 
 /** E-01's card: the CTA comes from expertCtaFor alone, never a status switch of its own. */
 export function ExpertCaseCard({
@@ -65,9 +63,14 @@ export function ExpertCaseCard({
 
       <View style={styles.body}>
         <View style={styles.header}>
-          <Text variant="body14" align="right" numberOfLines={2} style={styles.title}>
+          <BiText
+            contentRole="title"
+            variant="body14"
+            numberOfLines={2}
+            style={styles.title}
+          >
             {summary.title}
-          </Text>
+          </BiText>
 
           {isClosed ? null : (
             <SeverityBadge
@@ -90,7 +93,9 @@ export function ExpertCaseCard({
             <View style={styles.metaItem}>
               <Users size={CORROBORATION_ICON} color={colors.primary} />
               <Text variant="label12" color="primary">
-                {`${summary.corroborationCount} نفس المشكلة`}
+                {t('e01.corroborationCount', {
+                  corroborationCount: summary.corroborationCount,
+                })}
               </Text>
             </View>
           ) : null}
@@ -111,17 +116,18 @@ export function ExpertCaseCard({
                 <User size={AVATAR_ICON} color={colors.textPrimary} />
               </View>
             )}
-            <Text
+            <BiText
+              contentRole="title"
               variant="label14"
               color="textPrimary"
               numberOfLines={1}
               style={styles.reporterName}
             >
               {summary.reporterName}
-            </Text>
+            </BiText>
             <View style={styles.referencePill}>
               <Text variant="label12" color="textSecondary" numberOfLines={1}>
-                {formatReportReference(summary.reportId)}
+                {ltrIsolate(formatReportReference(summary.reportId))}
               </Text>
             </View>
           </View>
@@ -136,7 +142,7 @@ export function ExpertCaseCard({
         <View style={styles.footer}>
           {cta.secondaryAction === 'reschedule' ? (
             <Button
-              label={RESCHEDULE_LABEL}
+              label={rescheduleLabel()}
               variant="secondary"
               onPress={onReschedule}
               style={styles.footerButton}
@@ -144,7 +150,7 @@ export function ExpertCaseCard({
           ) : null}
 
           <Button
-            label={STEP_LABEL[cta.action]}
+            label={expertActionLabel(cta.action)}
             onPress={() => onPrimary(cta)}
             style={styles.footerButton}
           />
@@ -169,7 +175,7 @@ const styles = StyleSheet.create({
     gap: spacing[12],
   },
   header: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: spacing[12],
@@ -178,17 +184,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   meta: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   metaItem: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[4],
   },
   identity: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: spacing[8],
@@ -197,7 +203,7 @@ const styles = StyleSheet.create({
   reporter: {
     flex: 1,
     minWidth: 0,
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[8],
   },
@@ -222,7 +228,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceMuted,
   },
   footer: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     gap: spacing[12],
   },
   footerButton: {

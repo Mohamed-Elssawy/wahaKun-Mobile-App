@@ -17,7 +17,7 @@ export function SettingsSection({ title, children }: SettingsSectionProps) {
 
   return (
     <View style={styles.section}>
-      <Text variant="label14" color="textMuted" align="right">
+      <Text variant="label14" color="textMuted">
         {title}
       </Text>
 

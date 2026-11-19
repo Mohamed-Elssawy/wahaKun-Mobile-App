@@ -1,6 +1,7 @@
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { Button, REPORT_SUMMARY_CARD_HEIGHT } from '@/components/ui';
+import { t } from '@/i18n';
 import { colors, radii, shadows, spacing } from '@/theme';
 
 import { MapPeekCard } from './MapPeekCard';
@@ -39,7 +40,7 @@ export function MapPeekSheet({ issues, buildAction, onDismiss }: MapPeekSheetPro
         style={styles.grabberHit}
         onPress={onDismiss}
         accessibilityRole="button"
-        accessibilityLabel="إغلاق"
+        accessibilityLabel={t('f05.close')}
       >
         <View style={styles.grabber} />
       </TouchableOpacity>

@@ -52,8 +52,8 @@ const FIXTURES: Record<string, ReportTrackerDetails> = {
     appointment: {
       confirmedAt: '2026-06-12T20:07:00Z',
       date: '2026-06-14',
-      windowStart: '09:00 ص',
-      windowEnd: '12:00 م',
+      windowStart: '09:00',
+      windowEnd: '12:00',
     },
   },
   // pending-approval - node 6 current, open. Repair published (T6), farmer has not tapped yet.
@@ -67,8 +67,8 @@ const FIXTURES: Record<string, ReportTrackerDetails> = {
     appointment: {
       confirmedAt: '2026-06-10T20:07:00Z',
       date: '2026-06-14',
-      windowStart: '09:00 ص',
-      windowEnd: '12:00 م',
+      windowStart: '09:00',
+      windowEnd: '12:00',
     },
     repair: {
       confirmedAt: '2026-06-14T09:41:00Z',
@@ -87,8 +87,8 @@ const FIXTURES: Record<string, ReportTrackerDetails> = {
     appointment: {
       confirmedAt: '2026-06-08T20:00:00Z',
       date: '2026-06-10',
-      windowStart: '10:00 ص',
-      windowEnd: '01:00 م',
+      windowStart: '10:00',
+      windowEnd: '13:00',
     },
     repair: {
       confirmedAt: '2026-06-10T11:30:00Z',
@@ -132,7 +132,7 @@ const trackers = new Map(Object.entries(FIXTURES));
 
 export async function getReportTracker(reportId: string): Promise<ReportTrackerDetails> {
   await mockDelay(LATENCY.read);
-  failOnErrorScenario('تعذر تحميل مسار البلاغ');
+  failOnErrorScenario('Mock: the tracker is unavailable in this scenario');
 
   const found = trackers.get(reportId);
   if (!found) {
@@ -144,7 +144,7 @@ export async function getReportTracker(reportId: string): Promise<ReportTrackerD
 /** T7. A dead end in the mock: its visual aftermath is out of scope. */
 export async function confirmResolution(reportId: string): Promise<void> {
   await mockDelay(LATENCY.write);
-  failOnErrorScenario('تعذر تأكيد الحل');
+  failOnErrorScenario('Mock: confirming the resolution fails in the error scenario');
 
   const current = trackers.get(reportId);
   if (!current) {
@@ -162,7 +162,7 @@ export async function confirmResolution(reportId: string): Promise<void> {
 /** T8. Clears nodes 4-5, so the repair photo leaves the expert's view too. */
 export async function rejectResolution(reportId: string): Promise<void> {
   await mockDelay(LATENCY.write);
-  failOnErrorScenario('تعذر إرسال الرفض');
+  failOnErrorScenario('Mock: rejecting the repair fails in the error scenario');
 
   const current = trackers.get(reportId);
   if (!current) {

@@ -1,5 +1,7 @@
 /** Distance is computed here because no endpoint returns it; the map gives coordinates. */
 
+import { t } from '@/i18n';
+
 const EARTH_RADIUS_KM = 6371;
 
 const toRadians = (degrees: number) => (degrees * Math.PI) / 180;
@@ -27,7 +29,7 @@ export function formatDistance(km: number): string {
   }
   // Below 100m "0.1 كم" overstates the precision of a phone GPS fix.
   if (km < 0.1) {
-    return 'قريب جدًا';
+    return t('f01.veryClose');
   }
-  return `${km < 10 ? km.toFixed(1) : Math.round(km)} كم`;
+  return t('common.distanceKm', { km: km < 10 ? km.toFixed(1) : Math.round(km) });
 }

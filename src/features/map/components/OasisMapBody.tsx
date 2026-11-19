@@ -7,6 +7,8 @@ import { Keyboard, StyleSheet, View } from 'react-native';
 import { AppHeader, StaleBanner, Text } from '@/components/ui';
 import { ReportErrorView } from '@/features/reports/components/ReportErrorView';
 import { useIdentity } from '@/features/user/hooks/useIdentity';
+import { t } from '@/i18n';
+import type { TranslationKey } from '@/i18n';
 import { colors, spacing } from '@/theme';
 
 import { MapClusterPin } from './MapClusterPin';
@@ -27,14 +29,14 @@ import type { NativeSyntheticEvent } from 'react-native';
 
 const EMPTY = {
   all: {
-    title: 'لا توجد بلاغات على الخريطة',
-    message: 'لم يبلغ أحد عن مشكلة في الواحة بعد. هذه أخبار جيدة.',
+    title: 'f05.emptyTitle',
+    message: 'f05.emptyBody',
   },
   filtered: {
-    title: 'لا توجد بلاغات مطابقة',
-    message: 'جرّب كلمة أخرى للبحث في بلاغات الواحة.',
+    title: 'f07.noResultsTitle',
+    message: 'f05.noSearchResults',
   },
-} as const;
+} as const satisfies Record<string, { title: TranslationKey; message: TranslationKey }>;
 
 const CAMERA_DURATION_MS = 600;
 
@@ -78,9 +80,11 @@ export function OasisMapBody({ buildPeekAction }: OasisMapBodyProps) {
     setIsLegendOpen(!isZoomedIn);
   }, [isZoomedIn]);
 
-  // Stays open while a query is live: a collapsed bar would hide why the map is filtered.
-  const isSearchExpanded = isSearchOpen || hasQuery;
-  const isLegendExpanded = isLegendOpen;
+  const isSheetOpen = selected.length > 0;
+
+  // C56 / B-COLLAPSE: derived rather than forced, so dismissing the sheet restores whatever state the viewer had.
+  const isSearchExpanded = !isSheetOpen && (isSearchOpen || hasQuery);
+  const isLegendExpanded = !isSheetOpen && isLegendOpen;
 
   // Clears on the way down, so the map is never filtered by a query the viewer cannot see.
   const handleSearchToggle = () => {
@@ -101,7 +105,7 @@ export function OasisMapBody({ buildPeekAction }: OasisMapBodyProps) {
 
   const header = (
     <AppHeader
-      title="خريطة الواحة"
+      title={t('f05.title')}
       avatarUrl={avatarUrl}
       onOpenProfile={() => navigation.navigate('Profile')}
       onOpenNotifications={() => navigation.navigate('Notifications')}
@@ -116,7 +120,7 @@ export function OasisMapBody({ buildPeekAction }: OasisMapBodyProps) {
         <View style={styles.fallback}>
           <ReportErrorView
             error={error}
-            unknownTitle="تعذر تحميل الخريطة"
+            unknownTitle={t('f05.loadErrorTitle')}
             onRetry={retry}
           />
         </View>
@@ -170,12 +174,7 @@ export function OasisMapBody({ buildPeekAction }: OasisMapBodyProps) {
       <View style={styles.chrome} pointerEvents="box-none">
         {header}
 
-        {error ? (
-          <StaleBanner
-            message="تعذر تحديث الخريطة، قد تكون البيانات قديمة"
-            onRetry={retry}
-          />
-        ) : null}
+        {error ? <StaleBanner message={t('f05.staleBanner')} onRetry={retry} /> : null}
 
         <View style={styles.search} pointerEvents="box-none">
           <MapSearchBar
@@ -193,8 +192,8 @@ export function OasisMapBody({ buildPeekAction }: OasisMapBodyProps) {
           {isEmpty ? (
             <MapNotice
               icon={MapPinned}
-              title={hasQuery ? EMPTY.filtered.title : EMPTY.all.title}
-              message={hasQuery ? EMPTY.filtered.message : EMPTY.all.message}
+              title={t(hasQuery ? EMPTY.filtered.title : EMPTY.all.title)}
+              message={t(hasQuery ? EMPTY.filtered.message : EMPTY.all.message)}
             />
           ) : null}
         </View>
@@ -208,7 +207,7 @@ export function OasisMapBody({ buildPeekAction }: OasisMapBodyProps) {
           <MapControlButton
             icon={<LocateFixed size={MAP_CONTROL_ICON} color={colors.primary} />}
             onPress={recenter}
-            accessibilityLabel="العودة إلى موقعي"
+            accessibilityLabel={t('f05.locateMe')}
           />
         </View>
 
@@ -217,7 +216,7 @@ export function OasisMapBody({ buildPeekAction }: OasisMapBodyProps) {
           {TILE_ATTRIBUTION}
         </Text>
 
-        {selected.length > 0 ? (
+        {isSheetOpen ? (
           <MapPeekSheet
             issues={selected}
             buildAction={buildPeekAction}
@@ -255,16 +254,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  // row-reverse puts the legend on the right, where the frame has it.
+  // The legend leads and the locate control takes the far edge.
   controls: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'space-between',
     paddingHorizontal: spacing[12],
     paddingBottom: spacing[12],
   },
   attribution: {
-    alignSelf: 'flex-start',
+    alignSelf: 'flex-end',
     paddingHorizontal: spacing[12],
     paddingBottom: spacing[4],
     // The imagery behind it is arbitrary, so the label carries its own scrim.

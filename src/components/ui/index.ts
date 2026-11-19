@@ -10,6 +10,8 @@ export type { AppHeaderProps } from './AppHeader';
 export { BackHeader } from './BackHeader';
 export type { BackHeaderProps } from './BackHeader';
 
+export { BiText } from './BiText';
+
 export { Button } from './Button';
 export type { ButtonProps, ButtonVariant } from './Button';
 
@@ -36,6 +38,18 @@ export type { FilterChipRowProps } from './FilterChipRow';
 
 export { InlineFieldError } from './InlineFieldError';
 export type { InlineFieldErrorProps } from './InlineFieldError';
+
+export { LanguageControl } from './LanguageControl';
+export type { LanguageControlProps } from './LanguageControl';
+
+export { LanguageDialog } from './LanguageDialog';
+export type { LanguageDialogProps } from './LanguageDialog';
+
+export { LanguageOption } from './LanguageOption';
+export type { LanguageOptionProps } from './LanguageOption';
+
+export { LanguageRelaunch } from './LanguageRelaunch';
+export type { LanguageRelaunchProps } from './LanguageRelaunch';
 
 export { ListSkeleton } from './ListSkeleton';
 export type { ListSkeletonProps } from './ListSkeleton';
@@ -81,6 +95,9 @@ export type { StateRegister, StateScreenProps } from './StateScreen';
 
 export { StatusChip } from './StatusChip';
 export type { StatusChipProps } from './StatusChip';
+
+export { Switch } from './Switch';
+export type { SwitchProps } from './Switch';
 
 export { Text } from './Text';
 export type { TextProps } from './Text';

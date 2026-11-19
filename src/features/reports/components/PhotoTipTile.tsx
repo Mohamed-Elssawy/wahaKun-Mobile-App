@@ -19,7 +19,7 @@ export function PhotoTipTile({ icon, label }: PhotoTipTileProps) {
     <View style={styles.tile}>
       <View style={styles.circle}>{icon}</View>
 
-      <Text variant="label14" color="textStrong" align="center">
+      <Text variant="h6" color="textStrong" align="center">
         {label}
       </Text>
     </View>

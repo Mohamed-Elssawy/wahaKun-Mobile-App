@@ -4,7 +4,8 @@ import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react
 import { Button, Text, TextField, VoicePlayer } from '@/components/ui';
 import { useAudioPlayer } from '@/hooks/useAudioPlayer';
 import type { useAudioRecorder } from '@/hooks/useAudioRecorder';
-import { screenPadding, spacing } from '@/theme';
+import { t } from '@/i18n';
+import { screenPadding, spacing, textStyles } from '@/theme';
 
 import { CaptureDivider } from './CaptureDivider';
 import { RecordingControls } from './RecordingControls';
@@ -26,15 +27,7 @@ export type VoiceCaptureProps = {
   focusTrigger: number;
 };
 
-const WRITE_TITLE = 'صف المشكلة بالكتابة';
-const PLACEHOLDER = 'مثال: القناة مكسورة و الماء يتسرب إلى الحقل';
-const SEND = 'ارسال المشكلة';
 // BACKEND-GAP 28: /Issue/analyze requires a photo, so audio or text alone can never submit.
-const SEND_DISABLED_REASON =
-  'البلاغ يحتاج صورة للمشكلة أيضًا، حتى مع التسجيل أو الكتابة.';
-const ADD_PHOTO = 'أضف صورة للمتابعة';
-const RE_RECORD = 'إعادة التسجيل';
-const RECORD_FAILED = 'تعذر بدء التسجيل، حاول مرة أخرى';
 
 const DESCRIPTION_LINES = 4;
 
@@ -94,7 +87,8 @@ export function VoiceCapture({
   if (recorder.state === 'reviewing') {
     return (
       <ScrollView
-        contentContainerStyle={styles.content}
+        // C46: the card pads itself; styles.content double-padded it and shrank it.
+        contentContainerStyle={styles.review}
         showsVerticalScrollIndicator={false}
       >
         <VoiceReviewCard
@@ -117,7 +111,7 @@ export function VoiceCapture({
       {recorder.state === 'attached' ? (
         <View style={styles.attached}>
           <VoicePlayer
-            title="التسجيل الصوتي"
+            title={t('f04.voiceSectionTitle')}
             isPlaying={player.isPlaying}
             progress={player.progress}
             onToggle={player.toggle}
@@ -127,10 +121,10 @@ export function VoiceCapture({
             onPress={handleDiscard}
             hitSlop={hitSlop}
             accessibilityRole="button"
-            accessibilityLabel={RE_RECORD}
+            accessibilityLabel={t('x04.reRecord')}
           >
             <Text variant="label14" color="primary">
-              {RE_RECORD}
+              {t('x04.reRecord')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -140,7 +134,7 @@ export function VoiceCapture({
           <VoiceRecordButton onPress={handleRecordPress} />
           {recorder.hasFailed ? (
             <Text variant="label12" color="errorText" align="center">
-              {RECORD_FAILED}
+              {t('x04.recordFailed')}
             </Text>
           ) : null}
         </>
@@ -149,15 +143,15 @@ export function VoiceCapture({
       <CaptureDivider />
 
       <View style={styles.write}>
-        <Text variant="h4" color="textStrong" align="right">
-          {WRITE_TITLE}
+        <Text variant="h4" color="textStrong">
+          {t('x04.writeTitle')}
         </Text>
 
         <TextField
           ref={textFieldRef}
           value={description}
           onChangeText={onDescriptionChange}
-          placeholder={PLACEHOLDER}
+          placeholder={t('x04.placeholder')}
           multiline
           numberOfLines={DESCRIPTION_LINES}
           textAlignVertical="top"
@@ -165,14 +159,18 @@ export function VoiceCapture({
         />
       </View>
 
-      {/* BACKEND-GAP, see SEND_DISABLED_REASON above: disabled with the reason stated, not an
-          enabled button that would fail after the farmer has already recorded or typed. */}
-      <Button label={SEND} onPress={() => {}} disabled />
+      {/* BACKEND-GAP: disabled up front rather than enabled and failing after the farmer records. */}
+      <Button label={t('x04.send')} onPress={() => {}} disabled />
       <Text variant="label12" color="textSecondary" align="center">
-        {SEND_DISABLED_REASON}
+        {t('x04.photoAlsoNeeded')}
       </Text>
 
-      <Button label={ADD_PHOTO} onPress={onNeedsPhoto} variant="secondary" showArrow />
+      <Button
+        label={t('x04.addPhotoToContinue')}
+        onPress={onNeedsPhoto}
+        variant="secondary"
+        showArrow
+      />
     </ScrollView>
   );
 }
@@ -187,12 +185,15 @@ const styles = StyleSheet.create({
     paddingTop: spacing[24],
     paddingBottom: spacing[32],
   },
+  review: {
+    flexGrow: 1,
+  },
   attached: {
     width: '100%',
     gap: spacing[12],
   },
   reRecordLink: {
-    alignSelf: 'flex-end',
+    alignSelf: 'flex-start',
   },
   write: {
     alignSelf: 'stretch',
@@ -200,8 +201,9 @@ const styles = StyleSheet.create({
   },
   descriptionInput: {
     // Arabic prose, unlike the email and phone fields this primitive was built for.
-    textAlign: 'right',
     // minHeight, not height: a fixed box clips both the text and the OS font scale.
     minHeight: 96,
+    // C43: the frame sets the description at 14, a step under the single-line fields' 16.
+    ...textStyles.body14,
   },
 });

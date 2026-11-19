@@ -1,6 +1,7 @@
 import { CloudOff } from 'lucide-react-native';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
+import { t } from '@/i18n';
 import { colors, screenPadding, spacing } from '@/theme';
 
 import { Text } from './Text';
@@ -13,7 +14,6 @@ export type StaleBannerProps = {
 };
 
 const ICON_SIZE = 18;
-const RETRY = 'تحديث';
 
 /** D-STALE: cached content because the network is not there. Drawn from X-09's notice. */
 export function StaleBanner({ message, onRetry }: StaleBannerProps) {
@@ -21,7 +21,7 @@ export function StaleBanner({ message, onRetry }: StaleBannerProps) {
     <View style={styles.banner} accessibilityRole="alert">
       <CloudOff size={ICON_SIZE} color={colors.primary} />
 
-      <Text variant="label12" color="primaryPressed" align="right" style={styles.message}>
+      <Text variant="label12" color="primaryPressed" style={styles.message}>
         {message}
       </Text>
 
@@ -30,10 +30,10 @@ export function StaleBanner({ message, onRetry }: StaleBannerProps) {
           onPress={onRetry}
           hitSlop={hitSlop}
           accessibilityRole="button"
-          accessibilityLabel={RETRY}
+          accessibilityLabel={t('common.refresh')}
         >
           <Text variant="label12Bold" color="primary">
-            {RETRY}
+            {t('common.refresh')}
           </Text>
         </TouchableOpacity>
       ) : null}
@@ -46,7 +46,7 @@ const hitSlop = { top: 12, bottom: 12, left: 12, right: 12 };
 const styles = StyleSheet.create({
   // Full bleed, not a card: it belongs to the list under it, not on top of it.
   banner: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[8],
     paddingHorizontal: screenPadding,

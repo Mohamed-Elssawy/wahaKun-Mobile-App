@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 
 import { Text } from '@/components/ui';
+import { t } from '@/i18n';
 import { colors, maxFontScale, radii, screenPadding, spacing, textStyles } from '@/theme';
 
 export type CommentComposerProps = {
@@ -20,10 +21,7 @@ export type CommentComposerProps = {
   errorMessage?: string;
 };
 
-const PLACEHOLDER = 'أضف تعليقاً أو معلومة...';
-
 /** Posting needs the moderation service on :8000, which is not in the backend repo. */
-const DISABLED = 'إضافة التعليقات غير متاحة حاليًا';
 
 const SEND_ICON = 20;
 const SEND_SIZE = 44;
@@ -53,18 +51,32 @@ export function CommentComposer({
   return (
     <View style={styles.bar}>
       {errorMessage ? (
-        <Text variant="label12" color="errorText" align="right">
+        <Text variant="label12" color="errorText">
           {errorMessage}
         </Text>
       ) : null}
 
       <View style={styles.row}>
+        {/* C53: written field-first so the mirrored row still puts send on the layout's END in both locales. */}
+        <TextInput
+          style={styles.input}
+          value={text}
+          onChangeText={setText}
+          editable={canPost && !isPosting}
+          placeholder={canPost ? t('f04.commentPlaceholder') : t('f04.commentsDisabled')}
+          placeholderTextColor={colors.textPlaceholder}
+          multiline
+          numberOfLines={1}
+          maxFontSizeMultiplier={maxFontScale}
+          accessibilityLabel={t('f04.commentPlaceholder')}
+        />
+
         <TouchableOpacity
           style={[styles.send, !canSend && styles.sendDisabled]}
           onPress={handleSend}
           disabled={!canSend}
           accessibilityRole="button"
-          accessibilityLabel="إرسال التعليق"
+          accessibilityLabel={t('f04.sendCommentA11y')}
           accessibilityState={{ disabled: !canSend }}
         >
           {isPosting ? (
@@ -73,19 +85,6 @@ export function CommentComposer({
             <Send size={SEND_ICON} color={colors.textInverse} />
           )}
         </TouchableOpacity>
-
-        <TextInput
-          style={styles.input}
-          value={text}
-          onChangeText={setText}
-          editable={canPost && !isPosting}
-          placeholder={canPost ? PLACEHOLDER : DISABLED}
-          placeholderTextColor={colors.textPlaceholder}
-          multiline
-          numberOfLines={1}
-          maxFontSizeMultiplier={maxFontScale}
-          accessibilityLabel={PLACEHOLDER}
-        />
       </View>
     </View>
   );
@@ -101,7 +100,7 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
   },
   row: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'flex-end',
     gap: spacing[12],
   },
@@ -109,7 +108,6 @@ const styles = StyleSheet.create({
     flex: 1,
     ...textStyles.label14,
     color: colors.textPrimary,
-    textAlign: 'right',
     minHeight: SEND_SIZE,
     // Grows with the comment, then scrolls, so a long one cannot push the thread off screen.
     maxHeight: SEND_SIZE + MAX_LINES * textStyles.label14.lineHeight,

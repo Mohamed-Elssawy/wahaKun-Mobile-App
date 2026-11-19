@@ -8,7 +8,7 @@ import {
 
 import { describeTier, normalizeMapStatus } from '../tier';
 
-import type { MapIssue, MapIssueWire } from '../types';
+import type { MapApi, MapIssue, MapIssueWire } from '../types';
 
 const BASE = API_BASE_URLS.map;
 
@@ -70,3 +70,5 @@ export async function getMapIssueById(issueId: string): Promise<MapIssue | null>
   });
   return normalizeMapIssue(wire);
 }
+
+export const mapApi: MapApi = { getMapIssues, getMapIssueById };

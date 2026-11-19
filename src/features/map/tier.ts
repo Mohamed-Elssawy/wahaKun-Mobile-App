@@ -1,5 +1,7 @@
 import { isClosedWireStatus } from '@/features/reports/lifecycle';
 import type { ReportStatus } from '@/features/reports/types';
+import { t } from '@/i18n';
+import type { TranslationKey } from '@/i18n';
 import type { ColorToken } from '@/theme';
 
 import type { MapIssueTier, MapPriorityName } from './types';
@@ -57,15 +59,35 @@ export type TierDisplay = {
 };
 
 // The four hexes in F-05's legend are error, warning, info and success exactly.
-const TIER_DISPLAY: Record<MapIssueTier, TierDisplay> = {
-  critical: { color: 'error', label: 'مشكلة خطورتها حرجة', shortLabel: 'حرجة' },
-  medium: { color: 'warning', label: 'مشكلة خطورتها متوسطة', shortLabel: 'متوسطة' },
-  low: { color: 'info', label: 'مشكلة خطورتها منخفضة', shortLabel: 'منخفضة' },
-  resolved: { color: 'success', label: 'مشكلة تم حلها', shortLabel: 'تم الحل' },
+type TierEntry = {
+  color: TierDisplay['color'];
+  labelKey: TranslationKey;
+  shortLabelKey: TranslationKey;
+};
+
+const TIER_DISPLAY: Record<MapIssueTier, TierEntry> = {
+  critical: {
+    color: 'error',
+    labelKey: 'f01.pinA11y.critical',
+    shortLabelKey: 'severity.critical',
+  },
+  medium: {
+    color: 'warning',
+    labelKey: 'f01.pinA11y.medium',
+    shortLabelKey: 'severity.medium',
+  },
+  low: { color: 'info', labelKey: 'f01.pinA11y.low', shortLabelKey: 'severity.low' },
+  resolved: {
+    color: 'success',
+    labelKey: 'f01.pinA11y.resolved',
+    shortLabelKey: 'status.resolved',
+  },
 };
 
 export function describeTierDisplay(tier: MapIssueTier): TierDisplay {
-  return TIER_DISPLAY[tier];
+  const { color, labelKey, shortLabelKey } = TIER_DISPLAY[tier];
+
+  return { color, label: t(labelKey), shortLabel: t(shortLabelKey) };
 }
 
 /** Legend order, worst first, which is how F-05 lists them. */

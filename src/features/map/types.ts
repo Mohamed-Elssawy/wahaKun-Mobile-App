@@ -34,6 +34,12 @@ export type MapIssue = {
   createdAt: string;
 };
 
+/** What F-05 reads, so the mock and MapService cannot drift apart. */
+export type MapApi = {
+  getMapIssues: () => Promise<MapIssue[]>;
+  getMapIssueById: (issueId: string) => Promise<MapIssue | null>;
+};
+
 /** The legend's four rows. Resolved wins over severity: a fixed problem reads green. */
 export type MapIssueTier = 'critical' | 'medium' | 'low' | 'resolved';
 

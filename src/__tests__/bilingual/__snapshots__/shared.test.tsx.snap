@@ -1,0 +1,108 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`S-12 · the language dialog, confirm revealed matches its snapshot in both locales 1`] = `
+{
+  "ar": "View justifyContent:"center" a11y="إغلاق"
+  Text Cairo-SemiBold 24/40 textAlign:"center" "اللغة"
+  Text Cairo-SemiBold 24/40 textAlign:"center" "العربية"
+  Text Cairo-SemiBold 24/40 textAlign:"center" "English"
+  Text NotoSansArabic-Regular 12/21 textAlign:"center" "تغيير اللغة يحتاج إلى إعادة تشغيل التطبيق"
+  Text Inter-Regular 12/21 textAlign:"center" "Changing the language needs an app restart"
+  View flexDirection:"row" alignItems:"center" justifyContent:"center"
+    Text Cairo-SemiBold 16/24 "تأكيد"",
+  "en": "View justifyContent:"center" a11y="Close"
+  Text Cairo-SemiBold 24/40 textAlign:"center" "Language"
+  Text Cairo-SemiBold 24/40 textAlign:"center" "العربية"
+  Text Cairo-SemiBold 24/40 textAlign:"center" "English"
+  Text NotoSansArabic-Regular 12/21 textAlign:"center" "تغيير اللغة يحتاج إلى إعادة تشغيل التطبيق"
+  Text Inter-Regular 12/21 textAlign:"center" "Changing the language needs an app restart"
+  View flexDirection:"row" alignItems:"center" justifyContent:"center"
+    Text Cairo-SemiBold 18/30 "Confirm"",
+}
+`;
+
+exports[`S-13a · bottom sheet, standing in for S-13d (archetype 13) matches its snapshot in both locales 1`] = `
+{
+  "ar": "View flexDirection:"row" justifyContent:"flex-start"
+  View a11y="رجوع"
+View alignItems:"center"
+  Text Cairo-SemiBold 24/40 textAlign:"center" "أضف صورتك الشخصية"
+  Text NotoSansArabic-Regular 14/24.5 textAlign:"center" "أضف صورتك حتى يتعرف عليك الأعضاء الآخرون."
+  View alignItems:"center" justifyContent:"center"
+View flexDirection:"row" alignItems:"center" justifyContent:"center"
+  Text Cairo-SemiBold 16/24 "تحميل الصورة"
+View flexDirection:"row" alignItems:"center" justifyContent:"center"
+  Text NotoSansArabic-Regular 14/24.5 "إلغاء"
+Text Cairo-SemiBold 16/24 textAlign:"center" "اختر طريقة إضافة الصورة"
+View flexDirection:"row" alignItems:"center" justifyContent:"flex-start"
+  Text NotoSansArabic-Regular 16/24 "التقاط صورة"
+View flexDirection:"row" alignItems:"center" justifyContent:"flex-start"
+  Text NotoSansArabic-Regular 16/24 "رفع صورة من المعرض"
+View alignItems:"center"
+  Text NotoSansArabic-SemiBold 16/24 "إلغاء"",
+  "en": "View flexDirection:"row" justifyContent:"flex-start"
+  View a11y="Back"
+View alignItems:"center"
+  Text Cairo-SemiBold 24/40 textAlign:"center" "Add a profile photo"
+  Text Inter-Regular 14/21 textAlign:"center" "Add a photo so other members recognise you."
+  View alignItems:"center" justifyContent:"center"
+View flexDirection:"row" alignItems:"center" justifyContent:"center"
+  Text Cairo-SemiBold 18/30 "Upload photo"
+View flexDirection:"row" alignItems:"center" justifyContent:"center"
+  Text Inter-Regular 14/21 "Cancel"
+Text Cairo-SemiBold 16/24 textAlign:"center" "How would you like to add a photo?"
+View flexDirection:"row" alignItems:"center" justifyContent:"flex-start"
+  Text Inter-Regular 16/24 "Take a photo"
+View flexDirection:"row" alignItems:"center" justifyContent:"flex-start"
+  Text Inter-Regular 16/24 "Upload from gallery"
+View alignItems:"center"
+  Text Inter-SemiBold 16/24 "Cancel"",
+}
+`;
+
+exports[`X-05 · full-screen state (archetype 14) matches its snapshot in both locales 1`] = `
+{
+  "ar": "View alignItems:"center" justifyContent:"center"
+  View alignItems:"center" justifyContent:"center"
+  View alignItems:"center"
+    Text Cairo-SemiBold 18/30 textAlign:"center" "لا يمكن الوصول إلى موقعك"
+    Text NotoSansArabic-Regular 14/21 textAlign:"center" "فعّل إذن الموقع من الإعدادات لكي نتمكّن من الوصول لموقعك و حل مشكلتك."
+View flexDirection:"row" alignItems:"center" justifyContent:"center"
+  Text Cairo-SemiBold 16/24 "فتح الإعدادات"",
+  "en": "View alignItems:"center" justifyContent:"center"
+  View alignItems:"center" justifyContent:"center"
+  View alignItems:"center"
+    Text Cairo-SemiBold 18/30 textAlign:"center" "Can't access your location"
+    Text Inter-Regular 14/21 textAlign:"center" "Turn on location permission in Settings so we can find the problem and fix it."
+View flexDirection:"row" alignItems:"center" justifyContent:"center"
+  Text Cairo-SemiBold 18/30 "Open settings"",
+}
+`;
+
+exports[`the pre-login control matches its snapshot in both locales 1`] = `
+{
+  "ar": "View flexDirection:"row" alignItems:"center" a11y="تغيير اللغة"
+  Text Cairo-SemiBold 16/24 "English"",
+  "en": "View flexDirection:"row" alignItems:"center" a11y="Change language"
+  Text Cairo-SemiBold 16/24 "العربية"",
+}
+`;
+
+exports[`the relaunch screen, written in the language being switched TO matches its snapshot in both locales 1`] = `
+{
+  "ar": "View alignItems:"center" justifyContent:"center"
+  View alignItems:"center" justifyContent:"center"
+  View alignItems:"center"
+    Text Cairo-SemiBold 18/30 textAlign:"center" "Language saved"
+    Text Inter-Regular 14/21 textAlign:"center" "The app will restart to finish switching."
+View flexDirection:"row" alignItems:"center" justifyContent:"center"
+  Text Cairo-SemiBold 18/30 "Restart the app"",
+  "en": "View alignItems:"center" justifyContent:"center"
+  View alignItems:"center" justifyContent:"center"
+  View alignItems:"center"
+    Text Cairo-SemiBold 18/30 textAlign:"center" "تم حفظ اللغة"
+    Text NotoSansArabic-Regular 14/21 textAlign:"center" "سيُعاد تشغيل التطبيق لإكمال التغيير"
+View flexDirection:"row" alignItems:"center" justifyContent:"center"
+  Text Cairo-SemiBold 16/24 "إعادة تشغيل التطبيق"",
+}
+`;

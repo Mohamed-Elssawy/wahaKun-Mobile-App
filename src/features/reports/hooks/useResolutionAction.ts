@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { t } from '@/i18n';
+
 import { describeError } from '../errors';
 import { attempt } from '../lifecycle';
 import { reportApi } from '../services';
 
 import type { ReportError } from '../errors';
 import type { LifecycleFacts, RefusalCode } from '../lifecycle';
-
-const ACTION_ERROR = 'تعذر إرسال الإجراء، حاول مرة أخرى';
 
 /** Takes a facts getter, not a value, so a list row reads its own report at tap time. */
 export function useResolutionAction(reportId: string, getFacts: () => LifecycleFacts) {
@@ -40,7 +40,7 @@ export function useResolutionAction(reportId: string, getFacts: () => LifecycleF
         return null;
       } catch (err) {
         if (isMounted.current) {
-          setActionError(describeError(err, ACTION_ERROR));
+          setActionError(describeError(err, t('errors.resolution.failed')));
         }
         return null;
       } finally {

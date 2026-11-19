@@ -2,6 +2,7 @@ import { Pause, Play, Repeat2 } from 'lucide-react-native';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { Button, Text, VoiceWaveform } from '@/components/ui';
+import { t } from '@/i18n';
 import { colors, radii, screenPadding, spacing } from '@/theme';
 
 export type VoiceReviewCardProps = {
@@ -13,12 +14,9 @@ export type VoiceReviewCardProps = {
   onDiscard: () => void;
 };
 
-const TITLE = 'التسجيل الصوتي';
 const PLAY_SIZE = 90;
 const PLAY_ICON_SIZE = 32;
 const RETAKE_ICON_SIZE = 20;
-const USE_RECORDING = 'استخدام هذا التسجيل';
-const RE_RECORD = 'إعادة التسجيل';
 
 /** F-02b mode:voice. Mirrors PhotoReview's two-button exit, not F-04's inline player. */
 export function VoiceReviewCard({
@@ -31,8 +29,8 @@ export function VoiceReviewCard({
   return (
     <View style={styles.content}>
       <View style={styles.card}>
-        <Text variant="h4" color="textStrong" align="right">
-          {TITLE}
+        <Text variant="h4" color="textStrong">
+          {t('f04.voiceSectionTitle')}
         </Text>
         <VoiceWaveform progress={progress} />
       </View>
@@ -42,7 +40,7 @@ export function VoiceReviewCard({
           style={styles.play}
           onPress={onTogglePlayback}
           accessibilityRole="button"
-          accessibilityLabel={isPlaying ? 'إيقاف التشغيل' : 'تشغيل التسجيل'}
+          accessibilityLabel={isPlaying ? t('common.pause') : t('common.playRecording')}
           accessibilityState={{ selected: isPlaying }}
         >
           {isPlaying ? (
@@ -52,17 +50,18 @@ export function VoiceReviewCard({
           )}
         </TouchableOpacity>
         <Text variant="label16" color="textSecondary" align="center">
-          {isPlaying ? 'اضغط للإيقاف' : 'اضغط للتشغيل'}
+          {isPlaying ? t('f02b.tapToPause') : t('f02b.tapToPlay')}
         </Text>
       </View>
 
       <View style={styles.actions}>
-        <Button label={USE_RECORDING} onPress={onUseRecording} showArrow />
+        <Button label={t('f02b.useRecording')} onPress={onUseRecording} showArrow />
         <Button
-          label={RE_RECORD}
+          label={t('x04.reRecord')}
           variant="secondary"
           onPress={onDiscard}
           icon={<Repeat2 size={RETAKE_ICON_SIZE} color={colors.primary} />}
+          iconTrails
         />
       </View>
     </View>
@@ -71,6 +70,8 @@ export function VoiceReviewCard({
 
 const styles = StyleSheet.create({
   content: {
+    // Fills the screen so the two buttons sit at the bottom, as F-02b's frame pins them.
+    flex: 1,
     gap: spacing[24],
     alignItems: 'center',
     paddingHorizontal: screenPadding,
@@ -99,6 +100,7 @@ const styles = StyleSheet.create({
   },
   actions: {
     alignSelf: 'stretch',
+    marginTop: 'auto',
     gap: spacing[12],
   },
 });

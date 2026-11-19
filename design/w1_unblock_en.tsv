@@ -1,0 +1,14 @@
+finalKey	ar	en	notes
+ui.otp.digitOf	رقم {n} من {length}	Digit {n} of {length}	Merged from ui.otp.digit + common.of. 21 chars at single digits, fits 26.
+ui.phoneField.countryCode	رمز الدولة {dialCode}	Country code {dialCode}	23 chars with +20, fits 26.
+ui.severityBadge.prefix	الخطورة: {label}	Severity: {label}	18 chars with "Critical", fits 26. {label} comes from severity.ts TIER_DISPLAY (line 71, chrome) — not the wire value on line 13.
+s09.sentBody	أرسلنا رابط إعادة تعيين كلمة المرور إلى\n{trimmed}	We've sent a password reset link to\n{trimmed}	RENAME {trimmed} -> {email} in both locales and at the call site. The placeholder was derived from a local variable name and tells the reader nothing; E4 rewrites that call site anyway, so the rename is free.
+s04.sentBody	أرسلنا رمزاً مكوناً من {otpLength} أرقام إلى\n{phoneNumber}	We've sent a {otpLength}-digit code to\n{phoneNumber}	Two call sites, one key. This is the message that proved reassembly was necessary: the Arabic breaks after "من" and before "أرقام", the English breaks nowhere near it.
+s10.subtitle	اختر كلمة مرور جديدة لحساب\n{email}	Choose a new password for\n{email}
+s01a.goToSlide	الانتقال إلى الشريحة {n}	Go to slide {n}	{n} is 1-based; vars records index + 1.
+common.stepOf	الخطوة {step} من {total}	Step {step} of {total}	Merged from common.step + common.of, unified across WizardHeader (totalSteps) and ReportRow (totalNodes). common.of is gone.
+common.or	أو	or	Second occurrence — reuse the wave-1 key, do not mint a new one.
+s04.noCodePrompt	لم تستلم الرمز؟	Didn't receive the code?	Sentence split by an inline link: this prefix then a link to the email path. Position is stable across both languages.
+s04.resendIn	إعادة الإرسال خلال	Resend in	Followed by the countdown, which is a §6.7 LTR island. Two call sites (LoginOtpScreen, OtpScreen), one key.
+common.legalPrefix	باستخدامك للتطبيق، أنت توافق على	By using the app, you agree to the	Split by two inline links. "the" carries both items: "…the Terms of Use and Privacy Policy." Two call sites.
+common.and	و	and	Sits between two link elements in both languages, so the position is stable and keying it alone is safe. This is the test that common.of failed: a fragment is keyable only when its position holds across languages.

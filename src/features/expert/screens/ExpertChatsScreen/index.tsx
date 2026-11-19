@@ -5,6 +5,7 @@ import { FlatList, StyleSheet, View } from 'react-native';
 import { AppHeader, EmptyState, ListSkeleton } from '@/components/ui';
 import { ReportErrorView } from '@/features/reports/components/ReportErrorView';
 import { useIdentity } from '@/features/user/hooks/useIdentity';
+import { t } from '@/i18n';
 import { colors, screenPadding, spacing } from '@/theme';
 
 import { ChatThreadRow } from '../../components/ChatThreadRow';
@@ -12,11 +13,6 @@ import { ExpertChatChipRow } from '../../components/ExpertChatChipRow';
 import { useExpertChats } from '../../hooks/useExpertChats';
 
 import type { ChatThread } from '../../types';
-
-const TITLE = 'المحادثات';
-const EMPTY_TITLE = 'لا توجد محادثات';
-const EMPTY_MESSAGE = 'ستظهر هنا المحادثات فور بدئها.';
-const LOAD_ERROR_TITLE = 'تعذر تحميل المحادثات';
 
 /** E-09. E-10 is a separate unit with no backend, so a row's tap is a no-op; the rest is real. */
 export default function ExpertChatsScreen() {
@@ -41,7 +37,7 @@ export default function ExpertChatsScreen() {
       return (
         <ReportErrorView
           error={error}
-          unknownTitle={LOAD_ERROR_TITLE}
+          unknownTitle={t('e09.loadErrorTitle')}
           onRetry={refresh}
         />
       );
@@ -49,7 +45,11 @@ export default function ExpertChatsScreen() {
 
     if (isEmpty) {
       return (
-        <EmptyState icon={MessageCircle} title={EMPTY_TITLE} message={EMPTY_MESSAGE} />
+        <EmptyState
+          icon={MessageCircle}
+          title={t('e09.emptyTitle')}
+          message={t('e09.emptyBody')}
+        />
       );
     }
 
@@ -66,7 +66,7 @@ export default function ExpertChatsScreen() {
   return (
     <View style={styles.screen}>
       <AppHeader
-        title={TITLE}
+        title={t('tabs.chats')}
         avatarUrl={avatarUrl}
         onOpenProfile={() => navigation.navigate('Profile')}
         onOpenNotifications={() => navigation.navigate('Notifications')}

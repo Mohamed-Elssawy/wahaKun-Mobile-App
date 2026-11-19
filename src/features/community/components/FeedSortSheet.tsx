@@ -3,9 +3,10 @@ import { Modal, Pressable, StyleSheet, TouchableOpacity, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/components/ui';
+import { t } from '@/i18n';
 import { colors, radii, screenPadding, shadows, spacing } from '@/theme';
 
-import { SORT_LABELS } from './FeedChipRow';
+import { SORT_LABEL_KEYS } from './FeedChipRow';
 
 import type { FeedSort } from '../types';
 
@@ -15,8 +16,6 @@ export type FeedSortSheetProps = {
   onSelect: (sort: FeedSort) => void;
   onDismiss: () => void;
 };
-
-const TITLE = 'ترتيب البلاغات';
 
 const OPTIONS: readonly FeedSort[] = ['severity', 'newest', 'nearest'];
 
@@ -45,7 +44,7 @@ export function FeedSortSheet({
         style={styles.backdrop}
         onPress={onDismiss}
         accessibilityRole="button"
-        accessibilityLabel="إغلاق"
+        accessibilityLabel={t('f05.close')}
       >
         {/* Swallows the press so tapping the sheet itself does not dismiss it. */}
         <Pressable
@@ -54,8 +53,8 @@ export function FeedSortSheet({
         >
           <View style={styles.grabber} />
 
-          <Text variant="h5" align="right" style={styles.title}>
-            {TITLE}
+          <Text variant="h5" style={styles.title}>
+            {t('f01.sortSheetTitle')}
           </Text>
 
           {OPTIONS.map(option => {
@@ -73,9 +72,8 @@ export function FeedSortSheet({
                   variant={isActive ? 'label16Bold' : 'label16'}
                   color={isActive ? 'primary' : 'textPrimary'}
                   style={styles.optionLabel}
-                  align="right"
                 >
-                  {SORT_LABELS[option]}
+                  {t(SORT_LABEL_KEYS[option])}
                 </Text>
 
                 {isActive ? <Check size={CHECK_SIZE} color={colors.primary} /> : null}
@@ -115,7 +113,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing[8],
   },
   option: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[8],
     minHeight: 48,

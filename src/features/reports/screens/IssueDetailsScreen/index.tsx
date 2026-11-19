@@ -15,7 +15,10 @@ export default function IssueDetailsScreen({
       showPublicStepper
       onBack={navigation.goBack}
       onOpenDiagnosis={() => navigation.navigate('ReportDiagnosis', { reportId })}
-      onOpenTracker={() => navigation.navigate('ReportTracker', { reportId })}
+      // Returns to F-06 when it is below (see ReportTrackerScreen's openComments).
+      onOpenTracker={() =>
+        navigation.navigate('ReportTracker', { reportId }, { pop: true })
+      }
     />
   );
 }

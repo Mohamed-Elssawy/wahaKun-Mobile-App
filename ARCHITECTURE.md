@@ -333,9 +333,10 @@ Three rules are enforced in one place each, rather than per screen:
   `textAlign: 'right'`, never `I18nManager.forceRTL`. Latin-ish inputs (email,
   phone, password) stay `textAlign: 'left'` inside an otherwise RTL screen.
 
-`npm run tokens:figma` regenerates `tools/figma-p1-plugin/main.js` from
-`src/theme`, so the design file's variables are built from the code rather than
-kept in step by hand. Edit `tools/figma-p1-plugin/code.js`, never `main.js`.
+A generator (not currently tracked in this repo; ask for it) regenerates
+`tools/figma-p1-plugin/main.js` from `src/theme`, so the design file's
+variables are built from the code rather than kept in step by hand. Edit
+`tools/figma-p1-plugin/code.js`, never `main.js`.
 
 ## Navigation
 

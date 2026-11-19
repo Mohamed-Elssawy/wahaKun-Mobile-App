@@ -4,7 +4,7 @@ import {
   scheduleResponse,
   submitReviewResponse,
 } from '@/__fixtures__/wire/expertWrites';
-import { ApiError, STATUS_MESSAGES } from '@/api';
+import { ApiError, statusMessage } from '@/api';
 import { API_BASE_URLS, UPLOAD_TIMEOUT_MS } from '@/config/env';
 
 import {
@@ -28,7 +28,7 @@ jest.mock('@/api', () => ({
   },
   API_ENDPOINTS: jest.requireActual('@/api/endpoints').API_ENDPOINTS,
   ApiError: jest.requireActual('@/api/errors').ApiError,
-  STATUS_MESSAGES: jest.requireActual('@/api/errorMessages').STATUS_MESSAGES,
+  statusMessage: jest.requireActual('@/api/errorMessages').statusMessage,
   getTokenUserId: jest.fn(),
 }));
 
@@ -109,7 +109,7 @@ describe('POST /Expert/{issueId}/review', () => {
       status: 409,
       kind: 'conflict',
       // "this may already be done", not the 500's "retry later" - which would fail forever.
-      userMessage: STATUS_MESSAGES[409],
+      userMessage: statusMessage(409),
     });
   });
 
@@ -124,7 +124,7 @@ describe('POST /Expert/{issueId}/review', () => {
 
     await expect(submitReview({ reportId: 'issue-1' })).rejects.toMatchObject({
       status: 500,
-      userMessage: STATUS_MESSAGES[500],
+      userMessage: statusMessage(500),
     });
   });
 
@@ -145,7 +145,7 @@ describe('POST /Expert/{issueId}/schedule', () => {
     await confirmAppointment({
       reportId: 'issue-1',
       date: '2026-10-09',
-      slot: '9:00 ص',
+      slot: '0900',
       noteToFarmer: 'سأصل في الموعد',
     });
 
@@ -161,7 +161,7 @@ describe('POST /Expert/{issueId}/schedule', () => {
   it('sends a null note rather than omitting the field', async () => {
     mockPost.mockResolvedValue(scheduleResponse);
 
-    await confirmAppointment({ reportId: 'issue-1', date: '2026-10-09', slot: '7:00 ص' });
+    await confirmAppointment({ reportId: 'issue-1', date: '2026-10-09', slot: '0700' });
 
     expect(bodyOf(mockPost.mock.calls[0])).toMatchObject({ notes: null });
   });
@@ -192,7 +192,7 @@ describe('POST /Expert/{issueId}/resolution', () => {
 
     await expect(
       confirmRepair({ reportId: 'issue-1', photo: PHOTO, notes: 'ملاحظة' }),
-    ).rejects.toMatchObject({ status: 409, userMessage: STATUS_MESSAGES[409] });
+    ).rejects.toMatchObject({ status: 409, userMessage: statusMessage(409) });
   });
 });
 
@@ -203,8 +203,7 @@ describe('the success bodies, every one discarded', () => {
     [
       'schedule',
       scheduleResponse,
-      () =>
-        confirmAppointment({ reportId: 'issue-1', date: '2026-10-09', slot: '9:00 ص' }),
+      () => confirmAppointment({ reportId: 'issue-1', date: '2026-10-09', slot: '0900' }),
     ],
     [
       'resolution',

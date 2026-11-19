@@ -6,6 +6,7 @@ import type { FeedPost } from '@/features/community/types';
 import { getMapIssueById } from '@/features/map/services/mapService';
 import type { MapIssue } from '@/features/map/types';
 import { useIdentity } from '@/features/user/hooks/useIdentity';
+import { t } from '@/i18n';
 
 import { describeError } from '../errors';
 import { isReportOwner } from '../ownership';
@@ -13,8 +14,6 @@ import { reportApi } from '../services';
 
 import type { ReportError } from '../errors';
 import type { Report } from '../types';
-
-const LOAD_ERROR = 'تعذر تحميل البلاغ، حاول مرة أخرى';
 
 /** A map pin for a server issue this device did not file: no analysis and no reporterId. */
 function fromMapIssue(issue: MapIssue): Report {
@@ -118,11 +117,11 @@ export function useIssueDetails(issueId: string) {
       if (issue) {
         setReport(issue);
       } else {
-        setError({ kind: 'unknown', message: LOAD_ERROR });
+        setError({ kind: 'unknown', message: t('errors.report.loadFailed') });
       }
     } catch (err) {
       if (isMounted.current) {
-        setError(describeError(err, LOAD_ERROR));
+        setError(describeError(err, t('errors.report.loadFailed')));
       }
     } finally {
       if (isMounted.current) {

@@ -6,6 +6,7 @@ import { ReportErrorView } from '@/features/reports/components/ReportErrorView';
 import { ReportHeader } from '@/features/reports/components/ReportHeader';
 import { formatReportReference } from '@/features/reports/format';
 import { formatRelativeTime } from '@/features/reports/relativeTime';
+import { t } from '@/i18n';
 import type { ScreenProps } from '@/navigation/types';
 import { colors, radii, screenPadding, spacing } from '@/theme';
 
@@ -13,11 +14,6 @@ import { CaseResolutionSummaryCard } from '../../components/CaseResolutionSummar
 import { ExpertStepper } from '../../components/ExpertStepper';
 import { useExpertCaseDetail } from '../../hooks/useExpertCaseDetail';
 
-const TITLE = 'تم إغلاق الحالة';
-const SUBTITLE = 'وافق المزارع على الحل، وتم إغلاق الحالة بنجاح.';
-const SUMMARY_TITLE = 'ملخص الإصلاح';
-const PRIMARY_LABEL = 'العودة للوارد';
-const LOAD_ERROR_TITLE = 'تعذر تحميل الحالة';
 const CIRCLE_SIZE = 100;
 const ICON_SIZE = 56;
 
@@ -29,7 +25,8 @@ export default function ExpertCaseClosedScreen({
   const { reportId } = route.params;
   const { detail, error, isLoading, retry } = useExpertCaseDetail(reportId);
 
-  const goToInbox = () => navigation.navigate('ExpertHome', { screen: 'ExpertInbox' });
+  // "Back to inbox" goes BACK: a navigate would push a second ExpertHome over the case screens.
+  const goToInbox = () => navigation.popTo('ExpertHome', { screen: 'ExpertInbox' });
 
   if (isLoading) {
     return (
@@ -42,11 +39,11 @@ export default function ExpertCaseClosedScreen({
   if (error || !detail) {
     return (
       <View style={styles.screen}>
-        <ReportHeader title={TITLE} />
+        <ReportHeader title={t('e06.title')} onBack={goToInbox} />
         <View style={styles.body}>
           <ReportErrorView
-            error={error ?? { kind: 'unknown', message: LOAD_ERROR_TITLE }}
-            unknownTitle={LOAD_ERROR_TITLE}
+            error={error ?? { kind: 'unknown', message: t('errors.case.loadFailed') }}
+            unknownTitle={t('errors.case.loadFailed')}
             onRetry={retry}
           />
         </View>
@@ -56,18 +53,20 @@ export default function ExpertCaseClosedScreen({
 
   return (
     <View style={styles.screen}>
-      <ReportHeader title={TITLE} />
+      <ReportHeader title={t('e06.title')} onBack={goToInbox} />
 
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
+        {/* C71/SPEC 376: trailing chevron opens E-07's full report, an edge SPEC 232's chain omits, added per Islam's ruling in E10. */}
         <ReportSummaryCard
           title={detail.title}
           reference={formatReportReference(detail.reportId)}
           timeLabel={formatRelativeTime(detail.createdAt)}
           borderColor="success"
           photoUrl={detail.photoUrl}
+          onPress={() => navigation.navigate('ExpertIssueDetails', { reportId })}
         />
 
         {/* E-06 is closed: all four nodes are complete, not node 4 "current". */}
@@ -78,22 +77,23 @@ export default function ExpertCaseClosedScreen({
             <CheckCircle2 size={ICON_SIZE} color={colors.primaryPressed} />
           </View>
           <Text variant="h4" align="center">
-            {TITLE}
+            {t('e06.title')}
           </Text>
           <Text variant="body14" color="textSecondary" align="center">
-            {SUBTITLE}
+            {t('e06.subtitle')}
           </Text>
         </View>
 
         {detail.repair ? (
           <CaseResolutionSummaryCard
-            title={SUMMARY_TITLE}
+            title={t('e06.summaryTitle')}
             photoUrl={detail.repair.photoUrl}
             notes={detail.repair.notes}
           />
         ) : null}
 
-        <Button label={PRIMARY_LABEL} onPress={goToInbox} />
+        {/* C75/G-02: backward arrow (S-05.6b precedent) since this returns to E-01; the glyph already flips with locale. */}
+        <Button label={t('expert.backToInbox')} showArrowEnd onPress={goToInbox} />
       </ScrollView>
     </View>
   );

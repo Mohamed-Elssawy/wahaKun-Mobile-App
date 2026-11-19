@@ -1,9 +1,9 @@
 import {
-  GENERIC_MESSAGE,
+  genericMessage,
   kindForStatus,
-  NETWORK_MESSAGE,
+  networkMessage,
   resolveUserMessage,
-  TIMEOUT_MESSAGE,
+  timeoutMessage,
 } from './errorMessages.ts';
 
 import type { ApiErrorKind } from './errorMessages.ts';
@@ -55,10 +55,10 @@ export class ApiError extends Error {
     );
   }
   static network(details: ApiErrorDetails): ApiError {
-    return new ApiError(NETWORK_ERROR_STATUS, 'network', NETWORK_MESSAGE, details);
+    return new ApiError(NETWORK_ERROR_STATUS, 'network', networkMessage(), details);
   }
   static timeout(details: ApiErrorDetails): ApiError {
-    return new ApiError(NETWORK_ERROR_STATUS, 'timeout', TIMEOUT_MESSAGE, details);
+    return new ApiError(NETWORK_ERROR_STATUS, 'timeout', timeoutMessage(), details);
   }
 
   get isNetworkError(): boolean {
@@ -100,7 +100,8 @@ export class ApiError extends Error {
 
 export function getErrorMessage(
   error: unknown,
-  fallback: string = GENERIC_MESSAGE,
+  // A default parameter is evaluated per call, so the locale is resolved by the time it runs.
+  fallback: string = genericMessage(),
 ): string {
   return error instanceof ApiError ? error.userMessage || fallback : fallback;
 }

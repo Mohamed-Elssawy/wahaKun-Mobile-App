@@ -1,5 +1,6 @@
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
+import { t } from '@/i18n';
 import { colors } from '@/theme';
 
 export type ShutterButtonProps = {
@@ -14,7 +15,7 @@ export function ShutterButton({ onPress }: ShutterButtonProps) {
       onPress={onPress}
       activeOpacity={0.8}
       accessibilityRole="button"
-      accessibilityLabel="التقاط صورة"
+      accessibilityLabel={t('common.takePhoto')}
     >
       <View style={styles.core} />
     </TouchableOpacity>

@@ -3,12 +3,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { describeError } from '@/features/reports/errors';
 import type { ReportError } from '@/features/reports/errors';
 import { useCurrentLocation } from '@/hooks/useCurrentLocation';
+import { t } from '@/i18n';
 
 import { communityApi } from '../services';
 
 import type { IssueDetails } from '../types';
-
-const LOAD_ERROR = 'تعذر تحميل بيانات البلاغ';
 
 /** Its own hook: the three services fail independently, so one failure leaves the others up. */
 export function useIssueContext(issueId: string) {
@@ -36,7 +35,7 @@ export function useIssueContext(issueId: string) {
       }
     } catch (err) {
       if (isMounted.current) {
-        setError(describeError(err, LOAD_ERROR));
+        setError(describeError(err, t('errors.issue.contextFailed')));
       }
     } finally {
       if (isMounted.current) {

@@ -59,10 +59,10 @@ export function ContextChip({
       accessibilityRole="text"
       accessibilityLabel={label}
     >
-      {/* Leading, so row-reverse puts it at the right edge where the frame draws it. */}
+      {/* Leading, so direction puts it at the start edge where the frame draws it. */}
       {Icon ? <Icon size={ICON_SIZE} color={colors[tone.glyph]} /> : null}
 
-      <Text variant="label12" color={tone.ink} align="right" style={styles.label}>
+      <Text variant="label12" color={tone.ink} style={styles.label}>
         {label}
       </Text>
 
@@ -73,7 +73,7 @@ export function ContextChip({
 
 const styles = StyleSheet.create({
   chip: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[8],
     padding: spacing[8],

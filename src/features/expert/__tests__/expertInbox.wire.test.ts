@@ -24,10 +24,11 @@ import {
 import { API_BASE_URLS } from '@/config/env';
 import {
   currentNode,
-  EXPERT_ACTION_LABELS,
+  expertActionLabel,
   expertCtaFor,
 } from '@/features/reports/lifecycle';
 import { formatRelativeTime } from '@/features/reports/relativeTime';
+import { t } from '@/i18n';
 
 import { getAssignedCases } from '../services/expertService';
 
@@ -186,7 +187,7 @@ describe('the one real row, PROBE C12', () => {
       screen: 'E-05',
       secondaryAction: 'reschedule',
     });
-    expect(EXPERT_ACTION_LABELS[expertCtaFor(summary).action]).toBe('عرض');
+    expect(expertActionLabel(expertCtaFor(summary).action)).toBe('عرض');
   });
 
   // pageCount is 1 here and would be 1 for a ten-row page too, which is why nothing reads it.
@@ -351,7 +352,8 @@ describe('the shapes the row really arrives in', () => {
 
     const [card] = await getAssignedCases();
 
-    expect(card.reporterName).toBe('مزارع');
+    // Checks against the key, not today's Arabic text: it used to collide with a second `مزارع` keyed to the signup role picker.
+    expect(card.reporterName).toBe(t('common.unknownAuthor'));
     expect(card.corroborationCount).toBe(0);
     expect(card.reporterAvatar).toBeUndefined();
   });

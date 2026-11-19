@@ -1,6 +1,7 @@
 import { SwitchCamera } from 'lucide-react-native';
 import { TouchableOpacity } from 'react-native';
 
+import { t } from '@/i18n';
 import { colors } from '@/theme';
 
 export type FlipCameraButtonProps = {
@@ -13,7 +14,7 @@ export function FlipCameraButton({ onPress }: FlipCameraButtonProps) {
       onPress={onPress}
       hitSlop={hitSlop}
       accessibilityRole="button"
-      accessibilityLabel="تبديل الكاميرا"
+      accessibilityLabel={t('f02.flipCamera')}
     >
       <SwitchCamera size={26} color={colors.textInverse} />
     </TouchableOpacity>

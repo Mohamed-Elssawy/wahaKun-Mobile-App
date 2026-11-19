@@ -1,15 +1,13 @@
-import { CheckCircle2, ChevronLeft } from 'lucide-react-native';
+import { CheckCircle2 } from 'lucide-react-native';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
-import { AiDiagnosisCard, ConfidenceRing, Text } from '@/components/ui';
+import { AiDiagnosisCard, BiText, ConfidenceRing, Text } from '@/components/ui';
+import { t } from '@/i18n';
+import { ForwardIcon } from '@/i18n/icons';
 import { colors, spacing } from '@/theme';
 
 import { DiagnosisNote } from './DiagnosisNote';
 
-const TITLE = 'تشخيص الذكاء الاصطناعي';
-const EXPLANATION_LABEL = 'لماذا هذا التشخيص؟';
-const RECOMMENDATION_LABEL = 'الإجراء الموصى به';
-const FULL_DIAGNOSIS = 'التشخيص الكامل';
 const LINK_ICON_SIZE = 18;
 
 export type AiDiagnosisSummaryProps = {
@@ -30,28 +28,28 @@ export function AiDiagnosisSummary({
   onOpenFull,
 }: AiDiagnosisSummaryProps) {
   return (
-    <AiDiagnosisCard title={TITLE}>
+    <AiDiagnosisCard title={t('common.aiDiagnosis')}>
       <View style={styles.summary}>
-        <Text
+        <BiText
+          contentRole="title"
           variant="h5"
-          align="right"
           numberOfLines={2}
           ellipsizeMode="tail"
           style={styles.summaryTitle}
         >
           {title}
-        </Text>
+        </BiText>
         <ConfidenceRing confidence={confidence} compact />
       </View>
 
       {explanation ? (
-        <DiagnosisNote icon={CheckCircle2} label={EXPLANATION_LABEL}>
+        <DiagnosisNote icon={CheckCircle2} label={t('common.whyThisDiagnosis')}>
           {explanation}
         </DiagnosisNote>
       ) : null}
 
       {recommendation ? (
-        <DiagnosisNote icon={CheckCircle2} label={RECOMMENDATION_LABEL}>
+        <DiagnosisNote icon={CheckCircle2} label={t('common.recommendedAction')}>
           {recommendation}
         </DiagnosisNote>
       ) : null}
@@ -61,12 +59,12 @@ export function AiDiagnosisSummary({
           style={styles.link}
           onPress={onOpenFull}
           accessibilityRole="link"
-          accessibilityLabel={FULL_DIAGNOSIS}
+          accessibilityLabel={t('common.fullDiagnosis')}
         >
           <Text variant="label12" color="primary">
-            {FULL_DIAGNOSIS}
+            {t('common.fullDiagnosis')}
           </Text>
-          <ChevronLeft size={LINK_ICON_SIZE} color={colors.primary} />
+          <ForwardIcon size={LINK_ICON_SIZE} color={colors.primary} />
         </TouchableOpacity>
       ) : null}
     </AiDiagnosisCard>
@@ -75,7 +73,7 @@ export function AiDiagnosisSummary({
 
 const styles = StyleSheet.create({
   summary: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[16],
   },
@@ -83,9 +81,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   link: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-start',
+    alignSelf: 'flex-end',
     gap: spacing[4],
     minHeight: 48,
   },

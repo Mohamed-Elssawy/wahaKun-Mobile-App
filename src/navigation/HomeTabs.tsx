@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CommunityFeedScreen from '@/features/community/screens/CommunityFeedScreen';
 import OasisMapScreen from '@/features/map/screens/OasisMapScreen';
 import MyReportsScreen from '@/features/reports/screens/MyReportsScreen';
+import { t } from '@/i18n';
 import { colors, shadows, spacing, textStyles } from '@/theme';
 
 import FilePlusIcon from '@assets/icons/file-plus.svg';
@@ -19,7 +20,7 @@ import type { HomeTabParamList } from './types';
 
 const Tab = createBottomTabNavigator<HomeTabParamList>();
 
-const ReportAnIssueScreen = createPlaceholderScreen('الإبلاغ عن مشكلة');
+const ReportAnIssueScreen = createPlaceholderScreen('f02.screenTitle');
 
 const ICON_SIZE = 24;
 
@@ -48,8 +49,9 @@ export function HomeTabs() {
 
   return (
     <Tab.Navigator
-      // §4.1 and §8.2 both say بلاغاتي is the landing tab, not المجتمع.
+      // §4.1/§8.2: بلاغاتي is the landing tab, not المجتمع.
       initialRouteName="MyReports"
+      // Registration order is the bar order, start to end - §8.2's right-to-left list falls out in Arabic.
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
@@ -63,19 +65,14 @@ export function HomeTabs() {
       }}
     >
       <Tab.Screen
-        name="CommunityFeed"
-        component={CommunityFeedScreen}
-        options={{ tabBarLabel: 'المجتمع', tabBarIcon: CommunityFeedIcon }}
-      />
-      <Tab.Screen
-        name="OasisMap"
-        component={OasisMapScreen}
-        options={{ tabBarLabel: 'خريطة الواحة', tabBarIcon: OasisMapIcon }}
+        name="MyReports"
+        component={MyReportsScreen}
+        options={{ tabBarLabel: t('tabs.myReports'), tabBarIcon: MyReportsIcon }}
       />
       <Tab.Screen
         name="ReportAnIssue"
         component={ReportAnIssueScreen}
-        options={{ tabBarLabel: 'إبلاغ عن مشكلة', tabBarIcon: ReportAnIssueIcon }}
+        options={{ tabBarLabel: t('tabs.report'), tabBarIcon: ReportAnIssueIcon }}
         // Action tab: it renders no screen, and the tab's own nav cannot reach the stack.
         listeners={{
           tabPress: e => {
@@ -85,9 +82,14 @@ export function HomeTabs() {
         }}
       />
       <Tab.Screen
-        name="MyReports"
-        component={MyReportsScreen}
-        options={{ tabBarLabel: 'بلاغاتي', tabBarIcon: MyReportsIcon }}
+        name="OasisMap"
+        component={OasisMapScreen}
+        options={{ tabBarLabel: t('tabs.map'), tabBarIcon: OasisMapIcon }}
+      />
+      <Tab.Screen
+        name="CommunityFeed"
+        component={CommunityFeedScreen}
+        options={{ tabBarLabel: t('tabs.community'), tabBarIcon: CommunityFeedIcon }}
       />
     </Tab.Navigator>
   );

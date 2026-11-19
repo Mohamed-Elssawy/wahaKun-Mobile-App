@@ -2,6 +2,8 @@ import { ChevronDown } from 'lucide-react-native';
 
 import { FilterChip, FilterChipRow } from '@/components/ui';
 import { describeSeverity } from '@/features/reports/severity';
+import type { Severity } from '@/features/reports/types';
+import { t } from '@/i18n';
 import { colors } from '@/theme';
 
 import type { ExpertFilterChip } from '../types';
@@ -11,34 +13,40 @@ export type ExpertChipRowProps = {
   onToggleFilter: (filter: ExpertFilterChip) => void;
 };
 
-const SORT_LABEL = 'ترتيب: الخطورة';
-const LOW_CONFIDENCE_LABEL = 'ثقة منخفضة';
-
 // Worst first, matching the order §8.3 lists them in.
 const SEVERITY_FILTERS: readonly ExpertFilterChip[] = ['critical', 'medium', 'low'];
 
 const CHEVRON_SIZE = 18;
 
-const FILTER_LABEL: Record<ExpertFilterChip, string> = {
-  lowConfidence: LOW_CONFIDENCE_LABEL,
-  critical: describeSeverity('Critical').label,
-  medium: describeSeverity('Medium').label,
-  low: describeSeverity('Low').label,
+/** The AI severity each severity chip filters on, so the label comes from one place. */
+const FILTER_SEVERITY: Record<Exclude<ExpertFilterChip, 'lowConfidence'>, Severity> = {
+  critical: 'Critical',
+  medium: 'Medium',
+  low: 'Low',
 };
+
+/** A function, not a table (§16.2): a module-scope Record resolving through t() would evaluate before the splash reads the locale, showing Arabic to an English expert - the only such case an AST sweep found. */
+function filterLabel(filter: ExpertFilterChip): string {
+  return filter === 'lowConfidence'
+    ? t('e01.filterLowConfidence')
+    : describeSeverity(FILTER_SEVERITY[filter]).label;
+}
 
 /** E-01's chip row. ترتيب draws the chevron but opens nothing: one sort mode is documented. */
 export function ExpertChipRow({ filters, onToggleFilter }: ExpertChipRowProps) {
+  const sortLabel = t('e01.sortSeverity');
+
   return (
     <FilterChipRow>
       <FilterChip
-        label={SORT_LABEL}
+        label={sortLabel}
         onPress={() => {}}
-        accessibilityLabel={SORT_LABEL}
+        accessibilityLabel={sortLabel}
         trailing={<ChevronDown size={CHEVRON_SIZE} color={colors.textStrong} />}
       />
 
       <FilterChip
-        label={LOW_CONFIDENCE_LABEL}
+        label={filterLabel('lowConfidence')}
         isActive={filters.includes('lowConfidence')}
         onPress={() => onToggleFilter('lowConfidence')}
       />
@@ -46,7 +54,7 @@ export function ExpertChipRow({ filters, onToggleFilter }: ExpertChipRowProps) {
       {SEVERITY_FILTERS.map(filter => (
         <FilterChip
           key={filter}
-          label={FILTER_LABEL[filter]}
+          label={filterLabel(filter)}
           isActive={filters.includes(filter)}
           onPress={() => onToggleFilter(filter)}
         />

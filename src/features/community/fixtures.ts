@@ -1,4 +1,14 @@
 /** The seeded feed and threads the mock serves, deliberately uneven to cover the edges. */
+import {
+  ARABIC_NAME,
+  ARABIC_WITH_LATIN_PRODUCT,
+  ENGLISH_IN_ARABIC_UI,
+  LATIN_NAME,
+  MIXED_IN_ONE_STRING,
+  MIXED_NAME,
+  TRANSCRIPT_WITH_PARENTHETICAL,
+} from '@/__fixtures__/bidi';
+
 import type { Comment, FeedPost } from './types';
 
 const hoursAgo = (hours: number) =>
@@ -206,6 +216,56 @@ export const SEED_COMMENTS: readonly Comment[] = [
     createdAt: minutesAgo(9),
   },
   {
+    // Arabic with a Latin product name and a percentage: a majority rule misreads this as English.
+    id: 'c-9',
+    issueId: '1043',
+    authorId: 'u-2',
+    authorName: 'سيد حسن',
+    isExpert: false,
+    text: ARABIC_WITH_LATIN_PRODUCT,
+    createdAt: minutesAgo(8),
+  },
+  {
+    // An English comment inside the Arabic UI, the half of L-AS-AUTHORED nobody pictures.
+    id: 'c-10',
+    issueId: '1043',
+    authorId: 'u-11',
+    authorName: LATIN_NAME,
+    isExpert: true,
+    text: ENGLISH_IN_ARABIC_UI,
+    createdAt: minutesAgo(7),
+  },
+  {
+    // Both scripts inside one string, with a model number whose letters and digits both move.
+    id: 'c-11',
+    issueId: '1043',
+    authorId: 'u-6',
+    authorName: ARABIC_NAME,
+    isExpert: false,
+    text: MIXED_IN_ONE_STRING,
+    createdAt: minutesAgo(6),
+  },
+  {
+    // A name mixed in itself: no single block direction is right for the whole of it.
+    id: 'c-12',
+    issueId: '1043',
+    authorId: 'u-9',
+    authorName: MIXED_NAME,
+    isExpert: true,
+    text: 'راجعت الصور. الشرخ ممتد على طول الوصلة، والترقيع السطحي مش هيكفي.',
+    createdAt: minutesAgo(4),
+  },
+  {
+    // Clock skew, which formatRelativeTime clamps: this reads الآن, never a negative age.
+    id: 'c-13',
+    issueId: '1043',
+    authorId: 'u-7',
+    authorName: 'سعاد المرسي',
+    isExpert: false,
+    text: 'الميه قطعت خالص دلوقتي.',
+    createdAt: minutesAgo(-3),
+  },
+  {
     id: 'c-6',
     issueId: '1043',
     authorId: 'u-5',
@@ -222,6 +282,16 @@ export const SEED_COMMENTS: readonly Comment[] = [
     isExpert: false,
     text: 'تمام، منتظرين.',
     createdAt: minutesAgo(2),
+  },
+  {
+    // A malformed timestamp, which formatRelativeTime renders as nothing rather than NaN.
+    id: 'c-14',
+    issueId: '1044',
+    authorId: 'u-5',
+    authorName: 'عبد الرحمن الشيخ',
+    isExpert: false,
+    text: 'الضغط رجع تاني بس لسه ضعيف.',
+    createdAt: 'not-a-date',
   },
   {
     id: 'c-8',
@@ -247,8 +317,8 @@ export const SEED_COMMENTS: readonly Comment[] = [
 export const SEED_VOICE: Readonly<Record<string, { url: string; transcript: string }>> = {
   '1043': {
     url: 'https://download.samplelib.com/mp3/sample-6s.mp3',
-    transcript:
-      'عندي مشكلة في قناة الميه، باين إنها بتسرب. المياه مش بتوصل لآخر الأرض، والمحصول هناك بدأ يعطش.',
+    // Brackets are the punctuation that visibly jumps to the wrong end with no block direction.
+    transcript: TRANSCRIPT_WITH_PARENTHETICAL,
   },
   '1047': {
     url: 'https://download.samplelib.com/mp3/sample-9s.mp3',

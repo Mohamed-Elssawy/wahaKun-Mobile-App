@@ -1,8 +1,9 @@
-import { ChevronRight } from 'lucide-react-native';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Text } from '@/components/ui/Text';
+import { t } from '@/i18n';
+import { BackIcon } from '@/i18n/icons';
 import { colors, screenPadding, spacing } from '@/theme';
 
 import palmTreeLogo from '@assets/images/palmTreeLogoBlack.png';
@@ -28,7 +29,7 @@ export function WizardHeader({
         <View style={styles.brand}>
           <Image source={palmTreeLogo} style={styles.logo} />
           <Text variant="label14Bold" color="textStrong">
-            {`الخطوة ${step} من ${totalSteps}`}
+            {t('common.stepOf', { step, total: totalSteps })}
           </Text>
         </View>
 
@@ -37,9 +38,9 @@ export function WizardHeader({
             onPress={onBack}
             hitSlop={hitSlop}
             accessibilityRole="button"
-            accessibilityLabel="رجوع"
+            accessibilityLabel={t('common.back')}
           >
-            <ChevronRight size={24} color={colors.textStrong} />
+            <BackIcon size={24} color={colors.textStrong} />
           </TouchableOpacity>
         ) : null}
       </View>
@@ -56,7 +57,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   row: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     width: '100%',
@@ -65,7 +66,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing[12],
   },
   brand: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[12],
   },

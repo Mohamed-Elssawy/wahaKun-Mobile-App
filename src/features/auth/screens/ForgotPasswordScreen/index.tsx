@@ -3,8 +3,9 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { BackHeader, Button, Screen, Text, TextField } from '@/components/ui';
+import { t } from '@/i18n';
 import type { ScreenProps } from '@/navigation/types';
-import { colors, screenPadding, spacing } from '@/theme';
+import { colors, roleVariants, screenPadding, spacing } from '@/theme';
 
 import { usePasswordReset } from '../../hooks/usePasswordReset';
 
@@ -30,7 +31,7 @@ export default function ForgotPasswordScreen({
 
   const handleSubmit = async () => {
     if (!isValid) {
-      setValidationError('يرجى إدخال بريد إلكتروني صحيح');
+      setValidationError(t('errors.auth.invalidEmail'));
       return;
     }
     setValidationError('');
@@ -45,8 +46,9 @@ export default function ForgotPasswordScreen({
       <Screen
         footer={
           <Button
-            label="العودة لتسجيل الدخول"
-            onPress={() => navigation.navigate('EmailLogin')}
+            label={t('s09.backToLogin')}
+            // "Back to login": returns to the S-03b this was opened from, rather than stacking another.
+            onPress={() => navigation.navigate('EmailLogin', undefined, { pop: true })}
             showArrow
           />
         }
@@ -57,10 +59,10 @@ export default function ForgotPasswordScreen({
           <View style={styles.success}>
             <MailCheck size={SUCCESS_ICON} color={colors.primary} />
             <Text variant="h3" color="textStrong" align="center">
-              تحقق من بريدك الإلكتروني
+              {t('s09.sentTitle')}
             </Text>
             <Text variant="body14" color="textMuted" align="center">
-              {`أرسلنا رابط إعادة تعيين كلمة المرور إلى\n${trimmed}`}
+              {t('s09.sentBody', { email: trimmed })}
             </Text>
           </View>
         </View>
@@ -73,7 +75,7 @@ export default function ForgotPasswordScreen({
       scrollable
       footer={
         <Button
-          label="إرسال رابط الاستعادة"
+          label={t('s09.cta')}
           onPress={handleSubmit}
           showArrow
           loading={isRequesting}
@@ -86,15 +88,16 @@ export default function ForgotPasswordScreen({
       <View style={styles.content}>
         <View style={styles.intro}>
           <Text variant="h3" color="textStrong" align="center">
-            نسيت كلمة المرور؟
+            {t('s03b.forgotPassword')}
           </Text>
-          <Text variant="body14" color="textMuted" align="center">
-            {'أدخل بريدك الإلكتروني وسنرسل لك\nرابطاً لإعادة تعيين كلمة المرور.'}
+          <Text variant="body14" color="textMuted" align="center" style={styles.subtitle}>
+            {t('s09.subtitle')}
           </Text>
         </View>
 
         <TextField
-          label="البريد الإلكتروني"
+          label={t('common.email')}
+          labelVariant={roleVariants.authFieldLabel}
           value={email}
           onChangeText={text => {
             setEmail(text);
@@ -116,6 +119,10 @@ export default function ForgotPasswordScreen({
 }
 
 const styles = StyleSheet.create({
+  // C6: the frames set an auth subtitle at a narrower measure than the fields below it.
+  subtitle: {
+    paddingHorizontal: spacing[56],
+  },
   content: {
     gap: spacing[40],
     paddingHorizontal: screenPadding,

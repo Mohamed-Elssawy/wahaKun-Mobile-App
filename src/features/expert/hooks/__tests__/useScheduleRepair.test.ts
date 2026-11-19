@@ -60,7 +60,7 @@ beforeEach(() => {
 });
 
 describe('useScheduleRepair - سبب التغيير requirement', () => {
-  it('requires a reason only on a reschedule, and أخرى needs its free text too', async () => {
+  it('requires a reason only on a reschedule, and `other` needs its free text too', async () => {
     mockGetCaseDetail.mockResolvedValue(RESCHEDULE_NO_APPOINTMENT);
 
     const { result } = renderHook(() => useScheduleRepair('2006'));
@@ -70,14 +70,14 @@ describe('useScheduleRepair - سبب التغيير requirement', () => {
       result.current.selectDate('2026-01-10');
     });
     act(() => {
-      result.current.setSelectedSlot('9:00 ص');
+      result.current.setSelectedSlot('0900');
     });
 
     expect(result.current.isReschedule).toBe(true);
     expect(result.current.canSubmit).toBe(false);
 
     act(() => {
-      result.current.setReasonChip('أخرى');
+      result.current.setReasonChip('other');
     });
     expect(result.current.canSubmit).toBe(false);
 
@@ -87,7 +87,7 @@ describe('useScheduleRepair - سبب التغيير requirement', () => {
     expect(result.current.canSubmit).toBe(true);
 
     act(() => {
-      result.current.setReasonChip('ظروف الطقس');
+      result.current.setReasonChip('weather');
     });
     expect(result.current.canSubmit).toBe(true);
   });
@@ -102,7 +102,7 @@ describe('useScheduleRepair - سبب التغيير requirement', () => {
       result.current.selectDate('2025-01-02');
     });
     act(() => {
-      result.current.setSelectedSlot('9:00 ص');
+      result.current.setSelectedSlot('0900');
     });
 
     expect(result.current.isReschedule).toBe(false);

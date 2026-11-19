@@ -1,7 +1,8 @@
 import { AlertTriangle, Clock, CloudOff, UploadCloud } from 'lucide-react-native';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 
-import { Text } from '@/components/ui';
+import { BiText, Text } from '@/components/ui';
+import { t } from '@/i18n';
 import { colors, radii, shadows, spacing } from '@/theme';
 import type { ColorToken } from '@/theme';
 
@@ -22,10 +23,6 @@ const THUMBNAIL_SIZE = 82;
 const META_ICON_SIZE = 14;
 const NOTICE_ICON_SIZE = 20;
 
-const UNTITLED = 'بلاغ بدون وصف';
-const WAITING_NOTICE =
-  'البلاغ محفوظ على جهازك — سيُرسل تلقائيًا عند عودة الاتصال بالإنترنت';
-
 type Presentation = {
   icon: LucideIcon;
   label: string;
@@ -36,7 +33,7 @@ type Presentation = {
 /** No severity badge: guessing a colour before the model runs claims something unknown. */
 export function QueuedReportRow({ report, onRetry, onDiscard }: QueuedReportRowProps) {
   const { icon: Icon, label, stripe, ink } = present(report);
-  const title = report.description || UNTITLED;
+  const title = report.description || t('f07.untitled');
   const hasFailed = report.state === 'failed';
   const photoUri = useQueuedPhoto(report.localId);
 
@@ -55,9 +52,9 @@ export function QueuedReportRow({ report, onRetry, onDiscard }: QueuedReportRowP
         )}
 
         <View style={styles.text}>
-          <Text variant="label16Bold" align="right" numberOfLines={2}>
+          <BiText contentRole="title" variant="label16Bold" numberOfLines={2}>
             {title}
-          </Text>
+          </BiText>
 
           <View style={styles.meta}>
             <View style={[styles.chip, { backgroundColor: colors[stripe] }]}>
@@ -78,13 +75,8 @@ export function QueuedReportRow({ report, onRetry, onDiscard }: QueuedReportRowP
       {hasFailed ? null : (
         <View style={styles.notice}>
           <CloudOff size={NOTICE_ICON_SIZE} color={colors.primary} />
-          <Text
-            variant="label12"
-            color="primaryPressed"
-            align="right"
-            style={styles.noticeText}
-          >
-            {WAITING_NOTICE}
+          <Text variant="label12" color="primaryPressed" style={styles.noticeText}>
+            {t('x02a.savedBody')}
           </Text>
         </View>
       )}
@@ -97,7 +89,7 @@ export function QueuedReportRow({ report, onRetry, onDiscard }: QueuedReportRowP
             accessibilityRole="button"
           >
             <Text variant="label14Bold" color="primary">
-              إعادة المحاولة
+              {t('common.tryAgain')}
             </Text>
           </TouchableOpacity>
 
@@ -107,7 +99,7 @@ export function QueuedReportRow({ report, onRetry, onDiscard }: QueuedReportRowP
             accessibilityRole="button"
           >
             <Text variant="label14Bold" color="errorText">
-              حذف البلاغ
+              {t('x02a.deleteReport')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -118,19 +110,24 @@ export function QueuedReportRow({ report, onRetry, onDiscard }: QueuedReportRowP
 
 function present(report: QueuedReport): Presentation {
   if (report.state === 'uploading') {
-    return { icon: UploadCloud, label: 'جاري الإرسال', stripe: 'info', ink: 'infoText' };
+    return {
+      icon: UploadCloud,
+      label: t('x02a.sending'),
+      stripe: 'info',
+      ink: 'infoText',
+    };
   }
   if (report.state === 'failed') {
     return {
       icon: AlertTriangle,
-      label: 'تعذر الإرسال',
+      label: t('x02a.sendFailed'),
       stripe: 'error',
       ink: 'errorText',
     };
   }
   return {
     icon: Clock,
-    label: 'في انتظار الإرسال',
+    label: t('x02a.waitingToSend'),
     stripe: 'warning',
     ink: 'warningText',
   };
@@ -147,7 +144,7 @@ const styles = StyleSheet.create({
     height: STRIPE_HEIGHT,
   },
   body: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[12],
     padding: spacing[12],
@@ -163,7 +160,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   notice: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[8],
     marginHorizontal: spacing[12],
@@ -182,7 +179,7 @@ const styles = StyleSheet.create({
     gap: spacing[8],
   },
   meta: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[8],
   },
@@ -192,7 +189,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[2],
   },
   actions: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },

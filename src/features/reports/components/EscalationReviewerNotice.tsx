@@ -3,16 +3,10 @@ import { Image, StyleSheet, View } from 'react-native';
 
 import { Button, Text } from '@/components/ui';
 import { ExpertBadge } from '@/features/community/components/ExpertBadge';
+import { t } from '@/i18n';
 import { colors, radii, screenPadding, spacing } from '@/theme';
 
-import { ESCALATION_SUBTITLE, ESCALATION_TITLE } from '../lifecycle';
-
-const SECTION_TITLE = 'الخبير المسؤول عن البلاغ';
-const AVAILABLE_LABEL = 'متاح';
-const RESOLVED_LABEL = 'حالة محلولة';
-const REPAIR_TIME_LABEL = 'متوسط زمن الإصلاح';
-const DAY_LABEL = 'يوم';
-const TRACK_CTA = 'تتبّع حالة البلاغ';
+import { escalationSubtitle, escalationTitle } from '../lifecycle';
 
 const ICON_CIRCLE_SIZE = 96;
 const ICON_SIZE = 48;
@@ -54,16 +48,16 @@ export function EscalationReviewerNotice({
       </View>
 
       <Text variant="h4" align="center">
-        {ESCALATION_TITLE}
+        {escalationTitle()}
       </Text>
       <Text variant="body14" color="textMuted" align="center">
-        {ESCALATION_SUBTITLE}
+        {escalationSubtitle()}
       </Text>
 
       {reviewer ? (
         <View style={styles.reviewerSection}>
-          <Text variant="label16" color="textMuted" align="right">
-            {SECTION_TITLE}
+          <Text variant="label16" color="textMuted">
+            {t('common.assignedExpert')}
           </Text>
 
           <View style={styles.card}>
@@ -77,16 +71,14 @@ export function EscalationReviewerNotice({
               )}
 
               <View style={styles.identity}>
-                <Text variant="label16Bold" align="right">
-                  {reviewer.name}
-                </Text>
-                <Text variant="label14" color="textMuted" align="right">
+                <Text variant="label16Bold">{reviewer.name}</Text>
+                <Text variant="label14" color="textMuted">
                   {reviewer.specialty}
                 </Text>
                 {reviewer.isAvailable ? (
                   <View style={styles.presence}>
                     <Text variant="label14" color="primary">
-                      {AVAILABLE_LABEL}
+                      {t('common.online')}
                     </Text>
                     <View style={styles.presenceDot} />
                   </View>
@@ -103,7 +95,7 @@ export function EscalationReviewerNotice({
                     {stats.resolvedCount}
                   </Text>
                   <Text variant="label12" color="textMuted" align="center">
-                    {RESOLVED_LABEL}
+                    {t('f03b.statCasesResolved')}
                   </Text>
                 </View>
 
@@ -111,10 +103,10 @@ export function EscalationReviewerNotice({
 
                 <View style={styles.statCell}>
                   <Text variant="label16Bold" align="center">
-                    {`${stats.averageRepairDays} ${DAY_LABEL}`}
+                    {`${stats.averageRepairDays} ${t('common.day')}`}
                   </Text>
                   <Text variant="label12" color="textMuted" align="center">
-                    {REPAIR_TIME_LABEL}
+                    {t('f03b.statAvgRepairTime')}
                   </Text>
                 </View>
               </View>
@@ -124,7 +116,12 @@ export function EscalationReviewerNotice({
       ) : null}
 
       {onOpenTracker ? (
-        <Button label={TRACK_CTA} onPress={onOpenTracker} showArrow style={styles.cta} />
+        <Button
+          label={t('f03b.trackCta')}
+          onPress={onOpenTracker}
+          showArrow
+          style={styles.cta}
+        />
       ) : null}
     </View>
   );
@@ -158,7 +155,7 @@ const styles = StyleSheet.create({
     borderColor: colors.borderCard,
   },
   cardTop: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[12],
     padding: spacing[16],
@@ -175,11 +172,11 @@ const styles = StyleSheet.create({
   },
   identity: {
     flex: 1,
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
     gap: spacing[2],
   },
   presence: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[4],
   },
@@ -190,7 +187,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   statsRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     borderTopWidth: 1,
     borderTopColor: colors.divider,
   },

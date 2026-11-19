@@ -3,12 +3,9 @@ import { WifiOff } from 'lucide-react-native';
 import { useState } from 'react';
 
 import { Screen, StateScreen } from '@/components/ui';
+import { t } from '@/i18n';
 
 import { resolveBootDecision } from './bootRoute';
-
-const TITLE = 'لا يوجد اتصال بالإنترنت';
-const MESSAGE = 'تحقق من اتصالك وحاول مرة أخرى';
-const RETRY_LABEL = 'إعادة المحاولة';
 
 /** X-01, a cold-start guard only: it must never interrupt the report flow. */
 export default function SessionErrorScreen() {
@@ -37,9 +34,9 @@ export default function SessionErrorScreen() {
     <Screen>
       <StateScreen
         icon={WifiOff}
-        title={TITLE}
-        message={MESSAGE}
-        action={{ label: RETRY_LABEL, onPress: retry }}
+        title={t('x01.title')}
+        message={t('errors.network.checkConnection')}
+        action={{ label: t('common.tryAgain'), onPress: retry }}
       />
     </Screen>
   );

@@ -3,14 +3,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { describeError } from '@/features/reports/errors';
 import type { ReportError } from '@/features/reports/errors';
 import { attempt } from '@/features/reports/lifecycle';
+import { t } from '@/i18n';
 
 import { windowDates } from '../scheduleWindow';
 import { expertApi } from '../services';
+import { OTHER_REASON, reasonLabel } from '../types';
 
 import type { ExpertCaseDetail, RescheduleReasonChip, ScheduleSlot } from '../types';
-
-const LOAD_ERROR = 'تعذر تحميل الحالة';
-const SUBMIT_ERROR = 'تعذر تأكيد الجدولة، حاول مرة أخرى';
 
 /** E-03. Owns the calendar, slot and note draft, all local, under the same no-drafts rule. */
 export function useScheduleRepair(reportId: string) {
@@ -46,7 +45,7 @@ export function useScheduleRepair(reportId: string) {
       }
     } catch (err) {
       if (isMounted.current) {
-        setError(describeError(err, LOAD_ERROR));
+        setError(describeError(err, t('errors.case.loadFailed')));
       }
     } finally {
       if (isMounted.current) {
@@ -87,9 +86,10 @@ export function useScheduleRepair(reportId: string) {
     setSelectedSlot(null);
   }, []);
 
-  // §8.3: سبب التغيير is required only on a reschedule, and أخرى needs its free text too.
+  // §8.3: the reason is required only on a reschedule, and `other` needs its free text too.
+  // The comparison is against an id now, so no copy edit anywhere can stop it matching.
   const hasReason =
-    reasonChip !== null && (reasonChip !== 'أخرى' || reasonNote.trim().length > 0);
+    reasonChip !== null && (reasonChip !== OTHER_REASON || reasonNote.trim().length > 0);
 
   const canSubmit =
     selectedDate !== null && selectedSlot !== null && (!isReschedule || hasReason);
@@ -105,7 +105,7 @@ export function useScheduleRepair(reportId: string) {
     const result = attempt({ event, actor: 'expert', facts: detail });
     if (!result.ok) {
       // A refusal used to be silent. Same channel as a failed request, which the screen draws.
-      setSubmitError(describeError(result.refusal, SUBMIT_ERROR));
+      setSubmitError(describeError(result.refusal, t('errors.expert.scheduleFailed')));
       return false;
     }
 
@@ -118,16 +118,19 @@ export function useScheduleRepair(reportId: string) {
         date: selectedDate,
         slot: selectedSlot,
         noteToFarmer: noteToFarmer.trim() || undefined,
+        // Resolved to label, not id, since the farmer's chip renders it as plain content; safe only because nothing persists past this session (E4.1) - real fix is server-side, see BACKEND-GAPS #11.
         reason: isReschedule
-          ? reasonChip === 'أخرى'
+          ? reasonChip === OTHER_REASON
             ? reasonNote.trim()
-            : (reasonChip ?? undefined)
+            : reasonChip
+              ? reasonLabel(reasonChip)
+              : undefined
           : undefined,
       });
       return true;
     } catch (err) {
       if (isMounted.current) {
-        setSubmitError(describeError(err, SUBMIT_ERROR));
+        setSubmitError(describeError(err, t('errors.expert.scheduleFailed')));
       }
       return false;
     } finally {

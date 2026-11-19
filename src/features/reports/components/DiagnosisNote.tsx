@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
-import { Text } from '@/components/ui';
+import { BiText, Text } from '@/components/ui';
 import { colors, spacing } from '@/theme';
 
 import type { LucideIcon } from 'lucide-react-native';
@@ -17,19 +17,19 @@ const ICON_SIZE = 24;
 export function DiagnosisNote({ icon: Icon, label, children }: DiagnosisNoteProps) {
   return (
     <View style={styles.row}>
-      {/* row-reverse puts the glyph on the right, where the eye starts in Arabic. */}
+      {/* The glyph takes the start edge, where the eye begins reading. */}
       <Icon size={ICON_SIZE} color={colors.primary} />
 
       <View style={styles.body}>
         {label ? (
-          <Text variant="label14" color="textMuted" align="right">
+          <Text variant="label14" color="textMuted">
             {label}
           </Text>
         ) : null}
 
-        <Text variant="body14" align="right">
+        <BiText contentRole="body" variant="body14">
           {children}
-        </Text>
+        </BiText>
       </View>
     </View>
   );
@@ -37,7 +37,7 @@ export function DiagnosisNote({ icon: Icon, label, children }: DiagnosisNoteProp
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     // Top, not centre: a wrapped paragraph should leave the glyph on its first line.
     alignItems: 'flex-start',
     gap: spacing[12],

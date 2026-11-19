@@ -248,6 +248,22 @@
     {
       "path": "assets/font/Noto_Sans_Arabic/static/NotoSansArabic-Thin.ttf",
       "sha1": "421e48913e4b5f7398e5ff17c7994f058fca924d"
+    },
+    {
+      "path": "assets/font/Inter/LICENSE.txt",
+      "sha1": "174b037934980ddcad39144da3ce7b0f9d73546c"
+    },
+    {
+      "path": "assets/font/Inter/static/Inter-Medium.ttf",
+      "sha1": "c1d25d8c10adb45a970e71c387bbd6380f10992d"
+    },
+    {
+      "path": "assets/font/Inter/static/Inter-Regular.ttf",
+      "sha1": "6e3430f906a4b42b4b63fd8f33e498a43d9f8d84"
+    },
+    {
+      "path": "assets/font/Inter/static/Inter-SemiBold.ttf",
+      "sha1": "b4bdaf6bdd6a479b46c452a7bbae13f5cb2079bf"
     }
   ]
 }

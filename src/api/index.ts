@@ -12,7 +12,7 @@ export {
 export { ApiError, NETWORK_ERROR_STATUS, getErrorMessage } from './errors';
 export type { ApiErrorDetails } from './errors';
 export type { ApiErrorKind } from './errorMessages';
-export { CODE_MESSAGES, STATUS_MESSAGES } from './errorMessages';
+export { CODE_KEYS, codeMessage, STATUS_KEYS, statusMessage } from './errorMessages';
 export { API_ENDPOINTS } from './endpoints';
 export {
   saveTokens,

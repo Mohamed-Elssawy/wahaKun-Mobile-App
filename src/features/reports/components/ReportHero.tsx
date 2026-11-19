@@ -1,9 +1,11 @@
-import { ChevronRight, Image as ImageIcon, Mic, Share2 } from 'lucide-react-native';
+import { Image as ImageIcon, Mic, Share2 } from 'lucide-react-native';
 import { ImageBackground, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Defs, LinearGradient, Rect, Stop, Svg } from 'react-native-svg';
 
 import { SeverityBadge, Text } from '@/components/ui';
+import { t } from '@/i18n';
+import { BackIcon } from '@/i18n/icons';
 import { colors, radii, screenPadding, spacing } from '@/theme';
 
 import { describeSeverity } from '../severity';
@@ -32,9 +34,6 @@ const PLACEHOLDER_ICON = 48;
 /** The title needs this much cover; above it the photo stays at full brightness. */
 const SCRIM_HEIGHT = 110;
 
-const VOICE_LABEL = 'بلاغ صوتي';
-const NO_PHOTO_LABEL = 'لا توجد صورة';
-
 export function ReportHero({
   photoUrl,
   title,
@@ -54,15 +53,12 @@ export function ReportHero({
       // Must be the prop: inside imageStyle it is ignored, leaving a band under a photo.
       resizeMode="cover"
     >
-      {/* §8.2's `state:no-photo`: the green tint block, whatever the reason there is no photo.
-          It used to draw only for a voice report, so a photo report whose bytes storage cannot
-          serve got a bare grey panel under the scrim. The mic is kept for a voice report and
-          the media glyph stands in otherwise, since a mic would claim a voice report. */}
+      {/* §8.2 `state:no-photo`: draws for any missing photo now, not just a voice report. */}
       {!photoUrl ? (
         <View
           style={styles.placeholder}
           accessible
-          accessibilityLabel={hasVoice ? VOICE_LABEL : NO_PHOTO_LABEL}
+          accessibilityLabel={hasVoice ? t('f04.voiceReportLabel') : t('common.noPhoto')}
         >
           {hasVoice ? (
             <Mic size={PLACEHOLDER_ICON} color={colors.primary} />
@@ -72,11 +68,8 @@ export function ReportHero({
         </View>
       ) : null}
 
-      {/* A gradient over the lower third, not a flat wash over the whole photo: the frame
-          keeps the image at full brightness behind the controls and darkens only the title.
-          Drawn with react-native-svg, which is already here for the progress rings. */}
-      {/* No `width` prop: an explicit width wins over the style's left/right pair, so the scrim
-          anchored to the right edge and left a pale strip down the left. left:0 + right:0 size it. */}
+      {/* Gradient over the lower third only, keeping the photo at full brightness behind the controls. */}
+      {/* No `width` prop: it would beat the left/right pair and anchor the scrim off-centre. */}
       <Svg style={styles.scrim} height={SCRIM_HEIGHT}>
         <Defs>
           <LinearGradient id="heroScrim" x1="0" y1="0" x2="0" y2="1">
@@ -92,9 +85,9 @@ export function ReportHero({
           style={styles.control}
           onPress={onBack}
           accessibilityRole="button"
-          accessibilityLabel="رجوع"
+          accessibilityLabel={t('common.back')}
         >
-          <ChevronRight size={CONTROL_ICON} color={colors.textPrimary} />
+          <BackIcon size={CONTROL_ICON} color={colors.textPrimary} />
         </TouchableOpacity>
 
         {onShare ? (
@@ -102,23 +95,16 @@ export function ReportHero({
             style={styles.control}
             onPress={onShare}
             accessibilityRole="button"
-            accessibilityLabel="مشاركة البلاغ"
+            accessibilityLabel={t('f04.shareA11y')}
           >
             <Share2 size={CONTROL_ICON} color={colors.textPrimary} />
           </TouchableOpacity>
         ) : null}
       </View>
 
-      {/* Badge beside the title, not above it: the frame puts it on the opposite edge of the
-          same row, so a two-line title wraps past it rather than pushing it down. */}
+      {/* Badge shares the title's row so a two-line title wraps past it, not under it. */}
       <View style={styles.bottom}>
-        <Text
-          variant="h4"
-          color="textInverse"
-          align="right"
-          numberOfLines={2}
-          style={styles.title}
-        >
+        <Text variant="h4" color="textInverse" numberOfLines={2} style={styles.title}>
           {title}
         </Text>
 
@@ -157,7 +143,7 @@ const styles = StyleSheet.create({
   },
   top: {
     // Back leads at the right in an RTL layout; share takes the opposite edge.
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'space-between',
   },
   control: {
@@ -170,7 +156,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   bottom: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[12],
   },

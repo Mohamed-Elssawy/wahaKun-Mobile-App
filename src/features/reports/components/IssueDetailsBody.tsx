@@ -1,4 +1,4 @@
-import { CheckCircle2, ChevronLeft } from 'lucide-react-native';
+import { CheckCircle2 } from 'lucide-react-native';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -25,6 +25,8 @@ import { useIssueContext } from '@/features/community/hooks/useIssueContext';
 import { describeTierDisplay } from '@/features/map/tier';
 import { useIdentity } from '@/features/user/hooks/useIdentity';
 import { useAudioPlayer } from '@/hooks/useAudioPlayer';
+import { t } from '@/i18n';
+import { ForwardIcon } from '@/i18n/icons';
 import { colors, screenPadding, spacing } from '@/theme';
 
 import { seesAi } from '../aiVisibility';
@@ -42,16 +44,7 @@ import { reportSeverity } from '../severity';
 import type { Audience } from '../lifecycle';
 import type { DiagnosisContent } from '../types';
 
-const DIAGNOSIS_LABEL = 'تشخيص الذكاء الاصطناعي';
-const STATUS_TITLE = 'حالة البلاغ';
-const FULL_DIAGNOSIS = 'التشخيص الكامل';
-const FULL_TRACKER = 'تتبع البلاغ';
-const UNTITLED = 'بلاغ بدون وصف';
-const SYMPTOMS_LABEL = 'لماذا هذا التشخيص؟';
-const ACTION_LABEL = 'الإجراء الموصى به';
-const NO_DIAGNOSIS = 'لم يكتمل تحليل الذكاء الاصطناعي بعد.';
-
-const LINK_ICON_SIZE = 18;
+const LINK_ICON_SIZE = 16;
 
 export type IssueDetailsBodyProps = {
   reportId: string;
@@ -103,8 +96,8 @@ export function IssueDetailsBody({
     return (
       <View style={styles.screen}>
         <ReportErrorView
-          error={error ?? { kind: 'unknown', message: 'تعذر تحميل البلاغ' }}
-          unknownTitle="تعذر تحميل البلاغ"
+          error={error ?? { kind: 'unknown', message: t('f04.loadErrorTitle') }}
+          unknownTitle={t('f04.loadErrorTitle')}
           onRetry={retry}
         />
       </View>
@@ -133,11 +126,11 @@ export function IssueDetailsBody({
 
   const aiTitle = showsAi ? content?.title || issue?.title : undefined;
   // Same chain as F-07's card: a server row has only `title`, never an analysis. See ReportRow.
-  const title = aiTitle || report.title || report.description || UNTITLED;
+  const title = aiTitle || report.title || report.description || t('f07.untitled');
 
   const distanceLabel =
     origin && issue && hasCoordinates(issue)
-      ? `${distanceKm(origin, issue).toFixed(1)} كم`
+      ? t('common.distanceKm', { km: distanceKm(origin, issue).toFixed(1) })
       : undefined;
 
   // B-PUBLIC: open to any viewer, owner or not - unlike the tracker link below.
@@ -147,12 +140,12 @@ export function IssueDetailsBody({
         style={styles.link}
         onPress={onOpenDiagnosis}
         accessibilityRole="link"
-        accessibilityLabel={FULL_DIAGNOSIS}
+        accessibilityLabel={t('common.fullDiagnosis')}
       >
         <Text variant="label16Bold" color="primary">
-          {FULL_DIAGNOSIS}
+          {t('common.fullDiagnosis')}
         </Text>
-        <ChevronLeft size={LINK_ICON_SIZE} color={colors.primary} />
+        <ForwardIcon size={LINK_ICON_SIZE} color={colors.primary} />
       </TouchableOpacity>
     ) : null;
 
@@ -163,12 +156,12 @@ export function IssueDetailsBody({
         style={styles.link}
         onPress={onOpenTracker}
         accessibilityRole="link"
-        accessibilityLabel={FULL_TRACKER}
+        accessibilityLabel={t('common.trackReport')}
       >
-        <Text variant="label16Bold" color="primary">
-          {FULL_TRACKER}
+        <Text variant="body12" color="primary">
+          {t('common.trackReport')}
         </Text>
-        <ChevronLeft size={LINK_ICON_SIZE} color={colors.primary} />
+        <ForwardIcon size={LINK_ICON_SIZE} color={colors.primary} />
       </TouchableOpacity>
     ) : null;
 
@@ -214,17 +207,16 @@ export function IssueDetailsBody({
         />
 
         <View style={styles.body}>
-          {/* One section in the frame: the waveform and its transcript sit 16 apart, where
-              the gap to the next section is 40. */}
+          {/* One section in the frame: waveform and transcript sit 16 apart, not the usual 40. */}
           {voiceUrl || issue?.transcript ? (
             <View style={styles.voiceGroup}>
               {voiceUrl ? (
                 <VoicePlayer
-                  title="التسجيل الصوتي"
+                  title={t('f04.voiceSectionTitle')}
                   isPlaying={voice.isPlaying}
                   progress={voice.progress}
                   onToggle={voice.toggle}
-                  errorMessage={voice.hasFailed ? 'تعذر تشغيل التسجيل' : undefined}
+                  errorMessage={voice.hasFailed ? t('f04.playbackFailed') : undefined}
                 />
               ) : null}
               {issue?.transcript ? (
@@ -234,14 +226,14 @@ export function IssueDetailsBody({
           ) : null}
 
           <View style={styles.section}>
-            <Text variant="label16" color="textMuted" align="right">
-              {DIAGNOSIS_LABEL}
+            <Text variant="label16" color="textMuted">
+              {t('common.aiDiagnosis')}
             </Text>
 
             {content && showsAi ? (
               <>
                 <View style={styles.summary}>
-                  <Text variant="h4" align="right" style={styles.summaryTitle}>
+                  <Text variant="h4" style={styles.summaryTitle}>
                     {title}
                   </Text>
                   <ConfidenceRing confidence={content.confidence} compact />
@@ -249,13 +241,16 @@ export function IssueDetailsBody({
 
                 {/* A summary: all seven repair steps here buried the status track. */}
                 {content.explanation ? (
-                  <DiagnosisNote icon={CheckCircle2} label={SYMPTOMS_LABEL}>
+                  <DiagnosisNote icon={CheckCircle2} label={t('common.whyThisDiagnosis')}>
                     {content.explanation}
                   </DiagnosisNote>
                 ) : null}
 
                 {content.recommendation ? (
-                  <DiagnosisNote icon={CheckCircle2} label={ACTION_LABEL}>
+                  <DiagnosisNote
+                    icon={CheckCircle2}
+                    label={t('common.recommendedAction')}
+                  >
                     {content.recommendation}
                   </DiagnosisNote>
                 ) : null}
@@ -265,18 +260,17 @@ export function IssueDetailsBody({
             ) : content ? (
               <EscalationNotice />
             ) : (
-              <Text variant="body14" color="textSecondary" align="right">
-                {NO_DIAGNOSIS}
+              <Text variant="body14" color="textSecondary">
+                {t('f03a.notReadyBody')}
               </Text>
             )}
           </View>
 
-          {/* C-NO-PUBLIC-STEPPER: E-07 already has the 4-node expert stepper elsewhere, so the
-              3-node public compression would be a third representation on their surface. */}
+          {/* C-NO-PUBLIC-STEPPER: E-07 already has the 4-node stepper, skip the 3-node public one. */}
           {showPublicStepper ? (
             <View style={styles.section}>
-              <Text variant="label16" color="textMuted" align="right">
-                {STATUS_TITLE}
+              <Text variant="label16" color="textMuted">
+                {t('f04.statusSectionTitle')}
               </Text>
 
               <ReportStatusTrack status={report.status} />
@@ -298,9 +292,7 @@ export function IssueDetailsBody({
         </View>
       </ScrollView>
 
-      {/* Outside the ScrollView: the frame pins it under the thread, not inside it.
-          S-TERMINAL: a closed report hides the composer outright - a disabled bar would still
-          invite a tap `ENABLE_COMMENT_POSTING` already covers for an open one. */}
+      {/* S-TERMINAL: a closed report hides the composer outright rather than disabling it. */}
       {!isComposerHidden(fromWireStatus(report.status)) ? (
         <View style={{ paddingBottom: insets.bottom }}>
           <CommentComposer
@@ -340,18 +332,18 @@ const styles = StyleSheet.create({
     gap: spacing[12],
   },
   summary: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[16],
   },
   summaryTitle: {
     flex: 1,
   },
-  // Trailing edge in an RTL layout, matching where the frame puts it.
+  // Trailing edge, matching where the frame puts it.
   link: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-start',
+    alignSelf: 'flex-end',
     gap: spacing[4],
     // Its own 48dp target: it sits in a section with no other padding to borrow.
     minHeight: 48,

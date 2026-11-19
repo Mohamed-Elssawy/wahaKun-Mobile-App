@@ -3,8 +3,14 @@
 export { colors, palette } from './colors';
 export type { ColorToken } from './colors';
 
-export { fonts, textStyles } from './typography';
-export type { TextVariant } from './typography';
+export {
+  fonts,
+  roleVariants,
+  scriptFonts,
+  scriptRoleVariants,
+  textStyles,
+} from './typography';
+export type { TextRole, TextVariant } from './typography';
 
 export {
   spacing,
@@ -12,5 +18,6 @@ export {
   shadows,
   screenPadding,
   controlHeight,
+  switchSize,
   maxFontScale,
 } from './layout';

@@ -1,0 +1,135 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`S-02 · entry fork cards (archetype 3) matches its snapshot in both locales 1`] = `
+{
+  "ar": "View flexDirection:"row" alignItems:"center" justifyContent:"space-between"
+  View flexDirection:"row" alignItems:"center"
+    View alignItems:"flex-start"
+      Text Cairo-SemiBold 18/30 "واحة كُن"
+      Text Lora-SemiBold 20/25 "Waha KUN"
+  View flexDirection:"row" alignItems:"center" a11y="تغيير اللغة"
+    Text Cairo-SemiBold 16/24 "English"
+View justifyContent:"center"
+  View alignItems:"flex-start"
+    Text Cairo-SemiBold 24/40 "مرحباً بك"
+    Text NotoSansArabic-Regular 14/24.5 "هل تستخدم التطبيق للمرة الأولى؟"
+  View flexDirection:"row" alignItems:"center"
+    Text Cairo-SemiBold 18/30 "مستخدم جديد"
+    Text NotoSansArabic-Regular 12/21 "أنشئ حسابك الآن وابدأ"
+  View flexDirection:"row" alignItems:"center"
+    Text Cairo-SemiBold 18/30 "لديّ حساب بالفعل"
+    Text NotoSansArabic-Regular 12/21 "سجّل الدخول بسرعة"
+Text NotoSansArabic-Regular 14/24.5 textAlign:"center" "باستخدامك للتطبيق، أنت توافق على  و "
+  Text NotoSansArabic-Regular 14/24.5 "شروط الاستخدام"
+  Text NotoSansArabic-Regular 14/24.5 "سياسة الخصوصية"",
+  "en": "View flexDirection:"row" alignItems:"center" justifyContent:"space-between"
+  View flexDirection:"row" alignItems:"center"
+    View alignItems:"flex-start"
+      Text Cairo-SemiBold 18/30 "واحة كُن"
+      Text Lora-SemiBold 20/25 "Waha KUN"
+  View flexDirection:"row" alignItems:"center" a11y="Change language"
+    Text Cairo-SemiBold 16/24 "العربية"
+View justifyContent:"center"
+  View alignItems:"flex-start"
+    Text Cairo-SemiBold 24/40 "Welcome"
+    Text Inter-Regular 14/21 "Is this your first time using the app?"
+  View flexDirection:"row" alignItems:"center"
+    Text Cairo-SemiBold 18/30 "New user"
+    Text Inter-Regular 12/18 "Create an account to get started"
+  View flexDirection:"row" alignItems:"center"
+    Text Cairo-SemiBold 18/30 "I already have an account"
+    Text Inter-Regular 12/18 "Log in quickly"
+Text Inter-Regular 14/21 textAlign:"center" "By using the app, you agree to the  and "
+  Text Inter-Regular 14/21 "Terms of Use"
+  Text Inter-Regular 14/21 "Privacy Policy"",
+}
+`;
+
+exports[`S-03 · plain canvas, +20 island and the pre-login control (archetype 2) matches its snapshot in both locales 1`] = `
+{
+  "ar": "View flexDirection:"row" alignItems:"center" justifyContent:"space-between"
+  View a11y="رجوع"
+  View flexDirection:"row" alignItems:"center" a11y="تغيير اللغة"
+    Text Cairo-SemiBold 16/24 "English"
+Text Cairo-SemiBold 24/40 textAlign:"center" "تسجيل الدخول"
+Text NotoSansArabic-Regular 14/24.5 textAlign:"center" "أدخل رقم هاتفك للحصول على رمز\\nتحقق وتسجيل الدخول بأمان."
+Text NotoSansArabic-Regular 14/21 "رقم الهاتف"
+View flexDirection:"row" direction:"ltr" alignItems:"center"
+  Text NotoSansArabic-SemiBold 16/24 writingDirection:"ltr" "+ 20"
+  TextInput a11y="رقم الهاتف"
+View flexDirection:"row" alignItems:"center" justifyContent:"center"
+  Text Cairo-SemiBold 16/24 "إرسال رمز التحقق"
+View flexDirection:"row" alignItems:"center"
+  Text NotoSansArabic-Regular 20/30 "أو"
+View flexDirection:"row" alignItems:"center" justifyContent:"center"
+  Text Cairo-SemiBold 16/24 "الدخول بالبريد الإلكتروني"
+Text NotoSansArabic-Regular 14/24.5 textAlign:"center" "باستخدامك للتطبيق، أنت توافق على  و\\n"
+  Text NotoSansArabic-Regular 14/24.5 "شروط الاستخدام"
+  Text NotoSansArabic-Regular 14/24.5 "سياسة الخصوصية"",
+  "en": "View flexDirection:"row" alignItems:"center" justifyContent:"space-between"
+  View a11y="Back"
+  View flexDirection:"row" alignItems:"center" a11y="Change language"
+    Text Cairo-SemiBold 16/24 "العربية"
+Text Cairo-SemiBold 24/40 textAlign:"center" "Log in"
+Text Inter-Regular 14/21 textAlign:"center" "Enter your phone number to get a verification code and log in securely."
+Text Inter-Regular 14/21 "Phone number"
+View flexDirection:"row" direction:"ltr" alignItems:"center"
+  Text Inter-SemiBold 16/24 writingDirection:"ltr" "+ 20"
+  TextInput a11y="Phone number"
+View flexDirection:"row" alignItems:"center" justifyContent:"center"
+  Text Cairo-SemiBold 18/30 "Send verification code"
+View flexDirection:"row" alignItems:"center"
+  Text Inter-Regular 20/30 "or"
+View flexDirection:"row" alignItems:"center" justifyContent:"center"
+  Text Cairo-SemiBold 18/30 "Log in with email"
+Text Inter-Regular 14/21 textAlign:"center" "By using the app, you agree to the  and\\n"
+  Text Inter-Regular 14/21 "Terms of Use"
+  Text Inter-Regular 14/21 "Privacy Policy"",
+}
+`;
+
+exports[`S-04 · the OTP row (archetype 4) matches its snapshot in both locales 1`] = `
+{
+  "ar": "View flexDirection:"row" direction:"ltr" justifyContent:"space-between"
+  TextInput a11y="رقم 1 من 6"
+  TextInput a11y="رقم 2 من 6"
+  TextInput a11y="رقم 3 من 6"
+  TextInput a11y="رقم 4 من 6"
+  TextInput a11y="رقم 5 من 6"
+  TextInput a11y="رقم 6 من 6"",
+  "en": "View flexDirection:"row" direction:"ltr" justifyContent:"space-between"
+  TextInput a11y="Digit 1 of 6"
+  TextInput a11y="Digit 2 of 6"
+  TextInput a11y="Digit 3 of 6"
+  TextInput a11y="Digit 4 of 6"
+  TextInput a11y="Digit 5 of 6"
+  TextInput a11y="Digit 6 of 6"",
+}
+`;
+
+exports[`S-05.1 · green header and progress (archetype 1) matches its snapshot in both locales 1`] = `
+{
+  "ar": "View flexDirection:"row" alignItems:"center" justifyContent:"space-between"
+  View flexDirection:"row" alignItems:"center"
+    Text NotoSansArabic-SemiBold 14/21 "الخطوة 1 من 5"
+  View a11y="رجوع"
+View alignSelf:"flex-start"
+Text Cairo-SemiBold 24/40 textAlign:"center" "أدخل اسمك بالكامل"
+Text NotoSansArabic-Regular 14/24.5 "الاسم الكامل"
+View flexDirection:"row" alignItems:"center"
+  TextInput textAlign:"left"
+View flexDirection:"row" alignItems:"center" justifyContent:"center"
+  Text Cairo-SemiBold 16/24 "التالي"",
+  "en": "View flexDirection:"row" alignItems:"center" justifyContent:"space-between"
+  View flexDirection:"row" alignItems:"center"
+    Text Inter-SemiBold 14/21 "Step 1 of 5"
+  View a11y="Back"
+View alignSelf:"flex-start"
+Text Cairo-SemiBold 24/40 textAlign:"center" "Enter your full name"
+Text Inter-Regular 14/21 "Full name"
+View flexDirection:"row" alignItems:"center"
+  TextInput textAlign:"left"
+View flexDirection:"row" alignItems:"center" justifyContent:"center"
+  Text Cairo-SemiBold 18/30 "Next"",
+}
+`;

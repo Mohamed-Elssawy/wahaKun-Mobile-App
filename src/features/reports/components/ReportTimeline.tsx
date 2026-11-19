@@ -2,7 +2,7 @@ import { Check } from 'lucide-react-native';
 import { Image, StyleSheet, View } from 'react-native';
 
 import { ContextChip, Text } from '@/components/ui';
-import { colors, radii, spacing } from '@/theme';
+import { colors, radii, roleVariants, spacing } from '@/theme';
 
 import { TrackerApprovalControl } from './TrackerApprovalControl';
 
@@ -77,21 +77,20 @@ export function ReportTimeline({
 
           <View style={styles.content}>
             <Text
-              variant="h5"
+              variant={roleVariants.timelineNode}
               color={node.markerState === 'pending' ? 'textSecondary' : 'textPrimary'}
-              align="right"
             >
               {node.label}
             </Text>
 
             {node.dateTime ? (
-              <Text variant="label12" color="textSecondary" align="right">
+              <Text variant="label12" color="textSecondary">
                 {node.dateTime}
               </Text>
             ) : null}
 
             {node.subtext ? (
-              <Text variant="label12" color="textSecondary" align="right">
+              <Text variant="label12" color="textSecondary">
                 {node.subtext}
               </Text>
             ) : null}
@@ -109,12 +108,7 @@ export function ReportTimeline({
             {node.repairPhoto ? (
               <View style={styles.photoChip}>
                 <Image source={{ uri: node.repairPhoto.url }} style={styles.photo} />
-                <Text
-                  variant="label12"
-                  color="primaryPressed"
-                  align="right"
-                  style={styles.photoText}
-                >
+                <Text variant="label12" color="primaryPressed" style={styles.photoText}>
                   {node.repairPhoto.notes}
                 </Text>
               </View>
@@ -136,7 +130,7 @@ export function ReportTimeline({
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     gap: spacing[16],
   },
   markerColumn: {
@@ -198,7 +192,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing[24],
   },
   photoChip: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[8],
     padding: spacing[8],

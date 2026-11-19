@@ -1,8 +1,9 @@
 import { Clock, MapPin, User } from 'lucide-react-native';
 import { Image, StyleSheet, View } from 'react-native';
 
-import { Text } from '@/components/ui';
+import { BiText, Text } from '@/components/ui';
 import { IssueMetaLine } from '@/features/community/components/IssueMetaLine';
+import { ltrIsolate, t } from '@/i18n';
 import { colors, radii, screenPadding, shadows, spacing } from '@/theme';
 
 import { formatReportReference } from '../format';
@@ -18,8 +19,6 @@ export type IssueIdentityBarProps = {
 };
 
 const AVATAR_SIZE = 42;
-
-const UNKNOWN_AUTHOR = 'مزارع من الواحة';
 
 /** The band under F-04's hero: who filed it and when, with the reference opposite. */
 export function IssueIdentityBar({
@@ -41,9 +40,9 @@ export function IssueIdentityBar({
 
       <View style={styles.identity}>
         {/* Regular at 14, matching the feed card: the frame gives the two the same weight. */}
-        <Text variant="label14" align="right" numberOfLines={1}>
-          {authorName || UNKNOWN_AUTHOR}
-        </Text>
+        <BiText contentRole="title" variant="label14" numberOfLines={1}>
+          {authorName || t('common.unknownAuthor')}
+        </BiText>
 
         <IssueMetaLine
           icons={[Clock, MapPin]}
@@ -53,7 +52,7 @@ export function IssueIdentityBar({
 
       <View style={styles.reference}>
         <Text variant="label14" color="textSecondary">
-          {formatReportReference(reportId)}
+          {ltrIsolate(formatReportReference(reportId))}
         </Text>
       </View>
     </View>
@@ -62,7 +61,7 @@ export function IssueIdentityBar({
 
 const styles = StyleSheet.create({
   bar: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[12],
     paddingHorizontal: screenPadding,
@@ -84,7 +83,7 @@ const styles = StyleSheet.create({
   },
   identity: {
     flex: 1,
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
     gap: spacing[2],
   },
   reference: {

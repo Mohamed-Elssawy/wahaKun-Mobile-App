@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import { ApiError, saveTokens } from '@/api';
 import { resumeReportQueue } from '@/features/reports/services/reportQueue';
+import { t } from '@/i18n';
 
 import { describeAuthApiError } from '../authErrors';
 import { describeFirebaseError } from '../firebaseErrors';
@@ -24,8 +25,8 @@ export function useLogin() {
     } catch (err) {
       setError(
         err instanceof ApiError
-          ? describeAuthApiError(err, 'تعذر إرسال رمز التحقق، حاول مرة أخرى')
-          : describeFirebaseError(err, 'تعذر إرسال رمز التحقق، حاول مرة أخرى'),
+          ? describeAuthApiError(err, t('errors.auth.sendCodeFailed'))
+          : describeFirebaseError(err, t('errors.auth.sendCodeFailed')),
       );
       return false;
     } finally {
@@ -42,7 +43,7 @@ export function useLogin() {
 
       // No tokens means no session, so this is a failure however the server dressed it up.
       if (!result.accessToken || !result.refreshToken) {
-        setError('تعذر تسجيل الدخول، حاول مرة أخرى');
+        setError(t('errors.auth.loginFailed'));
         return false;
       }
 
@@ -54,11 +55,8 @@ export function useLogin() {
     } catch (err) {
       setError(
         err instanceof ApiError
-          ? describeAuthApiError(
-              err,
-              'تعذر تسجيل الدخول، تأكد من البيانات وحاول مرة أخرى',
-            )
-          : 'حدث خطأ في الاتصال، حاول مرة أخرى',
+          ? describeAuthApiError(err, t('errors.auth.loginFailedDetail'))
+          : t('errors.network.generic'),
       );
       return false;
     } finally {

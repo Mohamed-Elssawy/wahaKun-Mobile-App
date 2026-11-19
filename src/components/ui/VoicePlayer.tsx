@@ -1,6 +1,7 @@
 import { Pause, Play } from 'lucide-react-native';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
+import { t } from '@/i18n';
 import { colors, radii, spacing } from '@/theme';
 
 import { Text } from './Text';
@@ -30,15 +31,13 @@ export function VoicePlayer({
 }: VoicePlayerProps) {
   return (
     <View style={styles.section}>
-      <Text variant="h4" align="right" color="textStrong">
+      <Text variant="h4" color="textStrong">
         {title}
       </Text>
 
-      {/* Waveform leading at the right, button on the trailing edge: the frame puts the
-          control at the left gutter, opposite the heading. */}
+      {/* Waveform leading, button trailing - the frame puts the control at the left gutter, opposite the heading. */}
       <View style={styles.row}>
-        {/* The waveform is the graphic from the frame, not the real envelope: nothing decodes
-            the audio, so the played part is filled in rather than drawn from samples. */}
+        {/* The waveform is the frame's graphic, not the real envelope - nothing decodes the audio, so played is filled in rather than drawn from samples. */}
         <View style={styles.waveform}>
           <VoiceWaveform progress={progress} />
         </View>
@@ -47,7 +46,7 @@ export function VoicePlayer({
           style={styles.button}
           onPress={onToggle}
           accessibilityRole="button"
-          accessibilityLabel={isPlaying ? 'إيقاف التشغيل' : 'تشغيل التسجيل'}
+          accessibilityLabel={isPlaying ? t('common.pause') : t('common.playRecording')}
           accessibilityState={{ selected: isPlaying }}
         >
           {/* Outlined, not filled: the frame draws a stroked triangle on the green disc. */}
@@ -60,7 +59,7 @@ export function VoicePlayer({
       </View>
 
       {errorMessage ? (
-        <Text variant="label12" color="errorText" align="right">
+        <Text variant="label12" color="errorText">
           {errorMessage}
         </Text>
       ) : null}
@@ -73,7 +72,7 @@ const styles = StyleSheet.create({
     gap: spacing[12],
   },
   row: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[16],
   },

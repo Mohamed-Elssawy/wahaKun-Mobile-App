@@ -1,8 +1,9 @@
-import { StyleSheet, Switch, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { FilterChip, TextField, Text } from '@/components/ui';
+import { FilterChip, Switch, TextField, Text } from '@/components/ui';
 import { describeSeverity } from '@/features/reports/severity';
 import type { Severity } from '@/features/reports/types';
+import { t } from '@/i18n';
 import { colors, radii, spacing } from '@/theme';
 
 export type CaseOverrideSectionProps = {
@@ -13,12 +14,6 @@ export type CaseOverrideSectionProps = {
   correctedDiagnosis: string;
   onChangeCorrectedDiagnosis: (text: string) => void;
 };
-
-const TOGGLE_TITLE = 'تجاوز تشخيص الذكاء الاصطناعي';
-const TOGGLE_SUBTITLE = 'فعّل إذا كان تقييمك مختلف';
-const SEVERITY_LABEL = 'مستوى الخطورة';
-const DIAGNOSIS_LABEL = 'التشخيص المصحّح';
-const DIAGNOSIS_PLACEHOLDER = 'اكتب تشخيصك هنا...';
 
 /** Both fields render only while isOn; the caller blocks submit on an empty diagnosis. */
 const SEVERITY_OPTIONS: readonly Severity[] = ['Critical', 'Medium', 'Low'];
@@ -35,27 +30,24 @@ export function CaseOverrideSection({
     <View style={styles.section}>
       <View style={styles.toggleCard}>
         <View style={styles.toggleText}>
-          <Text variant="h5" align="right">
-            {TOGGLE_TITLE}
-          </Text>
-          <Text variant="label14" color="textSecondary" align="right">
-            {TOGGLE_SUBTITLE}
+          <Text variant="h5">{t('expert.overrideTitle')}</Text>
+          <Text variant="label14" color="textSecondary">
+            {t('expert.overrideHint')}
           </Text>
         </View>
 
         <Switch
-          value={isOn}
-          onValueChange={onToggle}
-          trackColor={{ false: colors.borderControl, true: colors.primary }}
-          thumbColor={colors.surface}
+          checked={isOn}
+          onChange={onToggle}
+          accessibilityLabel={t('expert.overrideTitle')}
         />
       </View>
 
       {isOn ? (
         <View style={styles.fields}>
           <View style={styles.severityField}>
-            <Text variant="label14" color="textSecondary" align="right">
-              {SEVERITY_LABEL}
+            <Text variant="label14" color="textSecondary">
+              {t('f05.legendTitle')}
             </Text>
 
             <View style={styles.severityOptions}>
@@ -74,8 +66,8 @@ export function CaseOverrideSection({
           </View>
 
           <TextField
-            label={DIAGNOSIS_LABEL}
-            placeholder={DIAGNOSIS_PLACEHOLDER}
+            label={t('expert.correctedDiagnosis')}
+            placeholder={t('expert.correctedPlaceholder')}
             value={correctedDiagnosis}
             onChangeText={onChangeCorrectedDiagnosis}
             multiline
@@ -93,7 +85,7 @@ const styles = StyleSheet.create({
     gap: spacing[16],
   },
   toggleCard: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: spacing[12],
@@ -114,11 +106,10 @@ const styles = StyleSheet.create({
     gap: spacing[8],
   },
   severityOptions: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     gap: spacing[8],
   },
   multilineInput: {
-    textAlign: 'right',
     minHeight: 72,
     textAlignVertical: 'top',
   },

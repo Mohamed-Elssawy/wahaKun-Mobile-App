@@ -222,10 +222,13 @@ export type QueuedReport = {
   analysis?: AiAnalysisResult;
   /** Why it stopped. Never 'offline'/'temporary' (those retry) and never 'unauthorized'. */
   failureKind?: ReportErrorKind;
-  /** The server's specific Arabic reason, shown instead of the generic copy. */
-  failureMessage?: string;
-  /** Last transient failure, so the row can say why it is still waiting. */
-  lastError?: string;
+  /**
+   * The server's own reason, raw, when it sent one worth keeping.
+   *
+   * Never a resolved sentence: this row outlives the locale it failed in, so the copy a farmer
+   * reads is looked up from `failureKind` at the read. See errors.ts failureMessage().
+   */
+  serverMessage?: string;
 };
 
 /** A union because queued items have no server id, status or attachments. */

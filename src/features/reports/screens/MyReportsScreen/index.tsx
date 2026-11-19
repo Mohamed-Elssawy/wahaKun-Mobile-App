@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import { FileSearch, FileText } from 'lucide-react-native';
+import { FileSearch } from 'lucide-react-native';
 import { useCallback } from 'react';
 import { SectionList, StyleSheet, View } from 'react-native';
 
@@ -11,8 +11,11 @@ import {
   Text,
 } from '@/components/ui';
 import { useIdentity } from '@/features/user/hooks/useIdentity';
-import { colors, screenPadding, spacing } from '@/theme';
+import { t } from '@/i18n';
+import type { TranslationKey } from '@/i18n';
+import { colors, roleVariants, screenPadding, spacing } from '@/theme';
 
+import { FilledFilesIcon } from '../../components/FilledFilesIcon';
 import { QueueBanner } from '../../components/QueueBanner';
 import { QueuedReportRow } from '../../components/QueuedReportRow';
 import { ReportCtaCard } from '../../components/ReportCtaCard';
@@ -24,14 +27,12 @@ import { REPORT_FILTER_LABELS } from '../../lifecycle/display';
 import type { ReportFilter } from '../../hooks/useMyReports';
 import type { ReportListItem } from '../../types';
 
-const TITLE = 'بلاغاتي';
-
 // Only two tabs carry a count in the frame, and a count on all four reads as a dashboard.
-const TABS: { key: ReportFilter; label: string; showCount: boolean }[] = [
-  { key: 'all', label: REPORT_FILTER_LABELS.all, showCount: false },
-  { key: 'active', label: REPORT_FILTER_LABELS.active, showCount: true },
-  { key: 'resolved', label: REPORT_FILTER_LABELS.resolved, showCount: true },
-  { key: 'critical', label: REPORT_FILTER_LABELS.critical, showCount: false },
+const TABS: { key: ReportFilter; labelKey: TranslationKey; showCount: boolean }[] = [
+  { key: 'all', labelKey: REPORT_FILTER_LABELS.all, showCount: false },
+  { key: 'active', labelKey: REPORT_FILTER_LABELS.active, showCount: true },
+  { key: 'resolved', labelKey: REPORT_FILTER_LABELS.resolved, showCount: true },
+  { key: 'critical', labelKey: REPORT_FILTER_LABELS.critical, showCount: false },
 ];
 
 /** F-07. X-07, never having filed one, reads differently to X-06, no match. */
@@ -48,6 +49,7 @@ export default function MyReportsScreen() {
     setFilter,
     isLoading,
     error,
+    hasLastUpdate,
     refresh,
     retryQueued,
     discardQueued,
@@ -103,11 +105,12 @@ export default function MyReportsScreen() {
       );
     }
 
-    if (error) {
+    // W8: a failed refresh only replaces the list when there's no list to keep, so the queued banner stays visible.
+    if (error && !hasAnyReports) {
       return (
         <ReportErrorView
           error={error}
-          unknownTitle="تعذر تحميل البلاغات"
+          unknownTitle={t('f07.loadErrorTitle')}
           onRetry={refresh}
         />
       );
@@ -122,14 +125,14 @@ export default function MyReportsScreen() {
           {hasAnyReports ? (
             <EmptyState
               icon={FileSearch}
-              title="لا توجد بلاغات مطابقة"
-              message="جرّب توسيع البحث أو تغيير الفلتر."
+              title={t('f07.noResultsTitle')}
+              message={t('f07.noResultsBody')}
             />
           ) : (
             <EmptyState
-              icon={FileText}
-              title="لم تُبلّغ عن أي مشكلة بعد"
-              message="عندما تبلغ عن مشكلة، ستظهر هنا حتى تتمكن من تتبع حالتها."
+              icon={FilledFilesIcon}
+              title={t('f07.firstUseTitle')}
+              message={t('f07.firstUseBody')}
             />
           )}
         </View>
@@ -144,7 +147,7 @@ export default function MyReportsScreen() {
           item.kind === 'queued' ? item.queued.localId : item.report.id
         }
         renderSectionHeader={({ section }) => (
-          <Text variant="label14Bold" color="textSecondary" align="right">
+          <Text variant={roleVariants.sectionHeader} color="textSecondary">
             {section.title}
           </Text>
         )}
@@ -160,18 +163,22 @@ export default function MyReportsScreen() {
   return (
     <View style={styles.screen}>
       <AppHeader
-        title={TITLE}
+        title={t('tabs.myReports')}
         avatarUrl={avatarUrl}
         onOpenProfile={() => navigation.navigate('Profile')}
         onOpenNotifications={() => navigation.navigate('Notifications')}
       />
 
-      <QueueBanner />
+      <QueueBanner showsLastUpdate={hasLastUpdate} />
 
       <SegmentedTabs
         items={TABS.map(tab => ({
           key: tab.key,
-          label: tab.showCount ? `${tab.label} (${counts[tab.key]})` : tab.label,
+          // C65: no counts before a first report — "(0)" would just repeat the empty-state copy.
+          label:
+            tab.showCount && hasAnyReports
+              ? `${t(tab.labelKey)} (${counts[tab.key]})`
+              : t(tab.labelKey),
         }))}
         value={filter}
         onChange={setFilter}

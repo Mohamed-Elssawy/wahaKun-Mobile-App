@@ -1,4 +1,6 @@
-import { FIREBASE_ERROR_MESSAGES, describeFirebaseError } from '../firebaseErrors';
+import { t } from '@/i18n';
+
+import { FIREBASE_ERROR_KEYS, describeFirebaseError } from '../firebaseErrors';
 
 // Showing Firebase's own message would show the farmer someone else's debugging.
 const FALLBACK = 'حدث خطأ';
@@ -53,9 +55,12 @@ describe('describeFirebaseError', () => {
   });
 
   it('never returns an empty message', () => {
-    // A blank error is worse than a wrong one: the form just looks like it refused.
-    for (const message of Object.values(FIREBASE_ERROR_MESSAGES)) {
+    // t() echoes a key with no catalogue entry, so an unresolved key would surface as a blank message here.
+    for (const key of Object.values(FIREBASE_ERROR_KEYS)) {
+      const message = t(key);
+
       expect(message.trim().length).toBeGreaterThan(0);
+      expect(message).not.toBe(key);
     }
   });
 });

@@ -2,6 +2,7 @@ import { Square, X } from 'lucide-react-native';
 import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { Text } from '@/components/ui';
+import { t } from '@/i18n';
 import { colors, radii, spacing } from '@/theme';
 
 export type RecordingControlsProps = {
@@ -18,13 +19,7 @@ const CANCEL_ICON_SIZE = 24;
 /** Below this, cancelling throws away too little for a confirm to be worth the interruption. */
 const CANCEL_CONFIRM_SECONDS = 3;
 
-const STOP_LABEL = 'اضغط لإيقاف التسجيل';
-const CANCEL_LABEL = 'إلغاء';
 // Alert stands in for the discard-confirm sheet §12.1 has not drawn yet.
-const CONFIRM_TITLE = 'إلغاء التسجيل؟';
-const CONFIRM_MESSAGE = 'سيُفقد ما تم تسجيله حتى الآن.';
-const CONFIRM_DESTRUCTIVE = 'إلغاء التسجيل';
-const CONFIRM_DISMISS = 'الاستمرار في التسجيل';
 
 /** state:recording's two controls, laid out as the frame draws them, not RTL-leading. */
 export function RecordingControls({
@@ -38,20 +33,35 @@ export function RecordingControls({
       return;
     }
 
-    Alert.alert(CONFIRM_TITLE, CONFIRM_MESSAGE, [
-      { text: CONFIRM_DISMISS, style: 'cancel' },
-      { text: CONFIRM_DESTRUCTIVE, style: 'destructive', onPress: onCancel },
+    Alert.alert(t('f02.cancelRecordingTitle'), t('f02.cancelRecordingBody'), [
+      { text: t('f02.keepRecording'), style: 'cancel' },
+      { text: t('f02.cancelRecording'), style: 'destructive', onPress: onCancel },
     ]);
   };
 
   return (
+    // F-02 draws the red stop on the far edge and إلغاء beside it, so cancel leads.
     <View style={styles.row}>
+      <View style={styles.control}>
+        <TouchableOpacity
+          style={styles.cancel}
+          onPress={handleCancel}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.cancel')}
+        >
+          <X size={CANCEL_ICON_SIZE} color={colors.textSecondary} />
+        </TouchableOpacity>
+        <Text variant="label16" color="textSecondary" align="center">
+          {t('common.cancel')}
+        </Text>
+      </View>
+
       <View style={styles.control}>
         <TouchableOpacity
           style={styles.stop}
           onPress={onStop}
           accessibilityRole="button"
-          accessibilityLabel={STOP_LABEL}
+          accessibilityLabel={t('f02.tapToStop')}
         >
           <Square
             size={STOP_ICON_SIZE}
@@ -60,21 +70,7 @@ export function RecordingControls({
           />
         </TouchableOpacity>
         <Text variant="label16" color="textSecondary" align="center">
-          {STOP_LABEL}
-        </Text>
-      </View>
-
-      <View style={styles.control}>
-        <TouchableOpacity
-          style={styles.cancel}
-          onPress={handleCancel}
-          accessibilityRole="button"
-          accessibilityLabel={CANCEL_LABEL}
-        >
-          <X size={CANCEL_ICON_SIZE} color={colors.textSecondary} />
-        </TouchableOpacity>
-        <Text variant="label16" color="textSecondary" align="center">
-          {CANCEL_LABEL}
+          {t('f02.tapToStop')}
         </Text>
       </View>
     </View>

@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
   },
   fill: {
     height: 4,
-    // RTL: progress grows from the right edge.
-    alignSelf: 'flex-end',
+    // S-05: the fill grows from the start edge - right in Arabic, left in English.
+    alignSelf: 'flex-start',
   },
 });

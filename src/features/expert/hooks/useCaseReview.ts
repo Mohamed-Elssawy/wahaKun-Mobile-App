@@ -5,13 +5,11 @@ import { describeError } from '@/features/reports/errors';
 import type { ReportError } from '@/features/reports/errors';
 import { attempt } from '@/features/reports/lifecycle';
 import type { Severity } from '@/features/reports/types';
+import { t } from '@/i18n';
 
 import { expertApi } from '../services';
 
 import type { ExpertCaseDetail } from '../types';
-
-const LOAD_ERROR = 'تعذر تحميل الحالة';
-const SUBMIT_ERROR = 'تعذر إرسال المراجعة، حاول مرة أخرى';
 
 /** E-02. All local state: there are no drafts, so abandoning the screen loses the input. */
 export function useCaseReview(reportId: string) {
@@ -55,7 +53,7 @@ export function useCaseReview(reportId: string) {
       }
     } catch (err) {
       if (isMounted.current) {
-        setError(describeError(err, LOAD_ERROR));
+        setError(describeError(err, t('errors.case.loadFailed')));
       }
     } finally {
       if (isMounted.current) {
@@ -96,7 +94,7 @@ export function useCaseReview(reportId: string) {
     // T4's guard also catches opening E-02 on a case a review has already landed on.
     const result = attempt({ event: 'submitReview', actor: 'expert', facts: detail });
     if (!result.ok) {
-      setSubmitError(describeError(result.refusal, SUBMIT_ERROR));
+      setSubmitError(describeError(result.refusal, t('errors.expert.reviewFailed')));
       return false;
     }
 
@@ -127,7 +125,7 @@ export function useCaseReview(reportId: string) {
       return true;
     } catch (err) {
       if (isMounted.current) {
-        setSubmitError(describeError(err, SUBMIT_ERROR));
+        setSubmitError(describeError(err, t('errors.expert.reviewFailed')));
       }
       return false;
     } finally {

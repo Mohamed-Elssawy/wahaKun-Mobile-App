@@ -3,6 +3,7 @@ import { Image, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, Text } from '@/components/ui';
+import { t } from '@/i18n';
 import { colors, screenPadding, spacing } from '@/theme';
 import type { PickedImage } from '@/types/image';
 
@@ -48,17 +49,18 @@ export function PhotoReview({
         ) : null}
 
         <Button
-          label="استخدام هذه الصورة"
+          label={t('f02b.usePhoto')}
           onPress={onUse}
           loading={isSubmitting}
           showArrow
         />
         <Button
-          label={source === 'camera' ? 'إعادة الالتقاط' : 'اختيار صورة أخرى'}
+          label={source === 'camera' ? t('f02b.retake') : t('f02b.pickAnother')}
           variant="secondary"
           onPress={onRetake}
           disabled={isSubmitting}
           icon={<Repeat2 size={RETAKE_ICON_SIZE} color={colors.primary} />}
+          iconTrails
         />
       </View>
     </>

@@ -5,15 +5,14 @@ import { describeError } from '@/features/reports/errors';
 import type { ReportError } from '@/features/reports/errors';
 import { subscribeToIssueChanges } from '@/features/reports/services/issueEvents';
 import { useCurrentLocation } from '@/hooks/useCurrentLocation';
+import { t } from '@/i18n';
 
 import { boundsOf, clusterIssues, COINCIDENT_SPAN, isZoomedIn } from '../clustering';
 import { filterIssues } from '../search';
-import { getMapIssues } from '../services/mapService';
+import { mapApi } from '../services';
 
 import type { MapIssue } from '../types';
 import type { CameraStop, LngLat } from '@maplibre/maplibre-react-native';
-
-const LOAD_ERROR = 'تعذر تحميل الخريطة، حاول مرة أخرى';
 
 /** Siwa Oasis. Where the map opens before the farmer's own fix arrives. */
 export const DEFAULT_CENTER: LngLat = [25.5195, 29.2041];
@@ -80,13 +79,13 @@ export function useOasisMap() {
     setError(null);
 
     try {
-      const result = await getMapIssues();
+      const result = await mapApi.getMapIssues();
       if (isFocused.current) {
         setIssues(result);
       }
     } catch (err) {
       if (isFocused.current) {
-        setError(describeError(err, LOAD_ERROR));
+        setError(describeError(err, t('errors.map.loadFailed')));
       }
     } finally {
       if (isFocused.current) {

@@ -48,11 +48,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: screenPadding,
     paddingBottom: spacing[32],
   },
-  // Absorbs the leftover height, which is what holds the button at the bottom.
+  // C23: anchored under the chrome, not centred - 32 is the ramp step matching the four frames (S-06, E-01, E-09, F-07).
   group: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingTop: spacing[32],
     gap: spacing[16],
   },
   circle: {

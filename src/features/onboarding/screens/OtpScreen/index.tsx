@@ -4,6 +4,7 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Button, OtpInput, Screen, Text } from '@/components/ui';
 import { useOtpVerification } from '@/features/auth/hooks/useOtpVerification';
 import { formatCountdown, useCountdown } from '@/hooks/useCountdown';
+import { ltrIsolate, t } from '@/i18n';
 import type { ScreenProps } from '@/navigation/types';
 import { screenPadding, spacing } from '@/theme';
 
@@ -25,7 +26,7 @@ export default function OtpScreen({ navigation, route }: ScreenProps<'Otp'>) {
 
   const handleVerify = async () => {
     if (!isComplete) {
-      setValidationError('يرجى إدخال رمز التحقق كاملاً');
+      setValidationError(t('errors.auth.codeIncomplete'));
       return;
     }
     setValidationError('');
@@ -50,7 +51,7 @@ export default function OtpScreen({ navigation, route }: ScreenProps<'Otp'>) {
     <Screen
       footer={
         <Button
-          label="تحقق"
+          label={t('common.verify')}
           onPress={handleVerify}
           showArrow
           loading={isVerifying}
@@ -63,17 +64,20 @@ export default function OtpScreen({ navigation, route }: ScreenProps<'Otp'>) {
       <View style={styles.form}>
         <View style={styles.intro}>
           <Text variant="h3" color="textStrong" align="center">
-            تحقق من رقمك
+            {t('s04.title')}
           </Text>
           <Text variant="body14" color="textMuted" align="center">
-            {`أرسلنا رمزاً مكوناً من ${OTP_LENGTH} أرقام إلى\n${phoneNumber}`}
+            {t('s04.sentBody', {
+              otpLength: OTP_LENGTH,
+              phoneNumber: ltrIsolate(phoneNumber),
+            })}
           </Text>
         </View>
 
         <View style={styles.field}>
           <View style={styles.inputGroup}>
-            <Text variant="label14" color="textSecondary" align="right">
-              ادخل رمز التحقق
+            <Text variant="label14" color="textSecondary">
+              {t('s04.inputLabel')}
             </Text>
 
             <OtpInput value={code} onChange={setCode} length={OTP_LENGTH} />
@@ -82,13 +86,13 @@ export default function OtpScreen({ navigation, route }: ScreenProps<'Otp'>) {
           <TouchableOpacity onPress={handleResend} disabled={!isFinished}>
             {isFinished ? (
               <Text variant="label12" color="primary" align="center">
-                إعادة إرسال الرمز
+                {t('s04.resend')}
               </Text>
             ) : (
               <Text variant="label12" color="textMuted" align="center">
-                إعادة الإرسال خلال{' '}
+                {t('s04.resendIn')}{' '}
                 <Text variant="label12" color="primary">
-                  {formatCountdown(secondsLeft)}
+                  {ltrIsolate(formatCountdown(secondsLeft))}
                 </Text>
               </Text>
             )}
@@ -96,7 +100,7 @@ export default function OtpScreen({ navigation, route }: ScreenProps<'Otp'>) {
         </View>
 
         {validationError || verifyError ? (
-          <Text variant="label14Bold" color="errorText" align="right">
+          <Text variant="label14Bold" color="errorText">
             {validationError || verifyError}
           </Text>
         ) : null}

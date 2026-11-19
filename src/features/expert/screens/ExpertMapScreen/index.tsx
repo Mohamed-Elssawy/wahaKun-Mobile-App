@@ -3,12 +3,11 @@ import { useNavigation } from '@react-navigation/native';
 import type { MapPeekAction } from '@/features/map/components/MapPeekSheet';
 import { OasisMapBody } from '@/features/map/components/OasisMapBody';
 import type { MapIssue } from '@/features/map/types';
-import { EXPERT_ACTION_LABELS } from '@/features/reports/lifecycle';
+import { expertActionLabel } from '@/features/reports/lifecycle';
+import { t } from '@/i18n';
 
 import { useAssignedCaseCtas } from '../../hooks/useAssignedCaseCtas';
 import { navigateToExpertCta } from '../../navigateToCta';
-
-const DETAILS_LABEL = 'عرض تفاصيل المشكلة';
 
 /** E-08. Reuses the map feature unchanged; only the peek differs, branching on assignment. */
 export default function ExpertMapScreen() {
@@ -20,13 +19,13 @@ export default function ExpertMapScreen() {
 
     if (!cta) {
       return {
-        label: DETAILS_LABEL,
+        label: t('common.viewIssueDetails'),
         onPress: () => navigation.navigate('ExpertIssueDetails', { reportId: issue.id }),
       };
     }
 
     return {
-      label: EXPERT_ACTION_LABELS[cta.action],
+      label: expertActionLabel(cta.action),
       onPress: () => navigateToExpertCta(navigation, issue.id, cta),
     };
   };

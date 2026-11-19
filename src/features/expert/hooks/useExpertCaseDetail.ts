@@ -2,12 +2,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { describeError } from '@/features/reports/errors';
 import type { ReportError } from '@/features/reports/errors';
+import { t } from '@/i18n';
 
 import { expertApi } from '../services';
 
 import type { ExpertCaseDetail } from '../types';
-
-const LOAD_ERROR = 'تعذر تحميل الحالة';
 
 /** A snapshot taken once at entry: a farmer rejection while the expert sits here is not live. */
 export function useExpertCaseDetail(reportId: string) {
@@ -33,7 +32,7 @@ export function useExpertCaseDetail(reportId: string) {
       }
     } catch (err) {
       if (isMounted.current) {
-        setError(describeError(err, LOAD_ERROR));
+        setError(describeError(err, t('errors.case.loadFailed')));
       }
     } finally {
       if (isMounted.current) {

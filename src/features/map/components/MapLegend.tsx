@@ -3,6 +3,7 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import { Text } from '@/components/ui';
+import { t } from '@/i18n';
 import { colors, radii, shadows, spacing } from '@/theme';
 
 import { describeTierDisplay, TIER_ORDER } from '../tier';
@@ -42,30 +43,30 @@ export function MapLegend({ isExpanded, onToggle }: MapLegendProps) {
       {isExpanded ? (
         <View style={styles.card}>
           <View style={styles.section}>
-            <Text variant="label12" color="textSecondary" align="right">
-              مستوى الخطورة
+            <Text variant="label12" color="textSecondary">
+              {t('f05.legendTitle')}
             </Text>
 
             {TIER_ORDER.map(tier => (
               <View key={tier} style={styles.row}>
-                <Text variant="label12" align="right" style={styles.rowLabel}>
+                <TierSwatch tier={tier} />
+                <Text variant="label12" style={styles.rowLabel}>
                   {describeTierDisplay(tier).label}
                 </Text>
-                <TierSwatch tier={tier} />
               </View>
             ))}
           </View>
 
           <View style={styles.section}>
-            <Text variant="label12" color="textSecondary" align="right">
-              موقعك
+            <Text variant="label12" color="textSecondary">
+              {t('f05.yourLocation')}
             </Text>
             <View style={styles.row}>
-              <Text variant="label12" align="right" style={styles.rowLabel}>
-                موقعك الحالي
-              </Text>
               {/* A circle, not a teardrop: the farmer is not one of the problems. */}
               <View style={styles.userDot} />
+              <Text variant="label12" style={styles.rowLabel}>
+                {t('f05.yourCurrentLocation')}
+              </Text>
             </View>
           </View>
         </View>
@@ -75,7 +76,7 @@ export function MapLegend({ isExpanded, onToggle }: MapLegendProps) {
         style={styles.toggle}
         onPress={onToggle}
         accessibilityRole="button"
-        accessibilityLabel={isExpanded ? 'إخفاء مفتاح الخريطة' : 'عرض مفتاح الخريطة'}
+        accessibilityLabel={isExpanded ? t('f05.hideLegend') : t('f05.showLegend')}
       >
         {isExpanded ? (
           <ChevronDown size={TOGGLE_ICON} color={colors.primary} />
@@ -88,9 +89,9 @@ export function MapLegend({ isExpanded, onToggle }: MapLegendProps) {
 }
 
 const styles = StyleSheet.create({
-  // The legend hangs off the right edge in the frame, and the toggle sits under it.
+  // The legend hangs off the start edge, and the toggle sits under it.
   container: {
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
     gap: spacing[8],
   },
   card: {
@@ -104,7 +105,7 @@ const styles = StyleSheet.create({
   section: {
     gap: spacing[8],
   },
-  // Plain row: the frame puts the swatch at the trailing edge, to the right of its label.
+  // The swatch leads its label, which direction then places.
   row: {
     flexDirection: 'row',
     alignItems: 'center',

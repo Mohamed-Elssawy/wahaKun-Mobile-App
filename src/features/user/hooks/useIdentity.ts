@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 
+import { t } from '@/i18n';
+
 import { resolveRole } from '../role';
 import { resolveProfilePictureUrl, userApi } from '../services';
 
@@ -27,7 +29,9 @@ export function useIdentity() {
     };
   }, []);
 
-  const region = [user?.region, user?.village].filter(Boolean).join('، ');
+  const region = [user?.region, user?.village]
+    .filter(Boolean)
+    .join(t('common.listSeparator'));
   // Resolved here rather than fetched again: this hook already holds the details it reads.
   const { role, approval } = resolveRole(user);
 

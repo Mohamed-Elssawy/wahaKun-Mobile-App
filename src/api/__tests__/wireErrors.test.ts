@@ -27,7 +27,7 @@ import { describeError } from '@/features/reports/errors';
 import { getMyReports } from '@/features/reports/services/reportService';
 
 import { API_ENDPOINTS } from '../endpoints';
-import { CODE_MESSAGES, STATUS_MESSAGES } from '../errorMessages';
+import { codeMessage, statusMessage } from '../errorMessages';
 import { getAccessToken, saveTokens } from '../tokenStorage';
 
 import type { ApiError } from '../errors';
@@ -137,7 +137,7 @@ describe('the empty inbox', () => {
     await expect(getAssignedCases()).rejects.toMatchObject({
       status: 403,
       kind: 'forbidden',
-      userMessage: STATUS_MESSAGES[403],
+      userMessage: statusMessage(403),
     });
   });
 
@@ -172,21 +172,21 @@ describe('a real crash', () => {
 
     await expect(getMyReports()).rejects.toMatchObject({
       status: 500,
-      userMessage: STATUS_MESSAGES[500],
+      userMessage: statusMessage(500),
     });
   });
 });
 
 // UNVERIFIED: no write was ever exercised, so a status-guard refusal has never been seen.
 describe('the refusals that are really conflicts', () => {
-  // I5's shape. With no code to read, the rebuilt 409 falls to STATUS_MESSAGES[409].
+  // I5's shape. With no code to read, the rebuilt 409 falls to statusMessage(409).
   it('reads the review refusal as a 409 from an empty 500', async () => {
     route(() => respond(500, PRODUCTION_EMPTY_BODY));
 
     await expect(submitReview({ reportId: 'issue-1' })).rejects.toMatchObject({
       status: 409,
       kind: 'conflict',
-      userMessage: STATUS_MESSAGES[409],
+      userMessage: statusMessage(409),
     });
   });
 
@@ -198,7 +198,7 @@ describe('the refusals that are really conflicts', () => {
       status: 409,
       kind: 'conflict',
       code: 'INVALID_OPERATION',
-      userMessage: CODE_MESSAGES.INVALID_OPERATION,
+      userMessage: codeMessage('INVALID_OPERATION'),
     });
   });
 
@@ -207,7 +207,7 @@ describe('the refusals that are really conflicts', () => {
 
     await expect(
       confirmRepair({ reportId: 'issue-1', photo: PHOTO, notes: 'ملاحظة' }),
-    ).rejects.toMatchObject({ status: 409, userMessage: STATUS_MESSAGES[409] });
+    ).rejects.toMatchObject({ status: 409, userMessage: statusMessage(409) });
   });
 
   // Regression guard: both carry the phrase isServerRefusal matched on, and neither may become a 409.
@@ -219,7 +219,7 @@ describe('the refusals that are really conflicts', () => {
 
     await expect(submitReview({ reportId: 'issue-1' })).rejects.toMatchObject({
       status: 500,
-      userMessage: STATUS_MESSAGES[500],
+      userMessage: statusMessage(500),
     });
   });
 
@@ -230,7 +230,7 @@ describe('the refusals that are really conflicts', () => {
     await expect(submitReview({ reportId: 'issue-1' })).rejects.toMatchObject({
       status: 404,
       code: 'ISSUE_NOT_FOUND',
-      userMessage: CODE_MESSAGES.ISSUE_NOT_FOUND,
+      userMessage: codeMessage('ISSUE_NOT_FOUND'),
     });
   });
 });
@@ -254,7 +254,7 @@ describe('what the deployment actually returns', () => {
 
     await expect(getAssignedCases()).rejects.toMatchObject({
       status: 500,
-      userMessage: STATUS_MESSAGES[500],
+      userMessage: statusMessage(500),
     });
   });
 
@@ -264,7 +264,7 @@ describe('what the deployment actually returns', () => {
 
     await expect(submitReview({ reportId: 'issue-1' })).rejects.toMatchObject({
       status: 409,
-      userMessage: STATUS_MESSAGES[409],
+      userMessage: statusMessage(409),
     });
   });
 });

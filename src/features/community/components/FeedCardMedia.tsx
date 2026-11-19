@@ -2,6 +2,7 @@ import { Mic } from 'lucide-react-native';
 import { Image, StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/ui';
+import { t } from '@/i18n';
 import { colors, radii, spacing } from '@/theme';
 
 export type FeedCardMediaProps = {
@@ -13,8 +14,6 @@ export type FeedCardMediaProps = {
 const ASPECT_RATIO = 310 / 166;
 
 const ICON_SIZE = 32;
-
-const VOICE_LABEL = 'بلاغ صوتي';
 
 /** A card's photo, or a voice-only placeholder. Renders nothing for a text-only report. */
 export function FeedCardMedia({ photoUrl, hasVoice }: FeedCardMediaProps) {
@@ -30,11 +29,11 @@ export function FeedCardMedia({ photoUrl, hasVoice }: FeedCardMediaProps) {
     <View
       style={[styles.media, styles.placeholder]}
       accessible
-      accessibilityLabel={VOICE_LABEL}
+      accessibilityLabel={t('f04.voiceReportLabel')}
     >
       <Mic size={ICON_SIZE} color={colors.primary} />
       <Text variant="label14" color="textSecondary">
-        {VOICE_LABEL}
+        {t('f04.voiceReportLabel')}
       </Text>
     </View>
   );

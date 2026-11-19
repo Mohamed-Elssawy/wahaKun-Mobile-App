@@ -1,8 +1,9 @@
 import { StyleSheet, View } from 'react-native';
 
-import { Button, Text } from '@/components/ui';
+import { BiText, Button } from '@/components/ui';
 import { describeTierDisplay } from '@/features/map/tier';
 import { isClosedWireStatus } from '@/features/reports/lifecycle';
+import { t } from '@/i18n';
 import { colors, radii, shadows, spacing } from '@/theme';
 
 import { ConfirmButton } from './ConfirmButton';
@@ -23,7 +24,6 @@ export type FeedPostCardProps = {
   onShare: (issueId: string) => void;
 };
 
-const CTA = 'عرض تفاصيل المشكلة';
 const DESCRIPTION_LINES = 3;
 
 // A 3pt strip, and the only place a resolved card still says how serious it was.
@@ -34,7 +34,7 @@ function formatDistance(origin: Coordinates, post: FeedPost): string | undefined
   if (!hasCoordinates(post)) {
     return undefined;
   }
-  return `${distanceKm(origin, post).toFixed(1)} كم`;
+  return t('common.distanceKm', { km: distanceKm(origin, post).toFixed(1) });
 }
 
 /** One card on F-01. */
@@ -57,12 +57,11 @@ export function FeedPostCard({
       <View style={styles.body}>
         <FeedCardHeader post={post} distanceLabel={distanceLabel} />
 
-        {/* body14, not body16: the frame's two lines sit 25.5 apart and its glyphs measure
-            the same as the name's, so it is 14 with the looser body leading. */}
+        {/* body14, not body16: the frame's two lines sit 25.5 apart, matching body14's looser leading. */}
         {post.description ? (
-          <Text variant="body14" align="right" numberOfLines={DESCRIPTION_LINES}>
+          <BiText contentRole="body" variant="body14" numberOfLines={DESCRIPTION_LINES}>
             {post.description}
-          </Text>
+          </BiText>
         ) : null}
 
         <FeedCardMedia photoUrl={post.photoUrl} hasVoice={post.hasVoice} />
@@ -85,7 +84,10 @@ export function FeedPostCard({
 
         <View style={styles.divider} />
 
-        <Button label={CTA} onPress={() => onPress(post.issueId)} />
+        <Button
+          label={t('common.viewIssueDetails')}
+          onPress={() => onPress(post.issueId)}
+        />
       </View>
     </View>
   );

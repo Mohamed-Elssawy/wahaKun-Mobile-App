@@ -3,11 +3,13 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 
 import {
   AiDiagnosisCard,
+  BiText,
   ConfidencePill,
   ProgressRing,
   SeverityBadge,
   Text,
 } from '@/components/ui';
+import { t } from '@/i18n';
 import { colors, screenPadding, spacing } from '@/theme';
 
 import { seesAi } from '../aiVisibility';
@@ -23,15 +25,6 @@ import { describeSeverity } from '../severity';
 import type { ReportError } from '../errors';
 import type { Audience } from '../lifecycle';
 import type { DiagnosisContent } from '../types';
-
-const RECOMMENDATION_TITLE = 'الإجراء الموصى به';
-const STEPS_TITLE = 'ما يمكنك فعله الآن';
-const EXPLANATION_TITLE = 'لماذا هذا التشخيص؟';
-const SEVERITY_LABEL = 'مستوى الخطورة:';
-const UNTITLED_PROBLEM = 'مشكلة غير محددة';
-const DIAGNOSIS_HEADER_TITLE = 'نتيجة التشخيص';
-const DIAGNOSIS_HEADER_SUBTITLE = 'تحليل الذكاء الاصطناعي للمشكلة';
-const ESCALATION_HEADER_TITLE = 'حالة بلاغك';
 
 export type DiagnosisViewProps = {
   /** Null while loading, on error, or when the report carries no analysis at all. */
@@ -73,7 +66,7 @@ export function DiagnosisView({
       return (
         <ReportErrorView
           error={error}
-          unknownTitle="تعذر تحميل التشخيص"
+          unknownTitle={t('f03a.loadErrorTitle')}
           onRetry={onRetry}
         />
       );
@@ -82,10 +75,7 @@ export function DiagnosisView({
     // A report can exist without analysis, and this screen has nothing to say then.
     if (!content) {
       return (
-        <CaptureNotice
-          title="لا يوجد تشخيص لهذا البلاغ"
-          message="لم يكتمل تحليل الذكاء الاصطناعي بعد."
-        />
+        <CaptureNotice title={t('f03a.noneTitle')} message={t('f03a.notReadyBody')} />
       );
     }
 
@@ -104,13 +94,13 @@ export function DiagnosisView({
       >
         {/* The problem is the headline; confidence is a footnote in the row below. */}
         <View style={styles.summary}>
-          <Text variant="h3" align="center">
-            {content.title || UNTITLED_PROBLEM}
-          </Text>
+          <BiText contentRole="title" variant="h3" align="center">
+            {content.title || t('f03a.unspecifiedTitle')}
+          </BiText>
 
           <View style={styles.severity}>
             <Text variant="body14" color="textSecondary">
-              {SEVERITY_LABEL}
+              {t('f03a.severityLabel')}
             </Text>
             <SeverityBadge
               level={severityTone.tier}
@@ -122,13 +112,13 @@ export function DiagnosisView({
         </View>
 
         {content.recommendation ? (
-          <AiDiagnosisCard title={RECOMMENDATION_TITLE}>
+          <AiDiagnosisCard title={t('common.recommendedAction')}>
             <DiagnosisNote icon={CheckCircle2}>{content.recommendation}</DiagnosisNote>
           </AiDiagnosisCard>
         ) : null}
 
         {content.repairSteps.length > 0 ? (
-          <AiDiagnosisCard title={STEPS_TITLE}>
+          <AiDiagnosisCard title={t('f03a.whatYouCanDo')}>
             <RepairStepsList steps={content.repairSteps} />
           </AiDiagnosisCard>
         ) : null}
@@ -136,7 +126,7 @@ export function DiagnosisView({
         {/* Last and foldable: worth offering, not worth pushing the repair steps down. */}
         {content.explanation ? (
           // §8.2: collapsed on arrival, overriding the component's own open default.
-          <CollapsibleCard title={EXPLANATION_TITLE} defaultOpen={false}>
+          <CollapsibleCard title={t('common.whyThisDiagnosis')} defaultOpen={false}>
             <DiagnosisNote icon={Sparkles}>{content.explanation}</DiagnosisNote>
           </CollapsibleCard>
         ) : null}
@@ -147,8 +137,8 @@ export function DiagnosisView({
   return (
     <View style={styles.screen}>
       <ReportHeader
-        title={isEscalated ? ESCALATION_HEADER_TITLE : DIAGNOSIS_HEADER_TITLE}
-        subtitle={isEscalated ? undefined : DIAGNOSIS_HEADER_SUBTITLE}
+        title={isEscalated ? t('f03b.headerTitle') : t('f03a.title')}
+        subtitle={isEscalated ? undefined : t('f03a.subtitle')}
         onBack={onBack}
       />
 
@@ -177,7 +167,7 @@ const styles = StyleSheet.create({
     gap: spacing[12],
   },
   severity: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     // Wraps: at a large font scale the label, badge and pill do not fit one line.

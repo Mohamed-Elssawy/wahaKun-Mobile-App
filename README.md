@@ -57,16 +57,15 @@ if you need the whole stack locally.
 
 ## Scripts
 
-| Command                           | Does                                                  |
-| --------------------------------- | ----------------------------------------------------- |
-| `npm start`                       | Metro dev server                                      |
-| `npm run android` / `ios`         | build and run                                         |
-| `npm run typecheck`               | `tsc --noEmit`                                        |
-| `npm run lint` / `lint:fix`       | ESLint                                                |
-| `npm run format` / `format:check` | Prettier                                              |
-| `npm test`                        | Jest                                                  |
-| `npm run verify`                  | typecheck, lint and test. Run this before you push.   |
-| `npm run tokens:figma`            | regenerate the Figma variable plugin from `src/theme` |
+| Command                           | Does                                                |
+| --------------------------------- | --------------------------------------------------- |
+| `npm start`                       | Metro dev server                                    |
+| `npm run android` / `ios`         | build and run                                       |
+| `npm run typecheck`               | `tsc --noEmit`                                      |
+| `npm run lint` / `lint:fix`       | ESLint                                              |
+| `npm run format` / `format:check` | Prettier                                            |
+| `npm test`                        | Jest                                                |
+| `npm run verify`                  | typecheck, lint and test. Run this before you push. |
 
 ## Project layout
 

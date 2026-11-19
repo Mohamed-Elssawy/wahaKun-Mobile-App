@@ -44,9 +44,9 @@ import type { BootDecision, RootStackParamList } from './types';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 /** Designed but not built. Registered because existing screens navigate here. */
-const TermsOfUseScreen = createPlaceholderScreen('شروط الاستخدام');
-const PrivacyPolicyScreen = createPlaceholderScreen('سياسة الخصوصية');
-const ConnectToExpertScreen = createPlaceholderScreen('التواصل مع خبير');
+const TermsOfUseScreen = createPlaceholderScreen('common.termsOfUse');
+const PrivacyPolicyScreen = createPlaceholderScreen('common.privacyPolicy');
+const ConnectToExpertScreen = createPlaceholderScreen('f08.contactExpert');
 
 export type RootNavigatorProps = {
   /** A BootDecision, so the boot-shortcut habit cannot be committed through this prop. */
@@ -92,8 +92,17 @@ export function RootNavigator({ initialRoute }: RootNavigatorProps) {
         <Stack.Screen name="ReportAnalyzing" component={ReportAnalyzingScreen} />
         <Stack.Screen name="ReportDiagnosis" component={ReportDiagnosisScreen} />
         <Stack.Screen name="ConnectToExpert" component={ConnectToExpertScreen} />
-        <Stack.Screen name="IssueDetails" component={IssueDetailsScreen} />
-        <Stack.Screen name="ReportTracker" component={ReportTrackerScreen} />
+        {/* Keyed by report, so { pop: true } between F-04 and F-06 only returns to the same report's screen. */}
+        <Stack.Screen
+          name="IssueDetails"
+          component={IssueDetailsScreen}
+          getId={({ params }) => params.reportId}
+        />
+        <Stack.Screen
+          name="ReportTracker"
+          component={ReportTrackerScreen}
+          getId={({ params }) => params.reportId}
+        />
         <Stack.Screen name="ExpertIssueDetails" component={ExpertIssueDetailsScreen} />
         <Stack.Screen name="ExpertDiagnosis" component={ExpertDiagnosisScreen} />
         <Stack.Screen name="ExpertCaseReview" component={ExpertCaseReviewScreen} />

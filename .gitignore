@@ -96,20 +96,24 @@ AGENTS.md
 .windsurfrules
 .github/copilot-instructions.md
 
-# Working notes, specs and planning docs. The repository ships three documents and no more:
-# README.md, ARCHITECTURE.md and CONVENTIONS.md. Everything else stays on the machine that
-# wrote it, so a clone carries the code plus the three documents a teammate needs to run it.
+# Only the three docs a teammate needs ship; everything else is working notes.
 /*.md
 !/README.md
 !/ARCHITECTURE.md
 !/CONVENTIONS.md
 
-# Requirements and design exports: Word documents and Figma PDFs. Binaries that would bloat
-# every clone and cannot be diffed.
+# Design/process notes and exports: large, go stale, and not needed to run the app.
 docs/
+design/
+scripts/probe/README.md
+tools/*/README.md
 
-# Local dev tooling. These drive the .NET stack and the demo data on one machine,
-# with absolute paths to sibling checkouts, so they are no use in a clone.
+# Local dev tooling tied to one machine's absolute paths.
 scripts/*.ps1
 scripts/demo-photos/
+
+# Only postinstall's own two scripts ship; the rest (i18n pipeline, figma tooling, probe, tests) are local for now.
+scripts/*
+!scripts/setup-env.js
+!scripts/install-hooks.js
 

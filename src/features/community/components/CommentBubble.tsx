@@ -1,7 +1,7 @@
 import { User } from 'lucide-react-native';
 import { Image, StyleSheet, View } from 'react-native';
 
-import { Text } from '@/components/ui';
+import { BiText, Text } from '@/components/ui';
 import { formatRelativeTime } from '@/features/reports/relativeTime';
 import { colors, radii, spacing } from '@/theme';
 
@@ -35,20 +35,20 @@ export function CommentBubble({ comment }: CommentBubbleProps) {
         <View style={[styles.bubble, comment.isExpert && styles.bubbleExpert]}>
           <View style={styles.header}>
             {/* Name leads at the right, badge takes the opposite edge, as the frame draws it. */}
-            <Text variant="label16Bold" align="right">
+            <BiText contentRole="title" variant="label16Bold">
               {comment.authorName}
-            </Text>
+            </BiText>
 
             {comment.isExpert ? <ExpertBadge /> : null}
           </View>
 
-          <Text
+          <BiText
+            contentRole="body"
             variant="body14"
-            align="right"
             color={comment.isExpert ? 'textStrong' : 'textSecondary'}
           >
             {comment.text}
-          </Text>
+          </BiText>
         </View>
 
         {/* Outside the bubble and on the leading edge, which is where the frame puts it. */}
@@ -62,7 +62,7 @@ export function CommentBubble({ comment }: CommentBubbleProps) {
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'flex-start',
     gap: spacing[12],
   },
@@ -88,12 +88,12 @@ const styles = StyleSheet.create({
   },
   // The badge sits opposite the name rather than under it, so a long name still wraps first.
   header: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: spacing[8],
   },
   timestamp: {
-    alignSelf: 'flex-start',
+    alignSelf: 'flex-end',
   },
 });

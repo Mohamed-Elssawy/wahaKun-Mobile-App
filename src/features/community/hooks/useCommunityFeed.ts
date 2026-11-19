@@ -5,12 +5,11 @@ import { getErrorMessage } from '@/api';
 import { describeError } from '@/features/reports/errors';
 import type { ReportError } from '@/features/reports/errors';
 import { useCurrentLocation } from '@/hooks/useCurrentLocation';
+import { t } from '@/i18n';
 
 import { communityApi } from '../services';
 
 import type { FeedPost, FeedSeverity, FeedSort, FeedTab } from '../types';
-
-const LOAD_ERROR = 'تعذر تحميل المجتمع، حاول مرة أخرى';
 
 const PAGE_SIZE = 10;
 
@@ -68,7 +67,7 @@ export function useCommunityFeed() {
         setHasMore(result.hasMore);
       } catch (err) {
         if (isFocused.current && request === requestId.current) {
-          setError(describeError(err, LOAD_ERROR));
+          setError(describeError(err, t('errors.community.loadFailed')));
         }
       } finally {
         if (isFocused.current && request === requestId.current) {
@@ -205,7 +204,7 @@ export function useCommunityFeed() {
           const original = previous;
           updatePost(() => original);
         }
-        return getErrorMessage(err, 'تعذر تسجيل التأكيد، حاول مرة أخرى');
+        return getErrorMessage(err, t('f01.corroborateError'));
       }
     },
     [],

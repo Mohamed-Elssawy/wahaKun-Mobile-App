@@ -9,6 +9,7 @@ import {
 } from '@/features/auth/services/authService';
 import { sendVerificationCode } from '@/features/auth/services/firebaseAuth';
 import type { RegisterFields } from '@/features/auth/types';
+import { t } from '@/i18n';
 
 import type { RegistrationDraft } from '../context/RegistrationContext';
 
@@ -55,8 +56,8 @@ export function useRegistration() {
 
       setError(
         err instanceof ApiError
-          ? describeAuthApiError(err, 'حدث خطأ أثناء إنشاء الحساب، حاول مرة أخرى')
-          : describeFirebaseError(err, 'حدث خطأ أثناء إنشاء الحساب، حاول مرة أخرى'),
+          ? describeAuthApiError(err, t('errors.auth.signupError'))
+          : describeFirebaseError(err, t('errors.auth.signupError')),
       );
       return null;
     } finally {

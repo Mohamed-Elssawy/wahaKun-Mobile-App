@@ -1,6 +1,7 @@
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { Text } from '@/components/ui';
+import { t } from '@/i18n';
 import { spacing } from '@/theme';
 
 import type { NotificationGroup } from '../time';
@@ -12,8 +13,6 @@ export type NotificationGroupHeaderProps = {
   onMarkAllRead?: () => void;
 };
 
-const MARK_ALL_READ = 'تعليم الكل كمقروء';
-
 export function NotificationGroupHeader({
   group,
   title,
@@ -21,19 +20,19 @@ export function NotificationGroupHeader({
 }: NotificationGroupHeaderProps) {
   return (
     <View style={styles.row}>
+      <Text variant="label14Bold" color="textSecondary">
+        {title}
+      </Text>
+
       {group === 'today' && onMarkAllRead ? (
         <TouchableOpacity onPress={onMarkAllRead} accessibilityRole="button">
           <Text variant="label14Bold" color="primary">
-            {MARK_ALL_READ}
+            {t('s06.markAllRead')}
           </Text>
         </TouchableOpacity>
       ) : (
         <View />
       )}
-
-      <Text variant="label14Bold" color="textSecondary" align="right">
-        {title}
-      </Text>
     </View>
   );
 }

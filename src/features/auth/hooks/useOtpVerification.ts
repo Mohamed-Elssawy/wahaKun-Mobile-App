@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import { ApiError, saveTokens } from '@/api';
 import { resumeReportQueue } from '@/features/reports/services/reportQueue';
+import { t } from '@/i18n';
 
 import { describeAuthApiError } from '../authErrors';
 import { describeFirebaseError } from '../firebaseErrors';
@@ -31,7 +32,7 @@ export function useOtpVerification() {
 
       // No tokens means no session, so this is a failure whatever the status code said.
       if (!result.accessToken || !result.refreshToken) {
-        setError('تعذر إكمال العملية، حاول مرة أخرى');
+        setError(t('errors.api.incomplete'));
         return false;
       }
 
@@ -45,8 +46,8 @@ export function useOtpVerification() {
     } catch (err) {
       setError(
         err instanceof ApiError
-          ? describeAuthApiError(err, 'تعذر إكمال العملية، حاول مرة أخرى')
-          : describeFirebaseError(err, 'رمز التحقق غير صحيح، حاول مرة أخرى'),
+          ? describeAuthApiError(err, t('errors.api.incomplete'))
+          : describeFirebaseError(err, t('errors.auth.wrongCode')),
       );
       return false;
     } finally {
