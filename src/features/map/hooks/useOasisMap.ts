@@ -5,15 +5,14 @@ import { describeError } from '@/features/reports/errors';
 import type { ReportError } from '@/features/reports/errors';
 import { subscribeToIssueChanges } from '@/features/reports/services/issueEvents';
 import { useCurrentLocation } from '@/hooks/useCurrentLocation';
+import { t } from '@/i18n';
 
 import { boundsOf, clusterIssues, COINCIDENT_SPAN, isZoomedIn } from '../clustering';
 import { filterIssues } from '../search';
-import { getMapIssues } from '../services/mapService';
+import { mapApi } from '../services';
 
 import type { MapIssue } from '../types';
 import type { CameraStop, LngLat } from '@maplibre/maplibre-react-native';
-
-const LOAD_ERROR = 'تعذر تحميل الخريطة، حاول مرة أخرى';
 
 /** Siwa Oasis. Where the map opens before the farmer's own fix arrives. */
 export const DEFAULT_CENTER: LngLat = [25.5195, 29.2041];
@@ -72,19 +71,21 @@ export function useOasisMap() {
   const markerPressedAt = useRef(0);
   /** The query the camera was last framed for, so a refetch does not re-frame it. */
   const fittedQuery = useRef('');
-  const location = useCurrentLocation();
+  const { location } = useCurrentLocation();
+  /** The map opens on the oasis centre; the first fix moves it to the farmer exactly once. */
+  const centredOnFix = useRef(false);
 
   const load = useCallback(async (): Promise<void> => {
     setError(null);
 
     try {
-      const result = await getMapIssues();
+      const result = await mapApi.getMapIssues();
       if (isFocused.current) {
         setIssues(result);
       }
     } catch (err) {
       if (isFocused.current) {
-        setError(describeError(err, LOAD_ERROR));
+        setError(describeError(err, t('errors.map.loadFailed')));
       }
     } finally {
       if (isFocused.current) {
@@ -141,6 +142,22 @@ export function useOasisMap() {
       setCameraTarget(stop);
     }
   }, [query, visible]);
+
+  // Once only, and never over a search: the dot could otherwise be drawn off screen.
+  useEffect(() => {
+    if (!location || centredOnFix.current) {
+      return;
+    }
+    centredOnFix.current = true;
+
+    if (query.trim()) {
+      return;
+    }
+    setCameraTarget({
+      center: [location.longitude, location.latitude],
+      zoom: CLOSE_ZOOM,
+    });
+  }, [location, query]);
 
   const clusters = useMemo(
     () => clusterIssues(visible, latitudeSpan),
@@ -228,6 +245,8 @@ export function useOasisMap() {
     isLoading,
     error,
     retry: load,
+    /** Whether a failed refetch still has cached pins to fall back on (D-STALE). */
+    hasData: issues.length > 0,
     /** Empty is not an error: an oasis with nothing open is the good outcome. */
     isEmpty: !isLoading && !error && visible.length === 0,
     hasQuery: query.trim().length > 0,

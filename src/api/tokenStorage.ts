@@ -23,6 +23,18 @@ export async function getRefreshToken(): Promise<string | null> {
   return AsyncStorage.getItem(REFRESH_TOKEN_KEY);
 }
 
+type Listener = () => void;
+const clearedListeners = new Set<Listener>();
+
+/** Fired on logout and on an expired session; role.ts subscribes here to avoid a cycle. */
+export function onTokensCleared(listener: Listener): () => void {
+  clearedListeners.add(listener);
+  return () => {
+    clearedListeners.delete(listener);
+  };
+}
+
 export async function clearTokens(): Promise<void> {
   await AsyncStorage.removeMany([ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY]);
+  clearedListeners.forEach(listener => listener());
 }

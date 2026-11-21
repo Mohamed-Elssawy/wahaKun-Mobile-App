@@ -1,30 +1,24 @@
-import { isResolvedStatus } from '@/features/reports/status';
+import { isClosedWireStatus } from '@/features/reports/lifecycle';
 import type { ReportStatus } from '@/features/reports/types';
+import { t } from '@/i18n';
+import type { TranslationKey } from '@/i18n';
 import type { ColorToken } from '@/theme';
 
 import type { MapIssueTier, MapPriorityName } from './types';
-
-/** IssueStatus 6 is spelled `completed` server-side; every other name is capitalised. */
-const WIRE_STATUS_FIXUPS: Record<string, ReportStatus> = {
-  completed: 'Completed',
-};
 
 const STATUSES: readonly ReportStatus[] = [
   'Reported',
   'Diagnosed',
   'Verified',
   'Assigned',
+  'Reviewed',
   'Scheduled',
   'Repaired',
-  'Completed',
+  'completed',
 ];
 
 /** Falls back rather than throwing: the server can grow IssueStatus before this file does. */
 export function normalizeMapStatus(status: string): ReportStatus {
-  const fixed = WIRE_STATUS_FIXUPS[status];
-  if (fixed) {
-    return fixed;
-  }
   return STATUSES.find(known => known === status) ?? 'Reported';
 }
 
@@ -44,12 +38,12 @@ const TIER_BY_PRIORITY: Record<string, MapIssueTier> = {
   '4': 'critical',
 };
 
-/** Resolved wins over severity: a fixed problem reads green whatever it used to be. */
+/** Closed wins over severity: a case the farmer settled reads green whatever it used to be. */
 export function describeTier(
   priority: MapPriorityName | string,
   status: ReportStatus,
 ): MapIssueTier {
-  if (isResolvedStatus(status)) {
+  if (isClosedWireStatus(status)) {
     return 'resolved';
   }
   return TIER_BY_PRIORITY[priority] ?? 'low';
@@ -58,19 +52,42 @@ export function describeTier(
 export type TierDisplay = {
   /** The pin fill and the legend swatch. */
   color: ColorToken;
+  /** F-05's legend, which has room for the whole sentence. */
   label: string;
+  /** F-01's card badge and its filter chips, where only the severity itself fits. */
+  shortLabel: string;
 };
 
 // The four hexes in F-05's legend are error, warning, info and success exactly.
-const TIER_DISPLAY: Record<MapIssueTier, TierDisplay> = {
-  critical: { color: 'error', label: 'مشكلة خطورتها حرجة' },
-  medium: { color: 'warning', label: 'مشكلة خطورتها متوسطة' },
-  low: { color: 'info', label: 'مشكلة خطورتها منخفضة' },
-  resolved: { color: 'success', label: 'مشكلة تم حلها' },
+type TierEntry = {
+  color: TierDisplay['color'];
+  labelKey: TranslationKey;
+  shortLabelKey: TranslationKey;
+};
+
+const TIER_DISPLAY: Record<MapIssueTier, TierEntry> = {
+  critical: {
+    color: 'error',
+    labelKey: 'f01.pinA11y.critical',
+    shortLabelKey: 'severity.critical',
+  },
+  medium: {
+    color: 'warning',
+    labelKey: 'f01.pinA11y.medium',
+    shortLabelKey: 'severity.medium',
+  },
+  low: { color: 'info', labelKey: 'f01.pinA11y.low', shortLabelKey: 'severity.low' },
+  resolved: {
+    color: 'success',
+    labelKey: 'f01.pinA11y.resolved',
+    shortLabelKey: 'status.resolved',
+  },
 };
 
 export function describeTierDisplay(tier: MapIssueTier): TierDisplay {
-  return TIER_DISPLAY[tier];
+  const { color, labelKey, shortLabelKey } = TIER_DISPLAY[tier];
+
+  return { color, label: t(labelKey), shortLabel: t(shortLabelKey) };
 }
 
 /** Legend order, worst first, which is how F-05 lists them. */

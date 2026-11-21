@@ -2,11 +2,10 @@ import { useState } from 'react';
 
 import { describeError } from '@/features/reports/errors';
 import { useImagePicker } from '@/hooks/useImagePicker';
+import { t } from '@/i18n';
 
 import { useProfile } from './useProfile';
-import { uploadProfilePicture } from '../services/userService';
-
-const UPLOAD_ERROR = 'تعذر رفع الصورة، حاول مرة أخرى';
+import { userApi } from '../services';
 
 /** Two calls, not one: MediaStorage takes the bytes, then User/update stores its key. */
 export function useProfilePicture() {
@@ -25,10 +24,10 @@ export function useProfilePicture() {
     setUploadError('');
 
     try {
-      const objectKey = await uploadProfilePicture(image);
+      const objectKey = await userApi.uploadProfilePicture(image);
       return await save({ picture: objectKey });
     } catch (err) {
-      setUploadError(describeError(err, UPLOAD_ERROR).message);
+      setUploadError(describeError(err, t('errors.profile.photoFailed')).message);
       return false;
     } finally {
       setIsUploading(false);

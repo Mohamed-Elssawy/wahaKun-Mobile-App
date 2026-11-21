@@ -1,8 +1,9 @@
-import { ChevronRight } from 'lucide-react-native';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/components/ui';
+import { t } from '@/i18n';
+import { BackIcon } from '@/i18n/icons';
 import { colors, screenPadding, spacing } from '@/theme';
 
 import type { ReactNode } from 'react';
@@ -12,28 +13,24 @@ export type ReportHeaderProps = {
   subtitle?: string;
   /** Omitted by My Issues, which is a tab and has nowhere to go back to. */
   onBack?: () => void;
+  /** C34: X-02 keeps the chevron visible but inert while the model runs, unlike omitting onBack. */
+  isBackDisabled?: boolean;
   children?: ReactNode;
 };
 
-/** Back control sits left, matching WizardHeader, which Figma keeps despite the RTL. */
-// In normal flow rather than overlaying, so the body just takes the space that is left.
-export function ReportHeader({ title, subtitle, onBack, children }: ReportHeaderProps) {
+/** Back sits left, matching WizardHeader, and in normal flow rather than overlaying. */
+export function ReportHeader({
+  title,
+  subtitle,
+  onBack,
+  isBackDisabled = false,
+  children,
+}: ReportHeaderProps) {
   const insets = useSafeAreaInsets();
 
   return (
     <View style={[styles.header, { paddingTop: insets.top + spacing[32] }]}>
       <View style={styles.row}>
-        {onBack ? (
-          <TouchableOpacity
-            onPress={onBack}
-            hitSlop={hitSlop}
-            accessibilityRole="button"
-            accessibilityLabel="رجوع"
-          >
-            <ChevronRight size={24} color={colors.textInverse} />
-          </TouchableOpacity>
-        ) : null}
-
         <View style={styles.text}>
           <Text variant="h3" color="textInverse">
             {title}
@@ -44,6 +41,19 @@ export function ReportHeader({ title, subtitle, onBack, children }: ReportHeader
             </Text>
           ) : null}
         </View>
+
+        {onBack || isBackDisabled ? (
+          <TouchableOpacity
+            onPress={onBack}
+            disabled={isBackDisabled}
+            hitSlop={hitSlop}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.back')}
+            accessibilityState={{ disabled: isBackDisabled }}
+          >
+            <BackIcon size={24} color={colors.textInverse} />
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       {children}
@@ -67,7 +77,7 @@ const styles = StyleSheet.create({
   },
   text: {
     flex: 1,
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
     gap: spacing[4],
   },
 });

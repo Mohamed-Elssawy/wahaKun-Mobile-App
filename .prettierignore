@@ -13,3 +13,4 @@ tools/figma-p1-plugin/main.js
 # Machine-local
 src/config/env.local.ts
 .figma.local
+tools/figma-i18n-plugin/main.js

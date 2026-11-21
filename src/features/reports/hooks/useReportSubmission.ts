@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { FAILURE_MESSAGES } from '../errors';
+import { failureMessage } from '../errors';
 import {
   discardQueuedReport,
   drainQueue,
@@ -44,15 +44,20 @@ export function useReportSubmission(localId: string) {
         ? { kind: 'delivered', reportId }
         : {
             kind: 'failed',
-            error: { kind: 'unknown', message: FAILURE_MESSAGES.unknown },
+            error: { kind: 'unknown', message: failureMessage('unknown') },
           };
     }
 
     if (item.state === 'failed') {
       const kind = item.failureKind ?? 'unknown';
+      // Resolved here, not when it failed: isDisplayable reads the ACTIVE locale, and this row may predate it.
       return {
         kind: 'failed',
-        error: { kind, message: item.failureMessage || FAILURE_MESSAGES[kind] },
+        error: {
+          kind,
+          message: failureMessage(kind, item.serverMessage),
+          serverMessage: item.serverMessage,
+        },
       };
     }
 

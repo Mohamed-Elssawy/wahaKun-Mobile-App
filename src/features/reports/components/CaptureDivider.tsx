@@ -1,15 +1,16 @@
 import { StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/ui';
+import { t } from '@/i18n';
 import { colors, spacing } from '@/theme';
 
-/** The "أو" rule between the photo and voice options. */
+/** The {t('common.or')} rule between the photo and voice options. */
 export function CaptureDivider() {
   return (
     <View style={styles.row}>
       <View style={styles.line} />
       <Text variant="label20" color="textMuted">
-        أو
+        {t('common.or')}
       </Text>
       <View style={styles.line} />
     </View>

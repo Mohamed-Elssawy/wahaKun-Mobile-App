@@ -28,7 +28,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-/** A DiagnosisCard whose body folds away. Used by "لماذا هذا التشخيص؟". */
+/** An AiDiagnosisCard whose body folds away; not composed from it, as it owns the header. */
 export function CollapsibleCard({
   title,
   defaultOpen = true,
@@ -52,7 +52,7 @@ export function CollapsibleCard({
         accessibilityState={{ expanded: isOpen }}
         accessibilityLabel={title}
       >
-        <Text variant="h4" align="right" style={styles.title}>
+        <Text variant="h4" style={styles.title}>
           {title}
         </Text>
         <Chevron size={CHEVRON_SIZE} color={colors.textStrong} />
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     ...shadows.card,
   },
   header: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     // The whole header is the target, so it has to clear 48dp on its own.

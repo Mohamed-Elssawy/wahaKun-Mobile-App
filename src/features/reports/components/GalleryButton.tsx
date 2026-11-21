@@ -1,6 +1,7 @@
 import { Images } from 'lucide-react-native';
 import { TouchableOpacity } from 'react-native';
 
+import { t } from '@/i18n';
 import { colors } from '@/theme';
 
 export type GalleryButtonProps = {
@@ -14,7 +15,7 @@ export function GalleryButton({ onPress }: GalleryButtonProps) {
       onPress={onPress}
       hitSlop={hitSlop}
       accessibilityRole="button"
-      accessibilityLabel="اختيار صورة من المعرض"
+      accessibilityLabel={t('f02.gallery')}
     >
       <Images size={26} color={colors.textInverse} />
     </TouchableOpacity>

@@ -1,6 +1,7 @@
 import { CloudOff, ShieldAlert, WifiOff } from 'lucide-react-native';
 
-import { ReportFailureState } from './ReportFailureState';
+import { StateScreen } from '@/components/ui';
+import { t } from '@/i18n';
 
 import type { ReportError } from '../errors';
 import type { LucideIcon } from 'lucide-react-native';
@@ -14,11 +15,6 @@ export type ReportErrorViewProps = {
   onRetry: () => void;
 };
 
-const RETRY = 'إعادة المحاولة';
-
-const OFFLINE_TITLE = 'لا يوجد اتصال بالإنترنت';
-const UNAUTHORIZED_TITLE = 'انتهت الجلسة';
-
 /** Chooses from ReportError.kind. Nothing here reads message text. */
 export function ReportErrorView({
   error,
@@ -28,11 +24,11 @@ export function ReportErrorView({
 }: ReportErrorViewProps) {
   if (error.kind === 'offline') {
     return (
-      <ReportFailureState
+      <StateScreen
         icon={offline?.icon ?? WifiOff}
-        title={offline?.title ?? OFFLINE_TITLE}
+        title={offline?.title ?? t('x01.title')}
         message={offline?.message ?? error.message}
-        action={{ label: RETRY, onPress: onRetry }}
+        action={{ label: t('common.tryAgain'), onPress: onRetry }}
       />
     );
   }
@@ -40,20 +36,20 @@ export function ReportErrorView({
   if (error.kind === 'unauthorized') {
     // No retry: the call fails the same way until the session is renewed elsewhere.
     return (
-      <ReportFailureState
+      <StateScreen
         icon={ShieldAlert}
-        title={UNAUTHORIZED_TITLE}
+        title={t('x05.sessionExpiredTitle')}
         message={error.message}
       />
     );
   }
 
   return (
-    <ReportFailureState
+    <StateScreen
       icon={CloudOff}
       title={unknownTitle}
       message={error.message}
-      action={{ label: RETRY, onPress: onRetry }}
+      action={{ label: t('common.tryAgain'), onPress: onRetry }}
     />
   );
 }

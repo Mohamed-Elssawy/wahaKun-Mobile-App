@@ -1,59 +1,77 @@
 import { useNavigation } from '@react-navigation/native';
 import { Users } from 'lucide-react-native';
 import { useState } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  RefreshControl,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
 
-import { AppHeader, Text } from '@/components/ui';
+import {
+  AppHeader,
+  EmptyState,
+  ListSkeleton,
+  SegmentedTabs,
+  StaleBanner,
+  Text,
+} from '@/components/ui';
 import { ReportErrorView } from '@/features/reports/components/ReportErrorView';
-import { ReportsEmptyState } from '@/features/reports/components/ReportsEmptyState';
 import { useIdentity } from '@/features/user/hooks/useIdentity';
+import { t } from '@/i18n';
+import type { TranslationKey } from '@/i18n';
 import { colors, radii, screenPadding, shadows, spacing } from '@/theme';
 
-import { FeedFilterTabs } from '../../components/FeedFilterTabs';
+import { FeedChipRow } from '../../components/FeedChipRow';
 import { FeedPostCard } from '../../components/FeedPostCard';
+import { FeedSortSheet } from '../../components/FeedSortSheet';
 import { useCommunityFeed } from '../../hooks/useCommunityFeed';
 
-import type { FeedPost } from '../../types';
+import type { FeedPost, FeedSort, FeedTab } from '../../types';
+
+// All three fit at the widest Arabic label, so this row does not scroll; the severity chips do.
+const TABS: { key: FeedTab; labelKey: TranslationKey }[] = [
+  { key: 'all', labelKey: 'f07.tab.all' },
+  { key: 'active', labelKey: 'f07.tab.active' },
+  { key: 'resolved', labelKey: 'status.resolved' },
+];
 
 const EMPTY = {
   all: {
-    title: 'لا توجد بلاغات بعد',
-    message: 'كن أول من يبلغ عن مشكلة في الواحة، وسيظهر بلاغك هنا للجميع.',
+    title: 'f01.emptyTitle',
+    message: 'f01.emptyBody',
   },
   filtered: {
-    title: 'لا توجد بلاغات مطابقة',
-    message: 'جرّب تصنيفًا آخر لعرض بلاغات الواحة.',
+    title: 'f07.noResultsTitle',
+    message: 'f07.noResultsBody',
   },
-} as const;
+} as const satisfies Record<string, { title: TranslationKey; message: TranslationKey }>;
 
 /** F-01. */
 export default function CommunityFeedScreen() {
   const navigation = useNavigation();
-  const { displayName: _displayName, avatarUrl, location } = useIdentity();
+  const { avatarUrl } = useIdentity();
+  const [isSortOpen, setIsSortOpen] = useState(false);
+
   const {
     posts,
-    filter,
-    changeFilter,
+    tab,
+    severities,
+    nearbyOnly,
+    sort,
+    changeTab,
+    changeSort,
+    toggleNearby,
+    toggleSeverity,
+    share,
     isLoading,
-    isRefreshing,
     isLoadingMore,
     error,
     refresh,
     loadMore,
-    retry,
     isEmpty,
+    isFiltered,
     origin,
     toggleConfirmation,
   } = useCommunityFeed();
   const [actionError, setActionError] = useState('');
 
-  const confirm = async (issueId: string) => {
+  const confirm = async (issueId: string): Promise<void> => {
     setActionError('');
     const message = await toggleConfirmation(issueId);
     if (message) {
@@ -64,18 +82,30 @@ export default function CommunityFeedScreen() {
   const openIssue = (issueId: string) =>
     navigation.navigate('IssueDetails', { reportId: issueId });
 
+  const selectSort = (next: FeedSort) => {
+    setIsSortOpen(false);
+    changeSort(next);
+  };
+
   const renderItem = ({ item }: { item: FeedPost }) => (
-    <FeedPostCard post={item} origin={origin} onPress={openIssue} onConfirm={confirm} />
+    <FeedPostCard
+      post={item}
+      origin={origin}
+      onPress={openIssue}
+      onConfirm={confirm}
+      onShare={share}
+    />
   );
 
   const renderBody = () => {
-    if (error) {
+    // An error with nothing cached is a hard failure; with posts up it is D-STALE and they stay.
+    if (error && posts.length === 0) {
       return (
         <View style={styles.fallback}>
           <ReportErrorView
             error={error}
-            unknownTitle="تعذر تحميل المجتمع"
-            onRetry={retry}
+            unknownTitle={t('f01.loadErrorTitle')}
+            onRetry={refresh}
           />
         </View>
       );
@@ -83,70 +113,90 @@ export default function CommunityFeedScreen() {
 
     if (isLoading) {
       return (
-        <View style={styles.fallback}>
-          <ActivityIndicator color={colors.primary} />
+        <View style={styles.list}>
+          <ListSkeleton />
         </View>
       );
     }
 
-    if (isEmpty) {
-      const copy = filter === 'all' ? EMPTY.all : EMPTY.filtered;
-      return (
-        <View style={styles.fallback}>
-          <ReportsEmptyState icon={Users} title={copy.title} message={copy.message} />
-        </View>
-      );
-    }
+    const emptyCopy = isFiltered ? EMPTY.filtered : EMPTY.all;
 
     return (
-      <FlatList
-        data={posts}
-        keyExtractor={post => post.issueId}
-        renderItem={renderItem}
-        contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
-        onEndReached={loadMore}
-        // Half a screen: Arabic cards are tall, so a smaller value never fires.
-        onEndReachedThreshold={0.5}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={refresh}
-            tintColor={colors.primary}
-            colors={[colors.primary]}
+      <>
+        {error ? <StaleBanner message={t('f01.staleBanner')} onRetry={refresh} /> : null}
+
+        {isEmpty ? (
+          <View style={styles.fallback}>
+            <EmptyState
+              icon={Users}
+              title={t(emptyCopy.title)}
+              message={t(emptyCopy.message)}
+            />
+          </View>
+        ) : (
+          <FlatList
+            data={posts}
+            keyExtractor={post => post.issueId}
+            renderItem={renderItem}
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+            onEndReached={loadMore}
+            // Half a screen: Arabic cards are tall, so a smaller value never fires.
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={
+              isLoadingMore ? (
+                <ActivityIndicator color={colors.primary} style={styles.footer} />
+              ) : null
+            }
           />
-        }
-        ListFooterComponent={
-          isLoadingMore ? (
-            <ActivityIndicator color={colors.primary} style={styles.footer} />
-          ) : null
-        }
-      />
+        )}
+      </>
     );
   };
 
   return (
     <View style={styles.screen}>
-      {/* Green bar, then the sand band holding location + categories, lifted above the list. */}
-      <View style={styles.header}>
-        <AppHeader
-          title="واحة كُن"
-          avatarUrl={avatarUrl}
-          location={location}
-          onOpenProfile={() => navigation.navigate('Profile')}
-        />
-        <FeedFilterTabs filter={filter} onChange={changeFilter} />
-      </View>
+      {/* No location prop: F-01 has no region line under the bar, unlike F-05 and F-07. */}
+      <AppHeader
+        title={t('tabs.community')}
+        avatarUrl={avatarUrl}
+        onOpenProfile={() => navigation.navigate('Profile')}
+        onOpenNotifications={() => navigation.navigate('Notifications')}
+      />
 
+      <SegmentedTabs
+        items={TABS.map(({ key, labelKey }) => ({ key, label: t(labelKey) }))}
+        value={tab}
+        onChange={changeTab}
+        variant="floating"
+      />
+
+      <FeedChipRow
+        sort={sort}
+        severities={severities}
+        nearbyOnly={nearbyOnly}
+        onOpenSort={() => setIsSortOpen(true)}
+        onToggleNearby={toggleNearby}
+        onToggleSeverity={toggleSeverity}
+      />
+
+      {/* A failed vote snaps its own count back; this banner is only for a rejected vote's message. */}
       {actionError ? (
-        <View style={styles.banner} accessibilityLiveRegion="polite">
-          <Text variant="label12" color="errorText" align="right">
+        <View style={styles.banner}>
+          <Text variant="body14" color="error">
             {actionError}
           </Text>
         </View>
       ) : null}
 
       {renderBody()}
+
+      <FeedSortSheet
+        isVisible={isSortOpen}
+        sort={sort}
+        onSelect={selectSort}
+        onDismiss={() => setIsSortOpen(false)}
+      />
     </View>
   );
 }
@@ -170,8 +220,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.errorTint,
   },
   list: {
-    padding: screenPadding,
-    paddingTop: spacing[24],
+    paddingHorizontal: screenPadding,
+    // 12 clears the chip row's divider, which the frame measures apart from the 16 between cards.
+    paddingTop: spacing[12],
+    paddingBottom: spacing[24],
     gap: spacing[16],
   },
   fallback: {

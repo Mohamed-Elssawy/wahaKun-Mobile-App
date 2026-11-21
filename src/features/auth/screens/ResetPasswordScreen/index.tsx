@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { BackHeader, Button, Screen, Text, TextField } from '@/components/ui';
+import { t } from '@/i18n';
 import type { ScreenProps } from '@/navigation/types';
-import { screenPadding, spacing } from '@/theme';
+import { roleVariants, screenPadding, spacing } from '@/theme';
 
 import { usePasswordReset } from '../../hooks/usePasswordReset';
 
@@ -27,7 +28,7 @@ export default function ResetPasswordScreen({
 
   const handleSubmit = async () => {
     if (password !== confirmation) {
-      setValidationError('كلمتا المرور غير متطابقتين');
+      setValidationError(t('errors.auth.passwordMismatchPlural'));
       return;
     }
     setValidationError('');
@@ -47,7 +48,7 @@ export default function ResetPasswordScreen({
     <Screen
       footer={
         <Button
-          label="تغيير كلمة المرور"
+          label={t('s11.title')}
           onPress={handleSubmit}
           showArrow
           loading={isResetting}
@@ -60,16 +61,17 @@ export default function ResetPasswordScreen({
       <View style={styles.content}>
         <View style={styles.intro}>
           <Text variant="h3" color="textStrong" align="center">
-            كلمة مرور جديدة
+            {t('s11.newPasswordBody')}
           </Text>
-          <Text variant="body14" color="textMuted" align="center">
-            {`اختر كلمة مرور جديدة لحساب\n${email}`}
+          <Text variant="body14" color="textMuted" align="center" style={styles.subtitle}>
+            {t('s10.subtitle', { email })}
           </Text>
         </View>
 
         <View style={styles.fields}>
           <TextField
-            label="كلمة المرور الجديدة"
+            label={t('s10.newPasswordLabel')}
+            labelVariant={roleVariants.authFieldLabel}
             value={password}
             onChangeText={text => {
               setPassword(text);
@@ -82,7 +84,8 @@ export default function ResetPasswordScreen({
           />
 
           <TextField
-            label="تأكيد كلمة المرور"
+            label={t('common.confirmPassword')}
+            labelVariant={roleVariants.authFieldLabel}
             value={confirmation}
             onChangeText={text => {
               setConfirmation(text);
@@ -102,6 +105,10 @@ export default function ResetPasswordScreen({
 }
 
 const styles = StyleSheet.create({
+  // C6: the frames set an auth subtitle at a narrower measure than the fields below it.
+  subtitle: {
+    paddingHorizontal: spacing[56],
+  },
   content: {
     gap: spacing[40],
     paddingHorizontal: screenPadding,

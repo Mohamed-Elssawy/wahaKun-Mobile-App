@@ -1,7 +1,7 @@
-import { ChevronLeft } from 'lucide-react-native';
-import { StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
-import { Text } from '@/components/ui';
+import { Switch, Text } from '@/components/ui';
+import { ForwardIcon } from '@/i18n/icons';
 import { colors, spacing } from '@/theme';
 import type { ColorToken } from '@/theme';
 
@@ -39,20 +39,16 @@ export function SettingsRow({
       <Icon size={ICON_SIZE} color={colors[tone]} />
 
       <View style={styles.text}>
-        <Text
-          variant="label16"
-          color={tone === 'error' ? 'errorText' : 'textPrimary'}
-          align="right"
-        >
+        <Text variant="label16" color={tone === 'error' ? 'errorText' : 'textPrimary'}>
           {label}
         </Text>
         {value ? (
-          <Text variant="label14" color="textMuted" align="right">
+          <Text variant="label14" color="textMuted">
             {value}
           </Text>
         ) : null}
         {note ? (
-          <Text variant="label12" color="textMuted" align="right">
+          <Text variant="label12" color="textMuted">
             {note}
           </Text>
         ) : null}
@@ -60,14 +56,12 @@ export function SettingsRow({
 
       {toggle ? (
         <Switch
-          value={toggle.isOn}
-          onValueChange={toggle.onChange}
-          trackColor={{ true: colors.primary, false: colors.borderStrong }}
-          thumbColor={colors.surface}
+          checked={toggle.isOn}
+          onChange={toggle.onChange}
           accessibilityLabel={label}
         />
       ) : onPress ? (
-        <ChevronLeft size={CHEVRON_SIZE} color={colors.textSecondary} />
+        <ForwardIcon size={CHEVRON_SIZE} color={colors.textSecondary} />
       ) : null}
     </View>
   );
@@ -90,7 +84,7 @@ export function SettingsRow({
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[12],
     paddingHorizontal: spacing[16],

@@ -1,0 +1,66 @@
+// A signed-in farmer for DEMO_MODE: UserService is the only thing that answers who am I.
+
+import { mockDelay } from '@/api/mockScenario';
+import type { PickedImage } from '@/types/image';
+
+import type { UserApi, UserDetails, UserUpdateRequest } from '../types';
+
+const LATENCY = { read: 300, write: 400 } as const;
+
+/** The same id reportService.mock stamps on seeded reports, so the tracker link appears. */
+export const DEMO_USER_ID = '8f1c2b1e-0000-4000-8000-000000000001';
+
+const ME: UserDetails = {
+  id: DEMO_USER_ID,
+  fullName: 'يوسف زين',
+  email: 'farmer@wahakun.local',
+  phoneNumber: '+201000000001',
+  picture: 'https://i.pravatar.cc/150?img=68',
+  village: 'شالي',
+  region: 'واحة سيوة',
+  // resolveRole answers from MOCK_ROLE; this keeps UserDetails internally consistent.
+  role: 'farmer',
+  status: 'approved',
+};
+
+/** The feed's and the thread's authors, so a comment resolves a name instead of the fallback. */
+const OTHERS: Readonly<Record<string, string>> = {
+  'u-1': 'محمود مصطفى',
+  'u-2': 'سيد حسن',
+  'u-3': 'فاطمة سالم',
+  'u-4': 'أحمد حسين',
+  'u-5': 'عبد الرحمن الشيخ',
+  'u-6': 'ناصر عبد العظيم',
+  'u-7': 'سعاد المرسي',
+  'u-9': 'سارة محمود',
+};
+
+let me: UserDetails = { ...ME };
+
+export async function getUserDetails(userId?: string): Promise<UserDetails> {
+  await mockDelay(LATENCY.read);
+
+  if (!userId || userId === me.id) {
+    return { ...me };
+  }
+
+  // Unknown ids resolve to a blank name rather than throwing, as the real service 404s.
+  return { ...ME, id: userId, fullName: OTHERS[userId] ?? '', picture: '' };
+}
+
+export async function updateUserDetails(payload: UserUpdateRequest): Promise<void> {
+  await mockDelay(LATENCY.write);
+  me = { ...me, ...payload };
+}
+
+export async function uploadProfilePicture(image: PickedImage): Promise<string> {
+  await mockDelay(LATENCY.write);
+  // resolveProfilePictureUrl passes a file:// path through, so the picked uri renders.
+  return image.uri;
+}
+
+export const userApi: UserApi = {
+  getUserDetails,
+  updateUserDetails,
+  uploadProfilePicture,
+};

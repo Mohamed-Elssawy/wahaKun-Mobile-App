@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, PhoneField, Screen, Text } from '@/components/ui';
-import { DEFAULT_COUNTRY } from '@/constants/countries';
-import type { Country } from '@/constants/countries';
+import { defaultCountry } from '@/constants/countries';
+import { t } from '@/i18n';
 import type { ScreenProps } from '@/navigation/types';
 import { screenPadding, spacing } from '@/theme';
 
@@ -14,7 +14,8 @@ import { useRegistration } from '../../hooks/useRegistration';
 /** Step 4 of the registration wizard, and the one that submits. */
 export default function PhoneScreen({ navigation }: ScreenProps<'Phone'>) {
   const { draft } = useRegistrationDraft();
-  const [country, setCountry] = useState<Country>(DEFAULT_COUNTRY);
+  // C4: the country is locked to Egypt (SPEC 8 S-03), so there is no state to hold.
+  const country = defaultCountry();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [validationError, setValidationError] = useState('');
 
@@ -24,7 +25,7 @@ export default function PhoneScreen({ navigation }: ScreenProps<'Phone'>) {
 
   const handleSubmit = async () => {
     if (!isValid) {
-      setValidationError('يرجى إدخال رقم الهاتف');
+      setValidationError(t('errors.auth.phoneRequired'));
       return;
     }
     setValidationError('');
@@ -51,7 +52,7 @@ export default function PhoneScreen({ navigation }: ScreenProps<'Phone'>) {
     <Screen
       footer={
         <Button
-          label="ارسال رمز التحقق"
+          label={t('s03.cta')}
           onPress={handleSubmit}
           showArrow
           loading={isSubmitting}
@@ -64,17 +65,16 @@ export default function PhoneScreen({ navigation }: ScreenProps<'Phone'>) {
       <View style={styles.form}>
         <View style={styles.intro}>
           <Text variant="h3" color="textStrong" align="center">
-            أدخل رقم هاتفك
+            {t('s05.phoneTitle')}
           </Text>
-          <Text variant="body14" color="textMuted" align="center">
-            للحصول على رمز تحقق وتسجيل الدخول بأمان.
+          <Text variant="body14" color="textMuted" align="center" style={styles.subtitle}>
+            {t('s05.phoneSubtitle')}
           </Text>
         </View>
 
         <PhoneField
-          label="رقم الهاتف"
+          label={t('common.phoneNumber')}
           country={country}
-          onCountryChange={setCountry}
           value={phoneNumber}
           onChangeText={text => {
             setPhoneNumber(text);
@@ -88,6 +88,10 @@ export default function PhoneScreen({ navigation }: ScreenProps<'Phone'>) {
 }
 
 const styles = StyleSheet.create({
+  // C6: the frames set an auth subtitle at a narrower measure than the fields below it.
+  subtitle: {
+    paddingHorizontal: spacing[56],
+  },
   form: {
     gap: spacing[40],
     paddingHorizontal: screenPadding,

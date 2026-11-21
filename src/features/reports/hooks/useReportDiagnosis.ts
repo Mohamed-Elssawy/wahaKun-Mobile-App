@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { t } from '@/i18n';
+
 import { describeError } from '../errors';
 import { reportApi } from '../services';
 
@@ -7,8 +9,6 @@ import type { ReportError } from '../errors';
 import type { Report } from '../types';
 
 /** Every failure reads the same to the farmer: it did not load, try again. */
-const LOAD_ERROR = 'تعذر تحميل التشخيص، حاول مرة أخرى';
-
 /** Takes an id, not a report: params stay serialisable and F-04 can route here cold. */
 export function useReportDiagnosis(reportId: string) {
   const [report, setReport] = useState<Report | null>(null);
@@ -37,7 +37,7 @@ export function useReportDiagnosis(reportId: string) {
       }
     } catch (err) {
       if (isMounted.current) {
-        setError(describeError(err, LOAD_ERROR));
+        setError(describeError(err, t('errors.diagnosis.loadFailed')));
       }
     } finally {
       if (isMounted.current) {

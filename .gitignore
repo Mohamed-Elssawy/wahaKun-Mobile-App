@@ -90,24 +90,30 @@ android/app/google-services.json
 # Editor and assistant tooling. Per-machine, and no part of the project.
 .claude/
 .mcp.json
-CLAUDE.md
 AGENTS.md
 .cursor/
 .aider*
 .windsurfrules
 .github/copilot-instructions.md
 
-# Working notes and drafts, not project deliverables. docs/ ships the two Word
-# documents only: the requirements and the system overview.
-REFERENCE-NOTES.md
-BACKEND-BLOCKERS.md
-docs/*.md
+# Only the three docs a teammate needs ship; everything else is working notes.
+/*.md
+!/README.md
+!/ARCHITECTURE.md
+!/CONVENTIONS.md
 
-# Local dev tooling. These drive the .NET stack and the demo data on one machine,
-# with absolute paths to sibling checkouts, so they are no use in a clone.
+# Design/process notes and exports: large, go stale, and not needed to run the app.
+docs/
+design/
+scripts/probe/README.md
+tools/*/README.md
+
+# Local dev tooling tied to one machine's absolute paths.
 scripts/*.ps1
 scripts/demo-photos/
 
-# Design exports. Regenerated from Figma on demand; ~36 MB of binaries that
-# would bloat every clone and can't be diffed.
-docs/*.pdf
+# Only postinstall's own two scripts ship; the rest (i18n pipeline, figma tooling, probe, tests) are local for now.
+scripts/*
+!scripts/setup-env.js
+!scripts/install-hooks.js
+

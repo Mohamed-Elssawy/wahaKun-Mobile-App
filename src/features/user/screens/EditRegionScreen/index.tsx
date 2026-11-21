@@ -5,6 +5,7 @@ import { BackHeader, Button, Screen, SearchableDropdown, Text } from '@/componen
 import { getAreasForGovernorate } from '@/constants/areas';
 import { governorates } from '@/constants/governorates';
 import { ReportErrorView } from '@/features/reports/components/ReportErrorView';
+import { t } from '@/i18n';
 import type { ScreenProps } from '@/navigation/types';
 import { colors, screenPadding, spacing } from '@/theme';
 import type { LocationItem } from '@/types/location';
@@ -68,7 +69,7 @@ export default function EditRegionScreen({ navigation }: ScreenProps<'EditRegion
         <View style={styles.fallback}>
           <ReportErrorView
             error={error}
-            unknownTitle="تعذر تحميل الملف الشخصي"
+            unknownTitle={t('s07.loadErrorTitle')}
             onRetry={retry}
           />
         </View>
@@ -80,7 +81,7 @@ export default function EditRegionScreen({ navigation }: ScreenProps<'EditRegion
     <Screen
       footer={
         <Button
-          label="حفظ"
+          label={t('common.save')}
           onPress={handleSave}
           showArrow
           loading={isSaving}
@@ -93,18 +94,18 @@ export default function EditRegionScreen({ navigation }: ScreenProps<'EditRegion
       <View style={styles.form}>
         <View style={styles.intro}>
           <Text variant="h3" color="textStrong" align="center">
-            أين تقع أرضك؟
+            {t('s07.landQuestion')}
           </Text>
           <Text variant="body14" color="textMuted" align="center">
-            يساعدنا هذا في ربطك بالخبراء والبلاغات القريبة منك.
+            {t('s07.landWhy')}
           </Text>
         </View>
 
         <View style={styles.fields}>
           <SearchableDropdown
-            label="المحافظة"
-            placeholder="ابحث عن المحافظة"
-            data={governorates}
+            label={t('s07.governorate')}
+            placeholder={t('s07.searchGovernorate')}
+            data={governorates()}
             initialValue={user?.region}
             onSelect={handleGovernorateSelect}
             isOpen={activeField === 'governorate'}
@@ -112,8 +113,8 @@ export default function EditRegionScreen({ navigation }: ScreenProps<'EditRegion
           />
 
           <SearchableDropdown
-            label="المنطقة"
-            placeholder="ابحث عن المنطقة"
+            label={t('s07.area')}
+            placeholder={t('s07.searchArea')}
             data={areaOptions}
             initialValue={user?.village}
             onSelect={item => {
@@ -123,12 +124,12 @@ export default function EditRegionScreen({ navigation }: ScreenProps<'EditRegion
             isOpen={activeField === 'area'}
             onOpenChange={openHandlerFor('area')}
             disabled={!governorate}
-            disabledPlaceholder="اختر المحافظة أولاً"
+            disabledPlaceholder={t('s07.pickGovernorateFirst')}
           />
         </View>
 
         {saveError ? (
-          <Text variant="label12Bold" color="errorText" align="right">
+          <Text variant="label12Bold" color="errorText">
             {saveError.message}
           </Text>
         ) : null}

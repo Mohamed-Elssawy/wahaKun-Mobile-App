@@ -2,9 +2,10 @@ import { Check } from 'lucide-react-native';
 import { StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/ui';
+import { t } from '@/i18n';
 import { colors, radii, spacing } from '@/theme';
 
-import { stageFor } from '../status';
+import { factsFromWireStatus, stageFor } from '../lifecycle';
 
 import type { ReportStatus } from '../types';
 
@@ -18,15 +19,18 @@ const RAIL_HEIGHT = 2;
 
 type Step = { label: string; isDone: boolean };
 
-/** F-04 draws three fixed steps; IssueStatus's seven collapse onto them. */
+/** F-04 draws three fixed steps; §3.3's six nodes collapse onto them. */
 function stepsFor(status: ReportStatus): Step[] {
-  const stage = stageFor(status);
+  const stage = stageFor(factsFromWireStatus(status));
 
   return [
     // The row exists, so this one is true the moment there is anything to render.
-    { label: 'تم الإبلاغ', isDone: true },
-    { label: 'قيد الحل', isDone: stage === 'inProgress' || stage === 'resolved' },
-    { label: 'تم الحل', isDone: stage === 'resolved' },
+    { label: t('f04.step.reported'), isDone: true },
+    {
+      label: t('f04.step.inProgress'),
+      isDone: stage === 'inProgress' || stage === 'resolved',
+    },
+    { label: t('status.resolved'), isDone: stage === 'resolved' },
   ];
 }
 
@@ -34,7 +38,7 @@ export function ReportStatusTrack({ status }: ReportStatusTrackProps) {
   const steps = stepsFor(status);
 
   return (
-    // row-reverse: the first step sits at the right, where the reading starts.
+    // The first step sits at the start edge, where the reading begins.
     <View style={styles.track} accessibilityRole="progressbar">
       {steps.map((step, index) => (
         <View key={step.label} style={styles.step}>
@@ -76,7 +80,7 @@ export function ReportStatusTrack({ status }: ReportStatusTrackProps) {
 
 const styles = StyleSheet.create({
   track: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'flex-start',
   },
   step: {
@@ -85,7 +89,7 @@ const styles = StyleSheet.create({
     gap: spacing[8],
   },
   dotRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'stretch',
   },

@@ -1,3 +1,6 @@
+import { detectDirection, direction, t } from '@/i18n';
+import type { TranslationKey } from '@/i18n';
+
 export type ApiErrorKind =
   | 'network'
   | 'timeout'
@@ -13,67 +16,89 @@ export type ApiErrorKind =
   | 'unavailable'
   | 'unknown';
 
-export const CODE_MESSAGES: Record<string, string> = {
-  VALIDATION_FAILED: 'بعض البيانات المدخلة غير صحيحة، راجعها وحاول مرة أخرى',
-  BAD_REQUEST: 'الطلب غير صالح، حاول مرة أخرى',
-  INVALID_OPERATION: 'لا يمكن تنفيذ هذا الإجراء حالياً',
-  NOT_FOUND: 'العنصر المطلوب غير موجود',
-  CONFLICT: 'هذا العنصر موجود بالفعل',
-  SERVER_ERROR: 'حدث خطأ في الخادم، حاول مرة أخرى لاحقاً',
-  DATABASE_ERROR: 'تعذر الوصول إلى قاعدة البيانات حالياً، حاول لاحقاً',
-  DEPENDENCY_UNAVAILABLE: 'إحدى خدمات النظام غير متاحة الآن، حاول بعد قليل',
-  REQUEST_CANCELLED: 'تم إلغاء الطلب',
-  UNAUTHORIZED: 'انتهت جلستك، سجّل الدخول مرة أخرى',
-  TOKEN_MISSING: 'يجب تسجيل الدخول أولاً',
-  TOKEN_EXPIRED: 'انتهت جلستك، سجّل الدخول مرة أخرى',
-  TOKEN_INVALID: 'جلسة غير صالحة، سجّل الدخول مرة أخرى',
-  FORBIDDEN: 'ليست لديك صلاحية لهذا الإجراء',
-  INVALID_CREDENTIALS: 'البريد الإلكتروني أو كلمة المرور غير صحيحة',
-  ACCOUNT_NOT_APPROVED: 'حسابك قيد المراجعة ولم تتم الموافقة عليه بعد',
-  ACCOUNT_BLOCKED: 'تم إيقاف حسابك، تواصل مع الدعم',
-  USER_NOT_FOUND: 'لا يوجد حساب مسجّل بهذه البيانات',
-  USER_ALREADY_EXISTS: 'يوجد حساب مسجّل بهذا البريد أو رقم الهاتف بالفعل',
-  REGISTRATION_FAILED: 'تعذر إنشاء الحساب، راجع البيانات وحاول مرة أخرى',
-  INVALID_REFRESH_TOKEN: 'انتهت جلستك، سجّل الدخول مرة أخرى',
-  PASSWORD_RESET_FAILED: 'تعذر إعادة تعيين كلمة المرور، قد يكون الرابط منتهي الصلاحية',
-  FIREBASE_TOKEN_INVALID: 'تعذر التحقق من رقم الهاتف، أعد إرسال الرمز',
-  UNSUPPORTED_FILE_TYPE: 'نوع الملف غير مدعوم، استخدم صورة JPG أو PNG',
-  PHOTO_REQUIRED: 'يجب إرفاق صورة للمشكلة',
-  PHOTO_REJECTED: 'لم نتمكن من رؤية مشكلة واضحة في الصورة',
-  PHOTO_POOR_QUALITY: 'الصورة غير واضحة، التقط صورة أوضح في إضاءة أفضل',
-  PHOTO_NOT_IRRIGATION: 'الصورة لا تظهر مشكلة ري واضحة',
-  PHOTO_LOW_CONFIDENCE: 'لم يتمكن النظام من تحديد المشكلة بثقة، التقط صورة أوضح',
-  PHOTO_UNCERTAIN: 'المشكلة غير واضحة في الصورة، التقط صورة أقرب وأوضح',
-  ISSUE_PRIORITY_TOO_LOW: 'المشكلة تبدو بسيطة، ولا يحتاج هذا البلاغ إلى متابعة',
-  ISSUE_NOT_FOUND: 'البلاغ غير موجود أو تم حذفه',
-  AI_SERVICE_UNAVAILABLE: 'خدمة التشخيص الذكي غير متاحة الآن، سيُعاد الإرسال تلقائياً',
-  AI_SERVICE_ERROR: 'تعذر تحليل الصورة حالياً، حاول مرة أخرى',
-  STORAGE_SERVICE_UNAVAILABLE: 'تعذر رفع الصورة حالياً، سيُعاد الإرسال تلقائياً',
-  MAP_ISSUE_NOT_FOUND: 'لم يتم العثور على البلاغ على الخريطة',
-  COMMENT_REJECTED: 'لم يتم نشر التعليق لأنه يخالف إرشادات المجتمع',
+/** Keys, not messages: a module-scope t() would resolve before §16.2 loads the locale, freezing it. */
+export const CODE_KEYS: Record<string, TranslationKey> = {
+  VALIDATION_FAILED: 'errors.api.validation',
+  BAD_REQUEST: 'errors.api.badRequest',
+  INVALID_OPERATION: 'errors.api.actionUnavailable',
+  NOT_FOUND: 'errors.api.notFound',
+  CONFLICT: 'errors.api.alreadyExists',
+  SERVER_ERROR: 'errors.api.server',
+  DATABASE_ERROR: 'errors.api.database',
+  DEPENDENCY_UNAVAILABLE: 'errors.api.serviceDown',
+  REQUEST_CANCELLED: 'errors.api.cancelled',
+  UNAUTHORIZED: 'errors.api.sessionEnded',
+  TOKEN_MISSING: 'errors.api.loginRequired',
+  TOKEN_EXPIRED: 'errors.api.sessionEnded',
+  TOKEN_INVALID: 'errors.api.sessionInvalid',
+  FORBIDDEN: 'errors.api.forbidden',
+  INVALID_CREDENTIALS: 'errors.auth.badCredentials',
+  ACCOUNT_NOT_APPROVED: 'errors.auth.pendingApproval',
+  ACCOUNT_BLOCKED: 'errors.auth.suspended',
+  USER_NOT_FOUND: 'errors.auth.noAccount',
+  USER_ALREADY_EXISTS: 'errors.auth.accountExists',
+  REGISTRATION_FAILED: 'errors.auth.signupFailed',
+  INVALID_REFRESH_TOKEN: 'errors.api.sessionEnded',
+  PASSWORD_RESET_FAILED: 'errors.auth.resetFailed',
+  FIREBASE_TOKEN_INVALID: 'errors.auth.phoneVerifyFailed',
+  UNSUPPORTED_FILE_TYPE: 'errors.media.unsupportedTypeDetail',
+  PHOTO_REQUIRED: 'errors.report.photoRequired',
+  PHOTO_REJECTED: 'errors.report.unreadable',
+  PHOTO_POOR_QUALITY: 'errors.report.photoUnclear',
+  PHOTO_NOT_IRRIGATION: 'errors.report.notIrrigation',
+  PHOTO_LOW_CONFIDENCE: 'errors.report.lowConfidence',
+  PHOTO_UNCERTAIN: 'errors.report.tooFar',
+  ISSUE_PRIORITY_TOO_LOW: 'errors.report.tooMinor',
+  ISSUE_NOT_FOUND: 'errors.report.missing',
+  AI_SERVICE_UNAVAILABLE: 'errors.report.diagnosisDown',
+  AI_SERVICE_ERROR: 'errors.report.analyseFailed',
+  STORAGE_SERVICE_UNAVAILABLE: 'errors.report.uploadFailed',
+  MAP_ISSUE_NOT_FOUND: 'errors.map.reportMissing',
+  COMMENT_REJECTED: 'errors.community.commentBlocked',
 };
 
-export const STATUS_MESSAGES: Record<number, string> = {
-  400: 'الطلب غير صالح، راجع البيانات وحاول مرة أخرى',
-  401: 'انتهت جلستك، سجّل الدخول مرة أخرى',
-  403: 'ليست لديك صلاحية لهذا الإجراء',
-  404: 'الخدمة أو العنصر المطلوب غير موجود',
-  405: 'هذا الإجراء غير مدعوم',
-  408: 'انتهت مهلة الطلب، حاول مرة أخرى',
-  409: 'تعارض في البيانات، ربما تم تنفيذ هذا الإجراء من قبل',
-  413: 'حجم الملف كبير جداً',
-  415: 'نوع الملف غير مدعوم',
-  422: 'تعذر معالجة البيانات المرسلة',
-  429: 'محاولات كثيرة، انتظر قليلاً ثم حاول مرة أخرى',
-  500: 'حدث خطأ في الخادم، حاول مرة أخرى لاحقاً',
-  502: 'الخادم غير متاح مؤقتاً، حاول بعد قليل',
-  503: 'الخدمة غير متاحة حالياً، حاول بعد قليل',
-  504: 'استغرق الخادم وقتاً طويلاً، حاول مرة أخرى',
+export const STATUS_KEYS: Record<number, TranslationKey> = {
+  400: 'errors.api.badRequestDetail',
+  401: 'errors.api.sessionEnded',
+  403: 'errors.api.forbidden',
+  404: 'errors.api.serviceNotFound',
+  405: 'errors.api.unsupportedAction',
+  408: 'errors.api.timeout',
+  409: 'errors.api.conflict',
+  413: 'errors.media.tooLarge',
+  415: 'errors.media.unsupportedType',
+  422: 'errors.api.unprocessable',
+  429: 'errors.auth.tooManyAttempts',
+  500: 'errors.api.server',
+  502: 'errors.api.serverUnavailable',
+  503: 'errors.api.unavailable',
+  504: 'errors.api.slow',
 };
 
-export const NETWORK_MESSAGE = 'تحقق من اتصالك بالإنترنت وحاول مرة أخرى';
-export const TIMEOUT_MESSAGE = 'انتهت مهلة الاتصال، حاول مرة أخرى';
-export const GENERIC_MESSAGE = 'حدث خطأ غير متوقع، حاول مرة أخرى';
+/** Undefined for a code this frontend has no copy for, so the caller can fall through. */
+export function codeMessage(code: string | undefined): string | undefined {
+  const key = code ? CODE_KEYS[code] : undefined;
+
+  return key ? t(key) : undefined;
+}
+
+export function statusMessage(status: number): string {
+  const key = STATUS_KEYS[status];
+
+  return key ? t(key) : genericMessage();
+}
+
+export function networkMessage(): string {
+  return t('errors.network.checkConnectionLong');
+}
+
+export function timeoutMessage(): string {
+  return t('errors.network.timeout');
+}
+
+export function genericMessage(): string {
+  return t('errors.api.unexpected');
+}
 
 export function kindForStatus(status: number): ApiErrorKind {
   switch (status) {
@@ -101,11 +126,19 @@ export function kindForStatus(status: number): ApiErrorKind {
   }
 }
 
-export function isDisplayableArabic(text: string | undefined): text is string {
+/** Compares direction, a proxy for script that's exact only while every locale has a distinct one. */
+export function isDisplayable(text: string | undefined): text is string {
+  if (!isShowableText(text)) return false;
+  // Null for no strong character at all (digits, punctuation) - no language, so the local copy wins.
+  return detectDirection(text) === direction();
+}
+
+/** Locale-free: length/exception/stack/sql guards re-checked per read, since a queued failure outlives its locale. */
+export function isShowableText(text: string | undefined): text is string {
   if (!text) return false;
   if (text.length > 200 || /exception|stack|at \w+\.|sql|connection string/i.test(text))
     return false;
-  return /[\u0600-\u06FF]/.test(text);
+  return true;
 }
 
 export function resolveUserMessage(
@@ -113,7 +146,9 @@ export function resolveUserMessage(
   status: number,
   serverMessage: string | undefined,
 ): string {
-  if (code && CODE_MESSAGES[code]) return CODE_MESSAGES[code];
-  if (isDisplayableArabic(serverMessage)) return serverMessage;
-  return STATUS_MESSAGES[status] ?? GENERIC_MESSAGE;
+  const known = codeMessage(code);
+
+  if (known) return known;
+  if (isDisplayable(serverMessage)) return serverMessage;
+  return statusMessage(status);
 }

@@ -1,16 +1,17 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useMemo, useRef, useState } from 'react';
 
+import { t } from '@/i18n';
+import type { TranslationKey } from '@/i18n';
+
 import { describeError } from '../errors';
+import { isClosedWireStatus } from '../lifecycle';
 import { reportApi } from '../services';
 import { isCriticalSeverity } from '../severity';
-import { isResolvedStatus } from '../status';
 import { useReportQueue } from './useReportQueue';
 
 import type { ReportError } from '../errors';
-import type { Report, ReportListItem } from '../types';
-
-const LOAD_ERROR = 'تعذر تحميل البلاغات، حاول مرة أخرى';
+import type { Report, ReportListItem, ReportTrackerDetails } from '../types';
 
 export type ReportFilter = 'all' | 'active' | 'resolved' | 'critical';
 
@@ -18,31 +19,49 @@ export type ReportFilter = 'all' | 'active' | 'resolved' | 'critical';
 export type ReportSection = { title: string; data: ReportListItem[] };
 
 /** The server-report section heading follows the filter, so it never mislabels resolved as active. */
-const SECTION_TITLE: Record<ReportFilter, string> = {
-  all: 'كل البلاغات',
-  active: 'البلاغات النشطة',
-  resolved: 'البلاغات التي تم حلها',
-  critical: 'البلاغات الحرجة',
+const SECTION_TITLE: Record<ReportFilter, TranslationKey> = {
+  all: 'f07.tab.allReports',
+  active: 'f07.activeReports',
+  resolved: 'f07.tab.resolved',
+  critical: 'f07.tab.critical',
 };
+
+/** §8.2: `الكل` never shows one undifferentiated list - it splits into these two sections. */
+const ALL_TAB_SECTION_TITLE = {
+  active: 'f07.activeReports',
+  resolved: 'f07.resolvedCount',
+} as const;
 
 // resolved finally answers something: IssueStatus has Repaired and completed.
 const MATCHES: Record<ReportFilter, (report: Report) => boolean> = {
   all: () => true,
-  active: report => !isResolvedStatus(report.status),
-  resolved: report => isResolvedStatus(report.status),
-  // `!= null`, not `!== undefined`: the server sends null for an unanalysed report.
-  critical: report =>
-    report.analysis != null && isCriticalSeverity(report.analysis.severity),
+  active: report => !isClosedWireStatus(report.status),
+  resolved: report => isClosedWireStatus(report.status),
+  // != null, not !== undefined: the server sends null for an unanalysed report.
+  critical: report => {
+    const severity = report.analysis?.severity ?? report.severity;
+    return severity != null && isCriticalSeverity(severity);
+  },
 };
 
 /** Refetches on focus: a report filed seconds ago is the reason to open this tab. */
 export function useMyReports() {
   const [reports, setReports] = useState<Report[]>([]);
+  // Keyed by report id and loaded only for open reports: a closed card draws no slot.
+  const [trackers, setTrackers] = useState<Record<string, ReportTrackerDetails>>({});
   const [error, setError] = useState<ReportError | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  // Whether a list has ever arrived in this mount: a failed refresh leaves `reports` as is (W6).
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [filter, setFilter] = useState<ReportFilter>('all');
   const isFocused = useRef(true);
-  const { queued, retry, discard } = useReportQueue();
+  const { queued, retry, discard, unreadDeliveredIds, markSeen } = useReportQueue();
+
+  // D-QUEUE: a report an auto-upload just delivered, still unopened.
+  const unreadReportIds = useMemo(
+    () => new Set(unreadDeliveredIds),
+    [unreadDeliveredIds],
+  );
 
   const load = useCallback(async (): Promise<void> => {
     setError(null);
@@ -51,10 +70,31 @@ export function useMyReports() {
       const result = await reportApi.getMyReports();
       if (isFocused.current) {
         setReports(result);
+        setHasLoaded(true);
+      }
+
+      const active = result.filter(report => !isClosedWireStatus(report.status));
+      const loadedTrackers = await Promise.all(
+        active.map(report =>
+          reportApi
+            .getReportTracker(report.id)
+            .then(details => [report.id, details] as const)
+            .catch(() => null),
+        ),
+      );
+
+      if (isFocused.current) {
+        setTrackers(
+          Object.fromEntries(
+            loadedTrackers.filter(
+              (entry): entry is [string, ReportTrackerDetails] => entry != null,
+            ),
+          ),
+        );
       }
     } catch (err) {
       if (isFocused.current) {
-        setError(describeError(err, LOAD_ERROR));
+        setError(describeError(err, t('errors.reports.loadFailed')));
       }
     } finally {
       if (isFocused.current) {
@@ -94,15 +134,36 @@ export function useMyReports() {
     // Its own section per X-09: "waiting on your phone" and "filed" are different answers.
     if (queued.length > 0) {
       result.push({
-        title: 'محفوظ على جهازك',
+        title: t('f07.savedOnDevice'),
         data: queued.map(item => ({ kind: 'queued' as const, queued: item })),
       });
+    }
+
+    if (filter === 'all') {
+      const active = reports.filter(MATCHES.active);
+      const resolved = reports.filter(MATCHES.resolved);
+
+      if (active.length > 0) {
+        result.push({
+          title: t(ALL_TAB_SECTION_TITLE.active),
+          data: active.map(item => ({ kind: 'server' as const, report: item })),
+        });
+      }
+
+      if (resolved.length > 0) {
+        result.push({
+          title: t(ALL_TAB_SECTION_TITLE.resolved),
+          data: resolved.map(item => ({ kind: 'server' as const, report: item })),
+        });
+      }
+
+      return result;
     }
 
     const visible = reports.filter(MATCHES[filter]);
     if (visible.length > 0) {
       result.push({
-        title: SECTION_TITLE[filter],
+        title: t(SECTION_TITLE[filter]),
         data: visible.map(item => ({ kind: 'server' as const, report: item })),
       });
     }
@@ -113,10 +174,13 @@ export function useMyReports() {
   return {
     /** Already filtered, grouped and ordered, so the screen renders without deciding. */
     sections,
+    trackers,
     /** Nothing to show under the current filter, which picks between X-06 and X-07. */
     isEmpty: sections.length === 0,
     /** Whether the farmer has ever filed a report, which picks the empty state. */
     hasAnyReports: reports.length > 0 || queued.length > 0,
+    /** A list arrived earlier, so it is what an offline screen is showing. */
+    hasLastUpdate: hasLoaded,
     counts,
     filter,
     setFilter,
@@ -125,5 +189,7 @@ export function useMyReports() {
     refresh: load,
     retryQueued: retry,
     discardQueued: discard,
+    unreadReportIds,
+    markReportSeen: markSeen,
   };
 }

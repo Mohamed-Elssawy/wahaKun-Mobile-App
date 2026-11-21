@@ -1,21 +1,28 @@
-/** CommunityController has exactly one endpoint, GetCommentsByIssueId; everything else is the seeded mock. */
-// Never add a path here that CommunityController does not declare: the gateway answers it with a bare 404.
+/** GetCommentsByIssueId plus the hub's writes. Never add a path the controller lacks. */
 
-import { API_ENDPOINTS, apiClient } from '@/api';
+import { API_ENDPOINTS, apiClient, getTokenUserId } from '@/api';
 import { API_BASE_URLS } from '@/config/env';
 import { toUtcTimestamp } from '@/features/reports/services/reportService';
 import {
   getUserDetails,
   resolveProfilePictureUrl,
 } from '@/features/user/services/userService';
+import { t } from '@/i18n';
 
+import * as hub from './communityHub';
 import * as mock from './communityService.mock';
 
-import type { Comment, CommentsPage, CommentsPageWire, CommunityApi } from '../types';
+import type {
+  Comment,
+  CommentEventWire,
+  CommentsPage,
+  CommentsPageWire,
+  CommunityApi,
+  IssueLiveEvent,
+  VoteResult,
+} from '../types';
 
 const BASE = API_BASE_URLS.community;
-
-const UNKNOWN_AUTHOR = 'مزارع من الواحة';
 
 /** Issue ids are Guids; the seed's `i-1043` style ids would bind to nothing and come back 400. */
 const GUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -31,20 +38,20 @@ const authorCache = new Map<string, Promise<Author>>();
 
 function resolveAuthor(userId: string): Promise<Author> {
   if (!userId || userId === '00000000-0000-0000-0000-000000000000') {
-    return Promise.resolve({ name: UNKNOWN_AUTHOR });
+    return Promise.resolve({ name: t('common.unknownAuthor') });
   }
 
   let pending = authorCache.get(userId);
   if (!pending) {
     pending = getUserDetails(userId)
       .then(user => ({
-        name: user.fullName || UNKNOWN_AUTHOR,
+        name: user.fullName || t('common.unknownAuthor'),
         picture: user.picture ? resolveProfilePictureUrl(user.picture) : undefined,
       }))
       .catch(() => {
         // A missing name must not empty the thread; forget the failure so a later load retries.
         authorCache.delete(userId);
-        return { name: UNKNOWN_AUTHOR };
+        return { name: t('common.unknownAuthor') };
       });
     authorCache.set(userId, pending);
   }
@@ -57,6 +64,22 @@ async function resolveAuthors(userIds: readonly string[]): Promise<Map<string, A
     unique.map(async id => [id, await resolveAuthor(id)] as const),
   );
   return new Map(entries);
+}
+
+/** CommentResponseDto and the hub's CommentEventDto carry the same fields. */
+function toComment(wire: CommentEventWire, author: Author | undefined): Comment {
+  return {
+    id: wire.id,
+    issueId: wire.issueId,
+    authorId: wire.userId,
+    authorName: author?.name ?? t('common.unknownAuthor'),
+    authorPicture: author?.picture,
+    // UserDetailsResponse has no role, so the خبير معتمد badge can never be earned yet.
+    isExpert: false,
+    text: wire.text ?? '',
+    voiceUrl: wire.voiceUrl || undefined,
+    createdAt: toUtcTimestamp(wire.createdAt),
+  };
 }
 
 /** GET api/Community/GetCommentsByIssueId for a real issue; the seed's thread for a seeded one. */
@@ -77,21 +100,9 @@ export async function getComments(
 
   const authors = await resolveAuthors(wire.comments.map(comment => comment.userId));
 
-  const comments: Comment[] = wire.comments.map(comment => {
-    const author = authors.get(comment.userId);
-    return {
-      id: comment.id,
-      issueId: comment.issueId,
-      authorId: comment.userId,
-      authorName: author?.name ?? UNKNOWN_AUTHOR,
-      authorPicture: author?.picture,
-      // UserDetailsResponse has no role, so the خبير معتمد badge can never be earned yet.
-      isExpert: false,
-      text: comment.text,
-      voiceUrl: comment.voiceUrl || undefined,
-      createdAt: toUtcTimestamp(comment.createdAt),
-    };
-  });
+  const comments = wire.comments.map(comment =>
+    toComment(comment, authors.get(comment.userId)),
+  );
 
   return {
     comments,
@@ -100,10 +111,70 @@ export async function getComments(
   };
 }
 
+/** CommunityHub.SendComment. The hub moderates first, so this can reject with COMMENT_REJECTED. */
+export async function postComment(issueId: string, text: string): Promise<Comment> {
+  if (!isServerIssueId(issueId)) {
+    return mock.postComment(issueId, text);
+  }
+  const wire = await hub.sendComment(issueId, text);
+  return toComment(wire, await resolveAuthor(wire.userId));
+}
+
+/** CommunityHub.VoteIssue. A toggle whose answer says where the vote ended up, so no guessing. */
+export async function toggleConfirmation(issueId: string): Promise<VoteResult> {
+  if (!isServerIssueId(issueId)) {
+    return mock.toggleConfirmation(issueId);
+  }
+  const state = await hub.toggleVote(issueId);
+  return { issueId, hasVoted: state.hasVoted, voteCount: state.count };
+}
+
+/** CommunityHub.ShareIssue. Resolves to the new share count. */
+export function shareIssue(issueId: string): Promise<number> {
+  return isServerIssueId(issueId) ? hub.shareIssue(issueId) : mock.shareIssue(issueId);
+}
+
+export function subscribeToIssue(
+  issueId: string,
+  listener: (event: IssueLiveEvent) => void,
+): () => void {
+  if (!isServerIssueId(issueId)) {
+    return mock.subscribeToIssue();
+  }
+
+  return hub.watchIssue(issueId, {
+    onCommentAdded: (wire, total) => {
+      // The author lookup is cached and never rejects, so the event always arrives.
+      resolveAuthor(wire.userId).then(author =>
+        listener({ type: 'commentAdded', comment: toComment(wire, author), total }),
+      );
+    },
+    onCommentDeleted: (commentId, total) =>
+      listener({ type: 'commentDeleted', commentId, total }),
+    onVotes: (count, voterId, voted) => {
+      getTokenUserId()
+        .catch(() => null)
+        .then(me =>
+          listener({
+            type: 'votes',
+            count,
+            voted,
+            byMe: Boolean(me) && me?.toLowerCase() === voterId.toLowerCase(),
+          }),
+        );
+    },
+    onShares: count => listener({ type: 'shares', count }),
+  });
+}
+
 export const communityApi: CommunityApi = {
-  // No GetFeed, GetPost or vote endpoint exists in CommunityController yet.
+  // No feed or single-issue read exists in CommunityController.
   getFeed: mock.getFeed,
-  getPost: mock.getPost,
-  toggleConfirmation: mock.toggleConfirmation,
+  getIssue: mock.getIssue,
+  getPost: mock.getIssue,
+  toggleConfirmation,
+  shareIssue,
+  postComment,
   getComments,
+  subscribeToIssue,
 };

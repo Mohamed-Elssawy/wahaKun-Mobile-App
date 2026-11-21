@@ -6,7 +6,6 @@ const COLLECTION_SEMANTIC = 'Semantic';
 let out = [];
 const log = s => out.push(s);
 
-// colour helpers
 function hexToRgb(hex) {
   const h = hex.replace('#', '');
   return {
@@ -32,7 +31,6 @@ function parseColor(value) {
 const sameColor = (a, b) =>
   a && b && ['r', 'g', 'b'].every(k => Math.abs(a[k] - b[k]) < 0.002);
 
-// collections
 async function getOrCreateCollection(name, apply) {
   const all = await figma.variables.getLocalVariableCollectionsAsync();
   const found = all.find(c => c.name === name);
@@ -66,7 +64,6 @@ async function upsertVariable(collection, name, type, setValue, apply, stats) {
   return v;
 }
 
-// main
 async function run(apply) {
   out = [];
   const t0 = Date.now();
@@ -75,7 +72,6 @@ async function run(apply) {
 
   await figma.loadAllPagesAsync();
 
-  // 1. primitives
   log('1. Primitives collection');
   const prim = await getOrCreateCollection(COLLECTION_PRIMITIVES, apply);
   const primStats = { created: 0, updated: 0 };
@@ -111,7 +107,6 @@ async function run(apply) {
   log(`  ${primStats.created} to create, ${primStats.updated} already present`);
   log('');
 
-  // 2. semantic aliases
   log('2. Semantic collection');
   const sem = await getOrCreateCollection(COLLECTION_SEMANTIC, apply);
   const semStats = { created: 0, updated: 0 };
@@ -156,7 +151,6 @@ async function run(apply) {
     );
   log('');
 
-  // 3. bind paint styles to primitives
   log('3. Binding paint styles to variables');
   const styles = await figma.getLocalPaintStylesAsync();
   let bound = 0;
@@ -188,7 +182,6 @@ async function run(apply) {
   for (const a of ambiguous) log(`  ! ${a}`);
   log('');
 
-  // 4. known style defects
   log('4. Style defects');
   const textStyles = await figma.getLocalTextStylesAsync();
 
@@ -208,7 +201,6 @@ async function run(apply) {
   }
   log('');
 
-  // summary
   log('---');
   log(`primitives:  ${primStats.created} created, ${primStats.updated} updated`);
   log(`semantic:    ${semStats.created} created, ${semStats.updated} updated`);

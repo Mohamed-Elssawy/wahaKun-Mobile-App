@@ -2,11 +2,7 @@
 
 import { ApiError } from '@/api';
 
-/**
- * Auth failures now carry a backend code (INVALID_CREDENTIALS, ACCOUNT_NOT_APPROVED,
- * USER_ALREADY_EXISTS…), which ApiError already turned into Arabic. Fall back to the
- * caller's copy only when the server gave nothing more specific than the HTTP status.
- */
+/** Falls back to the caller's copy only when the server named nothing more specific. */
 export function describeAuthApiError(error: ApiError, fallback: string): string {
   if (error.isNetworkError) {
     return error.userMessage;

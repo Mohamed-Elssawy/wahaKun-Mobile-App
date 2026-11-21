@@ -32,6 +32,14 @@ export const screenPadding = spacing[24];
 /** Android's 48dp target. A minimum, not a fixed height: a fixed 48 clips large OS fonts. */
 export const controlHeight = 48;
 
+// Switch geometry measured off S-07 (50x28 track, 24dp thumb inset 2dp): fixed geometry no spacing step describes.
+export const switchSize = {
+  trackWidth: 50,
+  trackHeight: 28,
+  thumb: 24,
+  thumbInset: 2,
+} as const;
+
 /** RN scales text unbounded by default, which breaks any layout with a bounded row. */
 export const maxFontScale = 1.3;
 

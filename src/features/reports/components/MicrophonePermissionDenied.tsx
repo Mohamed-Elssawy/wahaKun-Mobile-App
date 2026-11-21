@@ -1,25 +1,26 @@
 import { MicOff } from 'lucide-react-native';
 
-import { ReportFailureState } from './ReportFailureState';
+import { StateScreen } from '@/components/ui';
+import { t } from '@/i18n';
 
 export type MicrophonePermissionDeniedProps = {
   onOpenSettings: () => void;
-  /** Switches to the صورة tab, the one way forward that needs no microphone. */
-  onUsePhoto: () => void;
+  /** Focuses the text field in voice mode, which needs no microphone, so it is one step. */
+  onUseText: () => void;
 };
 
 /** X-04. The mirror of X-03: same drawing, other permission, other way out. */
 export function MicrophonePermissionDenied({
   onOpenSettings,
-  onUsePhoto,
+  onUseText,
 }: MicrophonePermissionDeniedProps) {
   return (
-    <ReportFailureState
+    <StateScreen
       icon={MicOff}
-      title="لا يمكن الوصول إلى الميكروفون"
-      message="فعّل إذن الميكروفون من الإعدادات لتسجيل وصف المشكلة."
-      action={{ label: 'فتح الإعدادات', onPress: onOpenSettings }}
-      secondaryAction={{ label: 'الإبلاغ بالصورة بدلاً من ذلك', onPress: onUsePhoto }}
+      title={t('x04.title')}
+      message={t('x04.body')}
+      action={{ label: t('common.openSettings'), onPress: onOpenSettings }}
+      secondaryAction={{ label: t('x04.writeInstead'), onPress: onUseText }}
     />
   );
 }

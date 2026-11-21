@@ -1,6 +1,7 @@
 import { CameraOff } from 'lucide-react-native';
 
-import { ReportFailureState } from './ReportFailureState';
+import { StateScreen } from '@/components/ui';
+import { t } from '@/i18n';
 
 export type CameraPermissionDeniedProps = {
   onOpenSettings: () => void;
@@ -8,18 +9,18 @@ export type CameraPermissionDeniedProps = {
   onUseVoice: () => void;
 };
 
-/** X-03. Kept inside F-02, so the header's back and the mode toggle stay reachable. */
+/** X-03. F-02 renders it full-screen, so its link is the one way to the صوت tab from here. */
 export function CameraPermissionDenied({
   onOpenSettings,
   onUseVoice,
 }: CameraPermissionDeniedProps) {
   return (
-    <ReportFailureState
+    <StateScreen
       icon={CameraOff}
-      title="لا يمكن الوصول إلى الكاميرا"
-      message="فعّل إذن الكاميرا من الإعدادات لتصوير المشكلة."
-      action={{ label: 'فتح الإعدادات', onPress: onOpenSettings }}
-      secondaryAction={{ label: 'الإبلاغ بالصوت بدلاً من ذلك', onPress: onUseVoice }}
+      title={t('x03.title')}
+      message={t('x03.body')}
+      action={{ label: t('common.openSettings'), onPress: onOpenSettings }}
+      secondaryAction={{ label: t('x03.useVoiceInstead'), onPress: onUseVoice }}
     />
   );
 }

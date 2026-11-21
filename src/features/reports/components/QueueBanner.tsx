@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/ui';
+import { t, tPlural } from '@/i18n';
 import { colors, radii, screenPadding, spacing } from '@/theme';
 import type { ColorToken } from '@/theme';
 
@@ -20,8 +21,13 @@ type Banner = {
   ink: ColorToken;
 };
 
+export type QueueBannerProps = {
+  /** A list loaded earlier is on screen, so "showing the last update" is true. */
+  showsLastUpdate: boolean;
+};
+
 /** X-01 as a banner, not a wall: an offline farmer can still work. Renders null when quiet. */
-export function QueueBanner() {
+export function QueueBanner({ showsLastUpdate }: QueueBannerProps) {
   const { isOnline, isSending, waitingCount } = useReportQueue();
   const [showDone, setShowDone] = useState(false);
   const [wasWaiting, setWasWaiting] = useState(false);
@@ -50,7 +56,13 @@ export function QueueBanner() {
     return () => clearTimeout(timer);
   }, [showDone]);
 
-  const banner = describe({ isOnline, isSending, waitingCount, showDone });
+  const banner = describeQueueBanner({
+    isOnline,
+    isSending,
+    waitingCount,
+    showDone,
+    showsLastUpdate,
+  });
   if (!banner) {
     return null;
   }
@@ -64,31 +76,39 @@ export function QueueBanner() {
       accessibilityLabel={text}
     >
       <Icon size={ICON_SIZE} color={colors[ink]} />
-      <Text variant="label12" color={ink} align="right" style={styles.text}>
+      <Text variant="label12" color={ink} style={styles.text}>
         {text}
       </Text>
     </View>
   );
 }
 
-function describe({
+/** Exported for its test: which banner, if any, a queue state shows. */
+export function describeQueueBanner({
   isOnline,
   isSending,
   waitingCount,
   showDone,
+  showsLastUpdate,
 }: {
   isOnline: boolean;
   isSending: boolean;
   waitingCount: number;
   showDone: boolean;
+  showsLastUpdate: boolean;
 }): Banner | null {
   if (isSending) {
     return {
       icon: UploadCloud,
-      text: 'جاري إرسال البلاغات…',
+      text: t('x01.sending'),
       fill: 'infoTint',
       ink: 'infoText',
     };
+  }
+
+  // W6: on a fresh offline launch with nothing loaded, X-01's own "no connection" body says it.
+  if (!isOnline && waitingCount === 0 && !showsLastUpdate) {
+    return null;
   }
 
   if (!isOnline) {
@@ -97,8 +117,10 @@ function describe({
       // Naming the count is the point: a queue nobody can see is worse than a failure.
       text:
         waitingCount > 0
-          ? `لا يوجد اتصال — ${countLabel(waitingCount)} في انتظار الإرسال`
-          : 'لا يوجد اتصال — تعرض آخر تحديث',
+          ? t('x01.offlineQueued', {
+              countLabel: tPlural('reports.queuedCount', waitingCount),
+            })
+          : t('x01.offlineStale'),
       fill: 'warningTint',
       ink: 'warningText',
     };
@@ -107,7 +129,7 @@ function describe({
   if (showDone) {
     return {
       icon: CheckCircle2,
-      text: 'تم إرسال جميع البلاغات',
+      text: t('x01.allSent'),
       fill: 'successTint',
       ink: 'successText',
     };
@@ -116,23 +138,9 @@ function describe({
   return null;
 }
 
-/** Arabic counts one, two and many differently; a bare number reads wrong. */
-function countLabel(count: number): string {
-  if (count === 1) {
-    return 'بلاغ واحد';
-  }
-  if (count === 2) {
-    return 'بلاغان';
-  }
-  if (count <= 10) {
-    return `${count} بلاغات`;
-  }
-  return `${count} بلاغًا`;
-}
-
 const styles = StyleSheet.create({
   banner: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[8],
     marginHorizontal: screenPadding,

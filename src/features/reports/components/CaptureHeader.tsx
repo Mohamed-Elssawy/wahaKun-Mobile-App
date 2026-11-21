@@ -1,3 +1,6 @@
+import { t } from '@/i18n';
+import type { TranslationKey } from '@/i18n';
+
 import { CaptureModeToggle } from './CaptureModeToggle';
 import { ReportHeader } from './ReportHeader';
 
@@ -10,14 +13,17 @@ export type CaptureHeaderProps = {
 };
 
 /** Title and subtitle are fully determined by the mode, so they live here. */
-const MODE_COPY: Record<CaptureMode, { title: string; subtitle: string }> = {
+const MODE_COPY: Record<
+  CaptureMode,
+  { title: TranslationKey; subtitle: TranslationKey }
+> = {
   photo: {
-    title: 'الابلاغ بالصورة',
-    subtitle: 'وجه الكاميرا نحو مشكلتك أو ارفق صورة لها',
+    title: 'f02.photoTitle',
+    subtitle: 'f02.photoSubtitle',
   },
   voice: {
-    title: 'الابلاغ بالصوت',
-    subtitle: 'اوصف المشكلة بصوتك أو بالكتابة',
+    title: 'f02.voiceTitle',
+    subtitle: 'f02.voiceSubtitle',
   },
 };
 
@@ -26,7 +32,7 @@ export function CaptureHeader({ mode, onModeChange, onBack }: CaptureHeaderProps
   const { title, subtitle } = MODE_COPY[mode];
 
   return (
-    <ReportHeader title={title} subtitle={subtitle} onBack={onBack}>
+    <ReportHeader title={t(title)} subtitle={t(subtitle)} onBack={onBack}>
       <CaptureModeToggle mode={mode} onChange={onModeChange} />
     </ReportHeader>
   );

@@ -3,15 +3,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { describeError } from '@/features/reports/errors';
 import type { ReportError } from '@/features/reports/errors';
+import { t } from '@/i18n';
 
+import { userApi } from '../services';
 import { loadPreferences, savePreference } from '../services/preferencesStore';
-import { getUserDetails, updateUserDetails } from '../services/userService';
 
 import type { NotificationPreferences } from '../services/preferencesStore';
 import type { UserDetails, UserUpdateRequest } from '../types';
-
-const LOAD_ERROR = 'تعذر تحميل الملف الشخصي، حاول مرة أخرى';
-const SAVE_ERROR = 'تعذر حفظ التغييرات، حاول مرة أخرى';
 
 export function useProfile() {
   const [user, setUser] = useState<UserDetails | null>(null);
@@ -35,14 +33,17 @@ export function useProfile() {
 
     try {
       // Preferences are device-local, so they must not fail with the network call.
-      const [details, stored] = await Promise.all([getUserDetails(), loadPreferences()]);
+      const [details, stored] = await Promise.all([
+        userApi.getUserDetails(),
+        loadPreferences(),
+      ]);
       if (isMounted.current) {
         setUser(details);
         setPreferences(stored);
       }
     } catch (err) {
       if (isMounted.current) {
-        setError(describeError(err, LOAD_ERROR));
+        setError(describeError(err, t('errors.profile.loadFailed')));
       }
     } finally {
       if (isMounted.current) {
@@ -70,7 +71,7 @@ export function useProfile() {
         return true;
       }
 
-      // UserService rebuilds Address from the request, so omitting these nulls NOT NULL columns and 500s the update.
+      // UserService rebuilds Address from the request, so omitting these NOT NULLs and 500s the update.
       const payload: UserUpdateRequest = {
         region: user?.region ?? '',
         village: user?.village ?? '',
@@ -81,14 +82,14 @@ export function useProfile() {
       setSaveError(null);
 
       try {
-        await updateUserDetails(payload);
+        await userApi.updateUserDetails(payload);
         if (isMounted.current) {
           setUser(current => (current ? { ...current, ...changes } : current));
         }
         return true;
       } catch (err) {
         if (isMounted.current) {
-          setSaveError(describeError(err, SAVE_ERROR));
+          setSaveError(describeError(err, t('errors.profile.saveFailed')));
         }
         return false;
       } finally {

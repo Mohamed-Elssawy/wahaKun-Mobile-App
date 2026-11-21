@@ -2,6 +2,7 @@ import { Bell, ChevronDown, MapPin, User } from 'lucide-react-native';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { t } from '@/i18n';
 import { colors, radii, spacing } from '@/theme';
 
 import { Text } from './Text';
@@ -13,7 +14,7 @@ export type AppHeaderProps = {
   /** Region line under the bar, e.g. "واحة سيوة، شمال". Hidden when unknown. */
   location?: string;
   onOpenProfile: () => void;
-  /** Omitted hides the bell. S-06 Notifications has no screen yet, and an inert control lies. */
+  /** Omitted, the bell renders inert - every call site now passes it (P10). */
   onOpenNotifications?: () => void;
 };
 
@@ -43,11 +44,23 @@ export function AppHeader({
         style={[styles.bar, { paddingTop: Math.max(PAD_TOP, insets.top + spacing[4]) }]}
       >
         <View style={styles.row}>
-          <View style={styles.leading}>
+          <Text variant="h3" color="textInverse" style={styles.title}>
+            {title}
+          </Text>
+
+          <View style={styles.controls}>
+            <TouchableOpacity
+              onPress={onOpenNotifications ?? (() => {})}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.notifications')}
+            >
+              <Bell size={ICON_SIZE} color={colors.textInverse} />
+            </TouchableOpacity>
+
             <TouchableOpacity
               onPress={onOpenProfile}
               accessibilityRole="button"
-              accessibilityLabel="الملف الشخصي"
+              accessibilityLabel={t('common.profile')}
             >
               {avatarUrl ? (
                 <Image source={{ uri: avatarUrl }} style={styles.avatar} />
@@ -57,21 +70,7 @@ export function AppHeader({
                 </View>
               )}
             </TouchableOpacity>
-
-            {onOpenNotifications ? (
-              <TouchableOpacity
-                onPress={onOpenNotifications}
-                accessibilityRole="button"
-                accessibilityLabel="الإشعارات"
-              >
-                <Bell size={ICON_SIZE} color={colors.textInverse} />
-              </TouchableOpacity>
-            ) : null}
           </View>
-
-          <Text variant="h3" color="textInverse" align="right" style={styles.title}>
-            {title}
-          </Text>
         </View>
       </View>
 
@@ -94,7 +93,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[24],
     paddingBottom: PAD_BOTTOM,
   },
-  // Plain row: the frame puts the controls left and the title right, so the order is already LTR.
+  // Title first, so it takes the start edge and the controls the far one.
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -102,12 +101,13 @@ const styles = StyleSheet.create({
     // Fixed, so the bar is 110 whatever the title's line height happens to be.
     height: ROW_HEIGHT,
   },
-  leading: {
+  // §8.2 reads bell then avatar from the start, so the avatar lands on the outer edge.
+  controls: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[24],
   },
-  // Takes the rest of the bar so the right-aligned text ends at the 24pt margin.
+  // Takes the rest of the bar so the title ends at the 24pt margin.
   title: {
     flex: 1,
   },
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   locationRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
     gap: spacing[4],

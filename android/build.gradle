@@ -1,3 +1,4 @@
+
 buildscript {
     ext {
         buildToolsVersion = "36.0.0"
@@ -5,7 +6,7 @@ buildscript {
         compileSdkVersion = 36
         targetSdkVersion = 36
         ndkVersion = "30.0.14904198"
-        kotlinVersion = "2.1.20"
+        kotlinVersion = "2.4.21"
     }
     repositories {
         google()
@@ -14,11 +15,9 @@ buildscript {
     dependencies {
         classpath("com.android.tools.build:gradle")
         classpath("com.facebook.react:react-native-gradle-plugin")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
-        // Reads android/app/google-services.json and turns it into the string
-        // resources the native Firebase SDK looks up at startup. Pinned rather
-        // than left to resolve, so a plugin release cannot change the build.
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.4.21")
         classpath("com.google.gms:google-services:4.5.0")
+        classpath("com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:2.3.12")
     }
 }
 

@@ -21,6 +21,21 @@ import type { QueuedReport, QueueReportFields } from '../types';
 
 const INDEX_KEY = 'wk.queue.index';
 
+/** An index written before E4.1 holds two sentences resolved in whatever locale it failed in. */
+type StoredReport = QueuedReport & { failureMessage?: string; lastError?: string };
+
+/** Drops an older build's untranslatable resolved copy, and resets a stuck 'uploading' state that can't survive a cold boot. */
+function restore(stored: StoredReport): QueuedReport {
+  const item: StoredReport = { ...stored };
+
+  delete item.failureMessage;
+  delete item.lastError;
+
+  return item.state === 'uploading'
+    ? { ...item, state: 'queued', nextAttemptAt: 0 }
+    : item;
+}
+
 // Capped at the last step, so a queue left open on a dead connection stops burning battery.
 const BACKOFF_MS = [5_000, 15_000, 45_000, 120_000, 300_000] as const;
 
@@ -39,6 +54,8 @@ export type QueueSnapshot = {
   /** Newest first, matching how My Issues lists them. */
   items: readonly QueuedReport[];
   isOnline: boolean;
+  /** D-QUEUE: ids an auto-upload delivered that nobody has opened yet. Session-only. */
+  unreadDeliveredIds: readonly string[];
 };
 
 type Listener = (snapshot: QueueSnapshot) => void;
@@ -69,10 +86,13 @@ let pausedForAuth = false;
 // localId -> server id for this session. Read once, then discarded.
 const delivered = new Map<string, string>();
 
+// D-QUEUE's unread marker, cleared once the farmer opens that row. Session-only.
+const unreadDelivered = new Set<string>();
+
 const listeners = new Set<Listener>();
 
 function snapshot(): QueueSnapshot {
-  return { items, isOnline };
+  return { items, isOnline, unreadDeliveredIds: [...unreadDelivered] };
 }
 
 function emit(): void {
@@ -108,13 +128,7 @@ async function hydrate(): Promise<void> {
 
   const raw = await AsyncStorage.getItem(INDEX_KEY);
   if (raw) {
-    const stored = JSON.parse(raw) as QueuedReport[];
-    // Nothing is in flight after a cold boot, so an item left 'uploading' would stick.
-    items = stored.map(item =>
-      item.state === 'uploading'
-        ? { ...item, state: 'queued' as const, nextAttemptAt: 0 }
-        : item,
-    );
+    items = (JSON.parse(raw) as StoredReport[]).map(restore);
   }
 
   // A crash between the two writes can leave bytes with no queue entry.
@@ -129,7 +143,7 @@ function scheduleNextAttempt(): void {
     retryTimer = null;
   }
 
-  // Paused on a 401: scheduling now would spin a 0ms timer against a dead token; resume comes from a trigger.
+  // Paused on a 401: scheduling now would spin a 0ms timer against a dead token.
   if (pausedForAuth) {
     return;
   }
@@ -166,18 +180,17 @@ async function handleFailure(item: QueuedReport, error: ReportError): Promise<Ou
       state: 'queued',
       attempts,
       nextAttemptAt: Date.now() + backoffFor(attempts),
-      lastError: error.message,
     });
     // Offline affects every item; a busy server may still accept the next one, but be gentle.
     return 'retry';
   }
 
-  // A refused photo, a too-minor problem or a validation error answer the same a thousand times. Stop.
+  // A refused photo, a too-minor problem or a validation error answer the same every time.
+  // The kind is stored, not the copy: error.message was resolved in the failure's locale, and the row may be read in another.
   await patch(item.localId, {
     state: 'failed',
     failureKind: error.kind,
-    failureMessage: error.message,
-    lastError: undefined,
+    serverMessage: error.serverMessage,
   });
   return 'failed';
 }
@@ -197,7 +210,11 @@ async function uploadOne(item: QueuedReport): Promise<Outcome> {
     }
 
     try {
-      analysis = await reportApi.analyzeIssue(photo);
+      const location =
+        item.latitude !== undefined && item.longitude !== undefined
+          ? { latitude: item.latitude, longitude: item.longitude }
+          : undefined;
+      analysis = await reportApi.analyzeIssue(photo, location);
     } catch (error) {
       return handleFailure(item, describeAnalysisError(error, ''));
     }
@@ -216,6 +233,8 @@ async function uploadOne(item: QueuedReport): Promise<Outcome> {
 
     // Recorded before the drop, so the capture screen can still find where it landed.
     delivered.set(item.localId, report.id);
+    // Set before drop's own emit, so the first snapshot F-07 sees already carries it.
+    unreadDelivered.add(report.id);
     await drop(item.localId);
     return 'sent';
   } catch (error) {
@@ -332,8 +351,7 @@ export async function retryQueuedReport(localId: string): Promise<void> {
     attempts: 0,
     nextAttemptAt: 0,
     failureKind: undefined,
-    failureMessage: undefined,
-    lastError: undefined,
+    serverMessage: undefined,
   });
   await drainQueue();
 }
@@ -346,6 +364,13 @@ export function resumeReportQueue(): void {
 /** Server id of a report delivered this session, or null. Non-consuming: subscribers read after. */
 export function getDeliveredReportId(localId: string): string | null {
   return delivered.get(localId) ?? null;
+}
+
+/** D-QUEUE: clears a report's unread marker once the farmer opens its row. */
+export function markDeliveredSeen(reportId: string): void {
+  if (unreadDelivered.delete(reportId)) {
+    emit();
+  }
 }
 
 export function getQueueSnapshot(): QueueSnapshot {
@@ -403,6 +428,8 @@ export async function clearReportQueue(): Promise<void> {
   // A new login must not inherit the previous farmer's rejected-token pause.
   rejectedToken = null;
   pausedForAuth = false;
+  // Nor the previous farmer's unread markers.
+  unreadDelivered.clear();
   await AsyncStorage.removeItem(INDEX_KEY);
   // Empty live set, so every persisted photo is swept, not just the indexed ones.
   await pruneOrphanedPhotos([]);
@@ -422,6 +449,7 @@ export async function resetReportQueue(): Promise<void> {
   draining = null;
   rejectedToken = null;
   pausedForAuth = false;
+  unreadDelivered.clear();
   listeners.clear();
   await AsyncStorage.removeItem(INDEX_KEY);
 }

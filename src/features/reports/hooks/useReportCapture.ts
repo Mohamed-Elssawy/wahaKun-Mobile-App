@@ -8,6 +8,7 @@ import {
 
 import { useCurrentLocation } from '@/hooks/useCurrentLocation';
 import { useImagePicker } from '@/hooks/useImagePicker';
+import { t } from '@/i18n';
 import type { PickedImage } from '@/types/image';
 
 import { describeError } from '../errors';
@@ -29,6 +30,15 @@ export type SubmitResult =
   /** The photo could not be stored at all. */
   | { kind: 'failed' };
 
+// A function, not a const, so §16.2 resolves the locale after import; compared by this code, not object identity, since each call returns a new object.
+const AWAITING_LOCATION_CODE = 'AWAITING_LOCATION';
+
+const awaitingLocation = (): ReportError => ({
+  kind: 'unknown',
+  code: AWAITING_LOCATION_CODE,
+  message: t('errors.report.locationRequired'),
+});
+
 /** Everything F-02 does that is not layout: camera, both photo sources, and upload. */
 export function useReportCapture(initialMode: CaptureMode = 'photo') {
   const [cameraPosition, setCameraPosition] = useState<TargetCameraPosition>('back');
@@ -44,7 +54,11 @@ export function useReportCapture(initialMode: CaptureMode = 'photo') {
   const photoOutput = usePhotoOutput();
   // No pickFromCamera: the photo tab runs a live preview, so the system camera would double up.
   const { image, error: pickerError, pickFromGallery } = useImagePicker();
-  const location = useCurrentLocation();
+  const {
+    location,
+    status: locationStatus,
+    recheck: recheckLocation,
+  } = useCurrentLocation();
 
   // Owned here because switching mode must also drop the photo being reviewed.
   const [mode, setMode] = useState<CaptureMode>(initialMode);
@@ -72,6 +86,15 @@ export function useReportCapture(initialMode: CaptureMode = 'photo') {
       setPhotoSource('gallery');
     }
   }, [image]);
+
+  // D7: only this one error is cleared, by identity, since a coordinate fixes nothing else.
+  useEffect(() => {
+    if (location) {
+      setSubmitError(current =>
+        current?.code === AWAITING_LOCATION_CODE ? null : current,
+      );
+    }
+  }, [location]);
 
   // Keeps `description`: writing it and then photographing the problem is the flow.
   const changeMode = useCallback((next: CaptureMode) => {
@@ -119,21 +142,28 @@ export function useReportCapture(initialMode: CaptureMode = 'photo') {
       });
       setPhotoSource('camera');
     } catch {
-      setError('تعذر التقاط الصورة، حاول مرة أخرى');
+      setError(t('f02.captureError'));
     }
   }, [photoOutput]);
 
-  /** The queue persists the photo before any network call, so there is no offline branch. */
-  // Returns as soon as the photo is stored; ReportAnalyzing watches the rest by localId.
+  /** Returns as soon as the photo is stored; ReportAnalyzing watches the rest by localId. */
   const submit = useCallback(async (): Promise<SubmitResult> => {
     if (!photo) {
       return { kind: 'failed' };
     }
 
+    // D7: the gate is having a coordinate, not merely not being denied. failed reuses the retry.
+    if (!location) {
+      setSubmitError(awaitingLocation());
+      return { kind: 'failed' };
+    }
+
     setIsSubmitting(true);
+    // Cleared here, not only on discard: otherwise a refusal outlives the retry that fixed it.
+    setSubmitError(null);
 
     try {
-      // Spread, not branch: a refused location permission must never block a report.
+      // location stays typed optional because the service takes it so; the guard above assures it.
       const queued = await enqueueReport({
         photo,
         description: description.trim() || undefined,
@@ -146,12 +176,15 @@ export function useReportCapture(initialMode: CaptureMode = 'photo') {
         return { kind: 'full' };
       }
       // Only reached if the photo itself could not be stored, which no retry fixes.
-      setSubmitError(describeError(err, 'تعذر حفظ الصورة، حاول مرة أخرى.'));
+      setSubmitError(describeError(err, t('f02.saveError')));
       return { kind: 'failed' };
     } finally {
       setIsSubmitting(false);
     }
   }, [photo, description, location]);
+
+  /** X-05. True only on an outright refusal - 'pending' still reads as false, same as camera. */
+  const isLocationDenied = locationStatus === 'denied';
 
   return {
     mode,
@@ -160,10 +193,13 @@ export function useReportCapture(initialMode: CaptureMode = 'photo') {
     hasPermission,
     canFlipCamera: hasOtherCameraPosition,
     flipCamera,
+    isLocationDenied,
+    recheckLocation,
     /** The screen mounts <Camera>, so its output is exposed rather than owned here. */
     photoOutput,
-    /** The live preview is only worth running in this one combination of states. */
-    isPreviewActive: mode === 'photo' && !photo && hasPermission && device != null,
+    // W2: the wall used to draw transparently over a still-live Camera.
+    isPreviewActive:
+      mode === 'photo' && !photo && hasPermission && device != null && !isLocationDenied,
     photo,
     photoSource,
     description,
